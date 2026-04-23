@@ -14,9 +14,11 @@
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE"
       },
-      "edgeToEdgeEnabled": true,
+      "backgroundColor": "#F5F5F5",
+      "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.Selene"
+      "package": "com.anonymous.Selene",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static"

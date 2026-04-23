@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Alert, 
+  ActivityIndicator, 
+  Platform,
+  ScrollView
+} from 'react-native';
+import { Image } from 'expo-image'; 
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Feather, FontAwesome5 } from '@expo/vector-icons'; 
+import { StatusBar } from 'expo-status-bar';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -20,14 +34,12 @@ export default function Login() {
     try {
       const response = await axios.post('https://selene-mobile.onrender.com/api/v1/auth/login', { 
         email: email.trim().toLowerCase(), 
-        senha: password // Campo esperado pelo seu back
+        senha: password 
       });
 
       if (response.data.success) {
-        // SALVAR O TOKEN
         const token = response.data.data.token;
         await SecureStore.setItemAsync('userToken', token);
-
         Alert.alert("Sucesso", "Bem-vindo ao Selene!");
         router.replace('/(tabs)/home'); 
       }
@@ -41,48 +53,181 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Selene</Text>
+    // View principal com a cor de fundo fixa para evitar a barra branca vazada
+    <View style={styles.mainContainer}>
+      <StatusBar style="dark" />
       
-      <TextInput 
-        style={styles.input} 
-        placeholder="E-mail" 
-        placeholderTextColor="#888" 
-        value={email} 
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      
-      <TextInput 
-        style={styles.input} 
-        placeholder="Senha" 
-        placeholderTextColor="#888" 
-        secureTextEntry 
-        value={password} 
-        onChangeText={setPassword} 
-      />
-      
-      <TouchableOpacity 
-        style={[styles.button, loading && { opacity: 0.7 }]} 
-        onPress={handleLogin}
-        disabled={loading}
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }} 
+        bounces={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
-      </TouchableOpacity>
-      
-      <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-        <Text style={styles.link}>Ainda não tem conta? <Text style={{fontWeight: 'bold'}}>Registe-se</Text></Text>
-      </TouchableOpacity>
+        
+        {/* Parte Superior - Logo */}
+        <View style={styles.topContainer}>
+          <Image
+            source={require('../../assets/images/logo_selene_login.svg')}
+            style={styles.logo}
+            contentFit="contain"
+            transition={200}
+          />
+        </View>
+
+        {/* Parte Inferior - Formulário Verde */}
+        <View style={styles.bottomContainer}>
+          
+          <Text style={styles.label}>Email:</Text>
+          <View style={styles.inputContainer}>
+            <TextInput 
+              style={styles.input} 
+              placeholder="example@example.com" 
+              placeholderTextColor="#A0A0A0" 
+              value={email} 
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+          
+          <Text style={styles.label}>Senha:</Text>
+          <View style={styles.inputContainer}>
+            <TextInput 
+              style={styles.input} 
+              placeholder="••••••••" 
+              placeholderTextColor="#A0A0A0" 
+              secureTextEntry={!showPassword} 
+              value={password} 
+              onChangeText={setPassword} 
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={[styles.button, loading && { opacity: 0.7 }]} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Login</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push('/(auth)/forgot')}>
+            <Text style={styles.forgotPassword}>Esqueceu sua senha?</Text>
+          </TouchableOpacity>
+
+          <View style={styles.socialContainer}>
+            <Text style={styles.socialText}>Acessar com:</Text>
+            <View style={styles.socialIconsRow}> 
+              <TouchableOpacity style={styles.socialIconButton}>
+                <FontAwesome5 name="facebook-f" size={20} color="#2A3A56" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialIconButton}>
+                <FontAwesome5 name="google" size={20} color="#2A3A56" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121212', justifyContent: 'center', padding: 25 },
-  title: { fontSize: 48, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 50 },
-  input: { backgroundColor: '#1E1E1E', color: '#fff', padding: 18, borderRadius: 12, marginBottom: 15, fontSize: 16, borderWidth: 1, borderColor: '#333' },
-  button: { backgroundColor: '#4CAF50', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 10 },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
-  link: { color: '#4CAF50', textAlign: 'center', marginTop: 25, fontSize: 15 }
+  mainContainer: { 
+    flex: 1, 
+    backgroundColor: '#F5F5F5' // Força a cor aqui para não aparecer barra branca
+  },
+  topContainer: {
+    flex: 0.4, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 50,
+    minHeight: 200, // Garante espaço mínimo para a logo
+  },
+  logo: {
+    width: 250,
+    height: 100,
+  },
+  bottomContainer: {
+    flex: 1, // Faz o container verde ocupar o resto da tela
+    backgroundColor: '#95C159', 
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingHorizontal: 30,
+    paddingTop: 40,
+    paddingBottom: 40, // Aumentado para garantir respiro no final
+  },
+  label: {
+    color: '#2A3A56', 
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    marginLeft: 5,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    height: 50,
+  },
+  input: {
+    flex: 1,
+    color: '#333',
+    fontSize: 16,
+  },
+  eyeIcon: {
+    padding: 5,
+  },
+  button: { 
+    backgroundColor: '#2A3A56', 
+    height: 55,
+    borderRadius: 25, 
+    justifyContent: 'center',
+    alignItems: 'center', 
+    marginTop: 10,
+    marginBottom: 15,
+  },
+  buttonText: { 
+    color: '#FFF', 
+    fontWeight: 'bold', 
+    fontSize: 18 
+  },
+  forgotPassword: {
+    color: '#2A3A56',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 13,
+    marginBottom: 40,
+  },
+  socialContainer: {
+    alignItems: 'center',
+    marginTop: 'auto', // Empurra para o fim do container verde
+  },
+  socialText: {
+    color: '#2A3A56',
+    fontSize: 14,
+    marginBottom: 15,
+  },
+  socialIconsRow: {
+    flexDirection: 'row',
+  },
+  socialIconButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1.5,
+    borderColor: '#2A3A56',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 10,
+  }
 });
