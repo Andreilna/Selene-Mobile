@@ -4,14 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 export default function TabsLayout() {
   return (
     <Tabs screenOptions={{ 
-      tabBarStyle: { backgroundColor: '#1E1E1E', borderTopWidth: 0 },
+      tabBarStyle: { backgroundColor: '#1E1E1E' },
       tabBarActiveTintColor: '#4CAF50',
-      headerStyle: { backgroundColor: '#121212' },
-      headerTintColor: '#fff'
+      headerShown: false, // Isso remove a barra branca do topo se você não quiser
     }}>
-      {/* IMPORTANTE: O 'name' deve ser exatamente o nome do arquivo .tsx 
-         que está na mesma pasta que este _layout.
-      */}
       <Tabs.Screen 
         name="home" 
         options={{ 
