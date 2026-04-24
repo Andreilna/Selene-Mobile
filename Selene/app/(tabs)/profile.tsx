@@ -17,6 +17,7 @@ import * as SecureStore from 'expo-secure-store';
 export default function ProfileScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false); // Estado para controle de admin
   const [userData, setUserData] = useState({
     nome: '',
     id: '',
@@ -26,9 +27,12 @@ export default function ProfileScreen() {
   useEffect(() => {
     const loadProfileData = async () => {
       try {
-        // Puxa o nome que o ADM cadastrou e que foi salvo no Login
         const nomeCompleto = await SecureStore.getItemAsync('userName');
         const userId = await SecureStore.getItemAsync('userId');
+        const role = await SecureStore.getItemAsync('userRole'); // Puxa o cargo do user
+
+        // Verifica se é admin para mostrar botões extras
+        setIsAdmin(role === 'admin');
 
         if (nomeCompleto) {
           const partes = nomeCompleto.trim().split(' ');
@@ -59,6 +63,7 @@ export default function ProfileScreen() {
         text: "Sair", 
         onPress: async () => {
           await SecureStore.deleteItemAsync('userToken');
+          await SecureStore.deleteItemAsync('userRole');
           router.replace('/(auth)'); 
         }
       }
@@ -67,7 +72,6 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header Verde - Fundo superior */}
       <View style={styles.headerBackground}>
         <SafeAreaView style={styles.headerContent}>
           <Text style={styles.headerTitle}>Perfil</Text>
@@ -82,11 +86,10 @@ export default function ProfileScreen() {
         </SafeAreaView>
       </View>
 
-      {/* Card Branco Central */}
       <View style={styles.profileCard}>
         <View style={styles.imageContainer}>
           <Image 
-            source="https://i.pravatar.cc/300" // Placeholder de foto
+            source="https://i.pravatar.cc/300" 
             style={styles.profileImage}
           />
         </View>
@@ -101,36 +104,58 @@ export default function ProfileScreen() {
         )}
 
         <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
-          {/* Edit Profile */}
+          
+          {/* SEÇÃO ADMINISTRATIVA (Só aparece se isAdmin for true) */}
+          {isAdmin && (
+            <View style={styles.adminSection}>
+              <Text style={styles.sectionLabel}>Administração</Text>
+              
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/users')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#2A3A56' }]}>
+                  <Ionicons name="people-outline" size={22} color="#FFF" />
+                </View>
+                <Text style={styles.menuText}>Gerenciar Usuários</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/sensors')}>
+                <View style={[styles.menuIconContainer, { backgroundColor: '#2A3A56' }]}>
+                  <MaterialCommunityIcons name="センサー" size={22} color="#FFF" /> 
+                  <Ionicons name="hardware-chip-outline" size={22} color="#FFF" />
+                </View>
+                <Text style={styles.menuText}>Gerenciar Sensores</Text>
+              </TouchableOpacity>
+              <View style={styles.divider} />
+            </View>
+          )}
+
+          <Text style={styles.sectionLabel}>Configurações</Text>
+
           <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/edit-profile')}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#00D1A0' }]}>
-              <Ionicons name="person-outline" size={24} color="#FFF" />
+            <View style={[styles.menuIconContainer, { backgroundColor: '#95C159' }]}>
+              <Ionicons name="person-outline" size={22} color="#FFF" />
             </View>
-            <Text style={styles.menuText}>Edit Profile</Text>
+            <Text style={styles.menuText}>Editar Perfil</Text>
           </TouchableOpacity>
 
-          {/* Security (Onde ele vai mudar a senha) */}
           <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/password')}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#00D1A0' }]}>
-              <Ionicons name="shield-checkmark-outline" size={24} color="#FFF" />
+            <View style={[styles.menuIconContainer, { backgroundColor: '#95C159' }]}>
+              <Ionicons name="shield-checkmark-outline" size={22} color="#FFF" />
             </View>
-            <Text style={styles.menuText}>Security</Text>
+            <Text style={styles.menuText}>Segurança</Text>
           </TouchableOpacity>
 
-          {/* Suporte */}
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#00D1A0' }]}>
-              <Ionicons name="headset-outline" size={24} color="#FFF" />
+            <View style={[styles.menuIconContainer, { backgroundColor: '#95C159' }]}>
+              <Ionicons name="headset-outline" size={22} color="#FFF" />
             </View>
             <Text style={styles.menuText}>Suporte</Text>
           </TouchableOpacity>
 
-          {/* Logout */}
-          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+          <TouchableOpacity style={[styles.menuItem, { marginTop: 10 }]} onPress={handleLogout}>
             <View style={[styles.menuIconContainer, { backgroundColor: '#FF4B4B' }]}>
-              <MaterialCommunityIcons name="logout" size={24} color="#FFF" />
+              <MaterialCommunityIcons name="logout" size={22} color="#FFF" />
             </View>
-            <Text style={styles.menuText}>Logout</Text>
+            <Text style={[styles.menuText, { color: '#FF4B4B' }]}>Sair da Conta</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -142,7 +167,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   headerBackground: { 
     backgroundColor: '#95C159', 
-    height: 200, 
+    height: 180, 
     borderBottomLeftRadius: 50, 
     borderBottomRightRadius: 50 
   },
@@ -176,19 +201,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -60,
     alignSelf: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFF',
     padding: 5,
     borderRadius: 65,
+    elevation: 4
   },
   profileImage: { width: 120, height: 120, borderRadius: 60 },
   userName: { fontSize: 22, fontWeight: 'bold', color: '#2A3A56', textAlign: 'center' },
-  userId: { fontSize: 14, color: '#2A3A56', textAlign: 'center', opacity: 0.6, marginBottom: 30 },
+  userId: { fontSize: 14, color: '#2A3A56', textAlign: 'center', opacity: 0.6, marginBottom: 25 },
   menuList: { paddingHorizontal: 25 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  sectionLabel: { fontSize: 12, fontWeight: 'bold', color: '#A0A0A0', textTransform: 'uppercase', marginBottom: 15, marginLeft: 5 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
   menuIconContainer: { 
-    width: 45, height: 45, borderRadius: 15, 
+    width: 40, height: 40, borderRadius: 12, 
     justifyContent: 'center', alignItems: 'center',
     marginRight: 15
   },
-  menuText: { fontSize: 16, fontWeight: '600', color: '#2A3A56' }
+  menuText: { fontSize: 16, fontWeight: '600', color: '#2A3A56' },
+  adminSection: { marginBottom: 10 },
+  divider: { height: 1, backgroundColor: '#F0F0F0', marginVertical: 15 },
 });

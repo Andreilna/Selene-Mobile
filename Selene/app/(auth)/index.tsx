@@ -38,9 +38,18 @@ export default function Login() {
       });
 
       if (response.data.success) {
-        const token = response.data.data.token;
+        // EXTRAÇÃO DOS DADOS REAIS DO BANCO
+        const { token, usuario } = response.data.data;
+        const nomeCompleto = usuario.nome_completo;
+        const emailUsuario = usuario.email;
+        const userId = usuario._id;
+
+        // SALVANDO NO "ARMÁRIO" SEGURO PARA USO NAS OUTRAS TELAS
         await SecureStore.setItemAsync('userToken', token);
-        Alert.alert("Sucesso", "Bem-vindo ao Selene!");
+        await SecureStore.setItemAsync('userName', nomeCompleto);
+        await SecureStore.setItemAsync('userEmail', emailUsuario);
+        await SecureStore.setItemAsync('userId', userId);
+
         router.replace('/(tabs)/home'); 
       }
       
@@ -53,7 +62,6 @@ export default function Login() {
   };
 
   return (
-    // View principal com a cor de fundo fixa para evitar a barra branca vazada
     <View style={styles.mainContainer}>
       <StatusBar style="dark" />
       
@@ -83,9 +91,11 @@ export default function Login() {
               placeholder="example@example.com" 
               placeholderTextColor="#A0A0A0" 
               value={email} 
-              onChangeText={setEmail}
-              autoCapitalize="none"
+              // FORÇA MINÚSCULO ENQUANTO DIGITA
+              onChangeText={(text) => setEmail(text.toLowerCase())}
+              autoCapitalize="none" // IMPEDE A PRIMEIRA LETRA MAIÚSCULA
               keyboardType="email-address"
+              autoCorrect={false}
             />
           </View>
           
@@ -97,6 +107,7 @@ export default function Login() {
               placeholderTextColor="#A0A0A0" 
               secureTextEntry={!showPassword} 
               value={password} 
+              autoCapitalize="none"
               onChangeText={setPassword} 
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
@@ -141,27 +152,27 @@ export default function Login() {
 const styles = StyleSheet.create({
   mainContainer: { 
     flex: 1, 
-    backgroundColor: '#F5F5F5' // Força a cor aqui para não aparecer barra branca
+    backgroundColor: '#F5F5F5' 
   },
   topContainer: {
     flex: 0.4, 
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 50,
-    minHeight: 200, // Garante espaço mínimo para a logo
+    minHeight: 200, 
   },
   logo: {
     width: 250,
     height: 100,
   },
   bottomContainer: {
-    flex: 1, // Faz o container verde ocupar o resto da tela
+    flex: 1, 
     backgroundColor: '#95C159', 
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     paddingHorizontal: 30,
     paddingTop: 40,
-    paddingBottom: 40, // Aumentado para garantir respiro no final
+    paddingBottom: 40, 
   },
   label: {
     color: '#2A3A56', 
@@ -210,7 +221,7 @@ const styles = StyleSheet.create({
   },
   socialContainer: {
     alignItems: 'center',
-    marginTop: 'auto', // Empurra para o fim do container verde
+    marginTop: 'auto', 
   },
   socialText: {
     color: '#2A3A56',

@@ -12,10 +12,12 @@ import { Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
 import { Image } from 'expo-image'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store'; // Mudado para SecureStore para bater com seu Login
+import * as SecureStore from 'expo-secure-store';
 
 export default function HomeScreen() {
   const router = useRouter();
+  
+  // Estados com valores padrão genéricos
   const [nomeUsuario, setNomeUsuario] = useState('Usuário');
   const [iniciais, setIniciais] = useState('US');
   const [loading, setLoading] = useState(true);
@@ -23,25 +25,30 @@ export default function HomeScreen() {
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
-        // Buscando o token ou dados do usuário salvos no Login
-        // Se você salvou o objeto do usuário no Login, ajuste a chave aqui
-        const nomeSalvo = await SecureStore.getItemAsync('userName') || "Andrei Lucas"; 
+        // Busca o nome salvo no login sem valor fixo de fallback aqui
+        const nomeSalvo = await SecureStore.getItemAsync('userName'); 
         
         if (nomeSalvo) {
           const partes = nomeSalvo.trim().split(' ');
+          
+          // Define o nome (Primeiro + Segundo nome ou apenas o primeiro)
           const primeiroSegundo = partes.length > 1 
             ? `${partes[0]} ${partes[1]}` 
             : partes[0];
-          
           setNomeUsuario(primeiroSegundo);
 
+          // Gera as iniciais dinâmicas
           const init = partes.length > 1 
             ? (partes[0][0] + partes[1][0]).toUpperCase()
             : partes[0][0].toUpperCase();
           setIniciais(init);
+        } else {
+          // Opcional: Se não houver nome, você pode mandar o usuário de volta para o login
+          // router.replace('/(auth)');
+          console.warn("Nenhum usuário encontrado no SecureStore");
         }
       } catch (e) {
-        console.error("Erro ao carregar nome", e);
+        console.error("Erro ao carregar dados do SecureStore", e);
       } finally {
         setLoading(false);
       }
@@ -92,7 +99,6 @@ export default function HomeScreen() {
               </View>
               
               <View style={styles.headerIcons}>
-                {/* BOTÃO DAS INICIAIS: Redireciona para a tela de Perfil */}
                 <TouchableOpacity 
                   style={styles.avatarCircle}
                   onPress={() => router.push('/(tabs)/profile')} 

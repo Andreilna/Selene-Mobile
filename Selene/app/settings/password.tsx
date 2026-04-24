@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -8,7 +8,7 @@ import {
   Alert, 
   ActivityIndicator 
 } from 'react-native';
-import { Ionicons, Octicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -16,15 +16,34 @@ import * as SecureStore from 'expo-secure-store';
 export default function PasswordScreen() {
   const router = useRouter();
   
-  // Estados para os campos
+  // Estados para os campos de texto
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPasswords, setShowPasswords] = useState(false);
+  const [iniciais, setIniciais] = useState('AL');
+
+  // Estados independentes para visibilidade das senhas
+  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
+  const [showNovaSenha, setShowNovaSenha] = useState(false);
+  const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
+
+  // Carrega as iniciais dinâmicas ao montar a tela
+  useEffect(() => {
+    const carregarIniciais = async () => {
+      const nome = await SecureStore.getItemAsync('userName');
+      if (nome) {
+        const partes = nome.trim().split(' ');
+        const init = partes.length > 1 
+          ? (partes[0][0] + partes[1][0]).toUpperCase()
+          : partes[0][0].toUpperCase();
+        setIniciais(init);
+      }
+    };
+    carregarIniciais();
+  }, []);
 
   const handleUpdatePassword = async () => {
-    // 1. Validações Iniciais
     if (!senhaAtual || !novaSenha || !confirmarSenha) {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
@@ -43,7 +62,6 @@ export default function PasswordScreen() {
     setLoading(true);
 
     try {
-      // 2. Recupera o token do mesmo lugar que o Login salvou
       const token = await SecureStore.getItemAsync('userToken');
 
       if (!token) {
@@ -52,7 +70,6 @@ export default function PasswordScreen() {
         return;
       }
 
-      // 3. Chamada para a API no Render
       const response = await fetch('https://selene-mobile.onrender.com/api/v1/auth/alterar-senha', {
         method: 'PUT',
         headers: {
@@ -71,12 +88,11 @@ export default function PasswordScreen() {
         Alert.alert("Sucesso!", "Sua senha foi atualizada com segurança.");
         router.back();
       } else {
-        // Exibe a mensagem de erro que vem do seu Backend (ex: "Senha atual incorreta")
         Alert.alert("Ops!", data.message || "Algo deu errado ao trocar a senha.");
       }
     } catch (error) {
       console.error("Erro na requisição:", error);
-      Alert.alert("Erro de Conexão", "Não foi possível falar com o servidor. Verifique sua internet.");
+      Alert.alert("Erro de Conexão", "Não foi possível falar com o servidor.");
     } finally {
       setLoading(false);
     }
@@ -84,7 +100,6 @@ export default function PasswordScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header com a cor verde Selene */}
       <View style={styles.topSection}>
         <SafeAreaView edges={['top']} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -92,62 +107,70 @@ export default function PasswordScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Segurança</Text>
           <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => setShowPasswords(!showPasswords)}>
-               <Ionicons name={showPasswords ? "eye-off-outline" : "eye-outline"} size={22} color="#2A3A56" />
-            </TouchableOpacity>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>AL</Text>
+              <Text style={styles.avatarText}>{iniciais}</Text>
             </View>
           </View>
         </SafeAreaView>
       </View>
 
-      {/* Card de Inputs */}
       <View style={styles.contentCard}>
         <Text style={styles.cardInfo}>Mantenha sua conta segura atualizando sua senha regularmente.</Text>
 
+        {/* Senha Atual */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Senha Atual:</Text>
           <View style={styles.inputWrapper}>
             <TextInput 
               placeholder="••••••••••••" 
-              secureTextEntry={!showPasswords}
+              secureTextEntry={!showSenhaAtual}
               style={styles.input} 
               placeholderTextColor="#A0A0A0"
               value={senhaAtual}
+              autoCapitalize="none"
               onChangeText={setSenhaAtual}
             />
-            <Ionicons name="lock-closed-outline" size={20} color="#00D1A0" />
+            <TouchableOpacity onPress={() => setShowSenhaAtual(!showSenhaAtual)} style={styles.eyeIcon}>
+              <Feather name={showSenhaAtual ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+            </TouchableOpacity>
           </View>
         </View>
 
+        {/* Nova Senha */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Nova Senha:</Text>
           <View style={styles.inputWrapper}>
             <TextInput 
               placeholder="••••••••••••" 
-              secureTextEntry={!showPasswords}
+              secureTextEntry={!showNovaSenha}
               style={styles.input} 
               placeholderTextColor="#A0A0A0"
               value={novaSenha}
+              autoCapitalize="none"
               onChangeText={setNovaSenha}
             />
-            <Ionicons name="key-outline" size={20} color="#00D1A0" />
+            <TouchableOpacity onPress={() => setShowNovaSenha(!showNovaSenha)} style={styles.eyeIcon}>
+              <Feather name={showNovaSenha ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+            </TouchableOpacity>
           </View>
         </View>
 
+        {/* Confirmar Nova Senha */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Confirmar Nova Senha:</Text>
           <View style={styles.inputWrapper}>
             <TextInput 
               placeholder="••••••••••••" 
-              secureTextEntry={!showPasswords}
+              secureTextEntry={!showConfirmarSenha}
               style={styles.input} 
               placeholderTextColor="#A0A0A0"
               value={confirmarSenha}
+              autoCapitalize="none"
               onChangeText={setConfirmarSenha}
             />
-            <Ionicons name="shield-checkmark-outline" size={20} color="#00D1A0" />
+            <TouchableOpacity onPress={() => setShowConfirmarSenha(!showConfirmarSenha)} style={styles.eyeIcon}>
+              <Feather name={showConfirmarSenha ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -180,14 +203,14 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56' },
   headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   avatarCircle: { 
-    width: 32, 
-    height: 32, 
-    borderRadius: 16, 
+    width: 36, 
+    height: 36, 
+    borderRadius: 18, 
     backgroundColor: '#EDFCED', 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
-  avatarText: { fontSize: 10, fontWeight: 'bold', color: '#2A3A56' },
+  avatarText: { fontSize: 12, fontWeight: 'bold', color: '#2A3A56' },
   contentCard: { 
     flex: 1, 
     backgroundColor: '#FFF', 
@@ -222,6 +245,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center', 
     marginTop: 20 
+  },
+  eyeIcon: {
+    padding: 5,
   },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
 });
