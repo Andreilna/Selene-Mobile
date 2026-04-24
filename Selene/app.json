@@ -4,6 +4,7 @@
     "slug": "Selene",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
     "scheme": "selene",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -12,12 +13,11 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#E6F4FE"
       },
       "backgroundColor": "#F5F5F5",
-      "edgeToEdgeEnabled": false,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.Selene",
+      "package": "com.dinozin.selene",
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
@@ -28,19 +28,21 @@
       [
         "expo-splash-screen",
         {
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#ffffff"
         }
       ],
       "expo-secure-store"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "161141de-65b4-4a53-91d4-c2c80a6ae871"
+      }
     }
   }
 }
