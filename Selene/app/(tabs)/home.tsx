@@ -1,44 +1,64 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Adicionado useState e useEffect
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
   TouchableOpacity, 
-  Platform 
+  ActivityIndicator 
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
 import { Image } from 'expo-image'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Para ler o nome salvo no Login
 
 export default function HomeScreen() {
+  const [nomeUsuario, setNomeUsuario] = useState('Usuário');
+  const [iniciais, setIniciais] = useState('US');
+  const [loading, setLoading] = useState(true);
+
+  // Lógica para buscar o nome e formatar
+  useEffect(() => {
+    const carregarDadosUsuario = async () => {
+      try {
+        // Tenta pegar o nome salvo no AsyncStorage (ou você pode fazer um axios.get aqui)
+        const nomeSalvo = await AsyncStorage.getItem('@user_name'); 
+        
+        if (nomeSalvo) {
+          const partes = nomeSalvo.trim().split(' ');
+          // Pega o primeiro e o segundo nome (se existir)
+          const primeiroSegundo = partes.length > 1 
+            ? `${partes[0]} ${partes[1]}` 
+            : partes[0];
+          
+          setNomeUsuario(primeiroSegundo);
+
+          // Gera iniciais (Ex: Andrei Lucas -> AL)
+          const init = partes.length > 1 
+            ? (partes[0][0] + partes[1][0]).toUpperCase()
+            : partes[0][0].toUpperCase();
+          setIniciais(init);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar nome", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDadosUsuario();
+  }, []);
+
   const dadosGerais = {
-    nome: 'Lucas Barros',
     totalAnalises: 560,
     totalDeteccoes: 23,
     porcentagem: 30,
   };
 
   const alertas = [
-    {
-      id: 1,
-      tipo: 'risco',
-      gravidade: 'Alta',
-      mensagem: 'Risco elevado detectado',
-      submensagem: 'Detecção de possível contaminação por fungo invasor',
-      estufa: 2,
-      tempo: 'há 15 minutos',
-    },
-    {
-      id: 2,
-      tipo: 'umidade',
-      gravidade: 'Média',
-      mensagem: 'Umidade acima do ideal',
-      submensagem: 'Umidade está 5% acima do recomendado',
-      estufa: 3,
-      tempo: 'há cerca de 1 hora',
-    },
+    { id: 1, tipo: 'risco', gravidade: 'Alta', mensagem: 'Risco elevado detectado', submensagem: 'Possível contaminação por fungo', estufa: 2, tempo: 'há 15 min' },
+    { id: 2, tipo: 'umidade', gravidade: 'Média', mensagem: 'Umidade acima do ideal', submensagem: 'Umidade 5% acima do recomendado', estufa: 3, tempo: 'há 1 hora' },
   ];
 
   const renderCardGeral = (icon: any, label: string, value: string) => (
@@ -56,22 +76,24 @@ export default function HomeScreen() {
     <View style={styles.mainContainer}>
       <StatusBar style="light" />
       
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent} 
-        bounces={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Topo Verde */}
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         <View style={styles.topContainer}>
           <SafeAreaView edges={['top', 'left', 'right']} style={styles.topContent}>
             <View style={styles.header}>
               <View>
-                <Text style={styles.welcomeText}>Olá, {dadosGerais.nome}</Text>
-                <Text style={styles.subwelcomeText}>Bem-vindo novamente!</Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#2A3A56" />
+                ) : (
+                  <>
+                    <Text style={styles.welcomeText}>Olá, {nomeUsuario}</Text>
+                    <Text style={styles.subwelcomeText}>Bem-vindo novamente!</Text>
+                  </>
+                )}
               </View>
+              
               <View style={styles.headerIcons}>
                 <View style={styles.avatarCircle}>
-                  <Text style={styles.avatarText}>LB</Text>
+                  <Text style={styles.avatarText}>{iniciais}</Text>
                 </View>
                 <TouchableOpacity style={styles.iconButton}>
                   <Octicons name="bell" size={24} color="#F5F5F5" />
@@ -79,6 +101,7 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            {/* Restante do seu código (Resumo, Progress Bar, etc...) */}
             <View style={styles.resumoContainer}>
               <View style={styles.resumoItem}>
                 <View style={styles.resumoHeader}>
@@ -111,7 +134,7 @@ export default function HomeScreen() {
           </SafeAreaView>
         </View>
 
-        {/* Conteúdo Inferior */}
+        {/* Visão Geral, Alertas e Gráfico permanecem iguais... */}
         <View style={styles.bottomContainer}>
           <View style={styles.sectionHeaderGeral}>
             <MaterialCommunityIcons name="view-dashboard-outline" size={24} color="#2A3A56" />
@@ -125,6 +148,7 @@ export default function HomeScreen() {
             {renderCardGeral(<MaterialCommunityIcons name="cloud" size={16} color="#2A3A56" />, 'CO2', '100')}
           </View>
 
+          {/* ... restante do código original ... */}
           <View style={[styles.sectionHeaderGeral, { marginBottom: 15 }]}>
             <Ionicons name="warning-outline" size={24} color="#2A3A56" />
             <Text style={styles.sectionTitle}>Alertas({alertas.length})</Text>
@@ -170,7 +194,6 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* ÁREA DO GRÁFICO ARRUMADA */}
           <View style={styles.graficoContainer}>
             <View style={styles.graficoContentRow}>
               <View style={styles.graficoEscalaLateral}>
@@ -200,6 +223,7 @@ export default function HomeScreen() {
   );
 }
 
+// ... Styles permanecem os mesmos ...
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
   scrollContent: { flexGrow: 1 },

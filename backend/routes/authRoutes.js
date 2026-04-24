@@ -22,4 +22,7 @@ router.put('/perfil', authMiddleware, AuthController.uploadFoto(), AuthControlle
 // PUT /api/v1/auth/usuarios/:userId/status - Alterar status do usuário (requer admin)
 router.put('/usuarios/:userId/status', adminAuthMiddleware, AuthController.alterarStatusUsuario);
 
+// PUT /api/v1/auth/alterar-senha - Alterar senha (requer autenticação)
+router.put('/alterar-senha', authMiddleware, AuthController.alterarSenha);
+
 module.exports = router;
