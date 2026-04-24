@@ -13,10 +13,53 @@ export default function TabLayout() {
         tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
       }}
     >
-      <Tabs.Screen name="home" options={{ title: 'Início', tabBarIcon: ({ color }) => <SimpleLineIcons name="home" size={24} color={color} /> }} />
-      <Tabs.Screen name="estufas" options={{ title: 'Estufas', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="greenhouse" size={28} color={color} /> }} />
-      <Tabs.Screen name="relatorios" options={{ title: 'Relatórios', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="file-eye-outline" size={26} color={color} /> }} />
-      <Tabs.Screen name="settings" options={{ title: 'Configurações', tabBarIcon: ({ color }) => <SimpleLineIcons name="settings" size={24} color={color} /> }} />
+      <Tabs.Screen 
+        name="home" 
+        options={{ 
+          title: 'Início', 
+          tabBarIcon: ({ color }) => <SimpleLineIcons name="home" size={24} color={color} /> 
+        }} 
+      />
+      
+      <Tabs.Screen 
+        name="estufas" 
+        options={{ 
+          title: 'Estufas', 
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="greenhouse" size={28} color={color} /> 
+        }} 
+      />
+      
+      <Tabs.Screen 
+        name="relatorios" 
+        options={{ 
+          title: 'Relatórios', 
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="file-eye-outline" size={26} color={color} /> 
+        }} 
+      />
+
+      {/* ROTA DO PERFIL: ACESSÍVEL PELO AVATAR, MAS OCULTA NA TAB BAR */}
+      <Tabs.Screen 
+        name="profile" 
+        options={{ 
+          href: null, 
+        }} 
+      />
+
+      {/* ROTA DE EDIÇÃO: ACESSÍVEL PELO BOTÃO NO PERFIL, MAS OCULTA NA TAB BAR */}
+      <Tabs.Screen 
+        name="edit-profile" 
+        options={{ 
+          href: null, 
+        }} 
+      />
+
+      <Tabs.Screen 
+        name="settings" 
+        options={{ 
+          title: 'Configurações', 
+          tabBarIcon: ({ color }) => <SimpleLineIcons name="settings" size={24} color={color} /> 
+        }} 
+      />
     </Tabs>
   );
 }

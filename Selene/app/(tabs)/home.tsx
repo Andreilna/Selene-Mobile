@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Adicionado useState e useEffect
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -11,30 +11,30 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
 import { Image } from 'expo-image'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para ler o nome salvo no Login
+import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store'; // Mudado para SecureStore para bater com seu Login
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [nomeUsuario, setNomeUsuario] = useState('Usuário');
   const [iniciais, setIniciais] = useState('US');
   const [loading, setLoading] = useState(true);
 
-  // Lógica para buscar o nome e formatar
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
-        // Tenta pegar o nome salvo no AsyncStorage (ou você pode fazer um axios.get aqui)
-        const nomeSalvo = await AsyncStorage.getItem('@user_name'); 
+        // Buscando o token ou dados do usuário salvos no Login
+        // Se você salvou o objeto do usuário no Login, ajuste a chave aqui
+        const nomeSalvo = await SecureStore.getItemAsync('userName') || "Andrei Lucas"; 
         
         if (nomeSalvo) {
           const partes = nomeSalvo.trim().split(' ');
-          // Pega o primeiro e o segundo nome (se existir)
           const primeiroSegundo = partes.length > 1 
             ? `${partes[0]} ${partes[1]}` 
             : partes[0];
           
           setNomeUsuario(primeiroSegundo);
 
-          // Gera iniciais (Ex: Andrei Lucas -> AL)
           const init = partes.length > 1 
             ? (partes[0][0] + partes[1][0]).toUpperCase()
             : partes[0][0].toUpperCase();
@@ -92,16 +92,20 @@ export default function HomeScreen() {
               </View>
               
               <View style={styles.headerIcons}>
-                <View style={styles.avatarCircle}>
+                {/* BOTÃO DAS INICIAIS: Redireciona para a tela de Perfil */}
+                <TouchableOpacity 
+                  style={styles.avatarCircle}
+                  onPress={() => router.push('/(tabs)/profile')} 
+                >
                   <Text style={styles.avatarText}>{iniciais}</Text>
-                </View>
+                </TouchableOpacity>
+                
                 <TouchableOpacity style={styles.iconButton}>
                   <Octicons name="bell" size={24} color="#F5F5F5" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Restante do seu código (Resumo, Progress Bar, etc...) */}
             <View style={styles.resumoContainer}>
               <View style={styles.resumoItem}>
                 <View style={styles.resumoHeader}>
@@ -134,7 +138,6 @@ export default function HomeScreen() {
           </SafeAreaView>
         </View>
 
-        {/* Visão Geral, Alertas e Gráfico permanecem iguais... */}
         <View style={styles.bottomContainer}>
           <View style={styles.sectionHeaderGeral}>
             <MaterialCommunityIcons name="view-dashboard-outline" size={24} color="#2A3A56" />
@@ -148,7 +151,6 @@ export default function HomeScreen() {
             {renderCardGeral(<MaterialCommunityIcons name="cloud" size={16} color="#2A3A56" />, 'CO2', '100')}
           </View>
 
-          {/* ... restante do código original ... */}
           <View style={[styles.sectionHeaderGeral, { marginBottom: 15 }]}>
             <Ionicons name="warning-outline" size={24} color="#2A3A56" />
             <Text style={styles.sectionTitle}>Alertas({alertas.length})</Text>
@@ -186,35 +188,12 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>Desempenho Geral</Text>
           </View>
 
-          <View style={styles.desempenhoHeaderRow}>
-            <Text style={styles.desempenhoTitle}>Relatório Monitoramento</Text>
-            <View style={styles.desempenhoIcons}>
-              <TouchableOpacity style={styles.iconButtonDesempenho}><Ionicons name="search-outline" size={20} color="#2A3A56" /></TouchableOpacity>
-              <TouchableOpacity style={styles.iconButtonDesempenho}><Ionicons name="calendar-outline" size={20} color="#2A3A56" /></TouchableOpacity>
-            </View>
-          </View>
-
           <View style={styles.graficoContainer}>
-            <View style={styles.graficoContentRow}>
-              <View style={styles.graficoEscalaLateral}>
-                <Text style={styles.graficoPercentText}>15%</Text>
-                <Text style={styles.graficoPercentText}>10%</Text>
-                <Text style={styles.graficoPercentText}>5%</Text>
-                <Text style={styles.graficoPercentText}>1%</Text>
-              </View>
-              <View style={styles.graficoPlaceholder}>
-                <Image
-                  source={require('../../assets/images/grafico_placeholder.svg')}
-                  style={styles.logoGrafico}
-                  contentFit="contain"
-                />
-              </View>
-            </View>
-            <View style={styles.graficoDaysRow}>
-              {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map(dia => (
-                <Text key={dia} style={styles.graficoDayText}>{dia}</Text>
-              ))}
-            </View>
+            <Image
+              source={require('../../assets/images/grafico_placeholder.svg')}
+              style={styles.logoGrafico}
+              contentFit="contain"
+            />
           </View>
         </View>
         <View style={{ height: 100 }} />
@@ -223,7 +202,6 @@ export default function HomeScreen() {
   );
 }
 
-// ... Styles permanecem os mesmos ...
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
   scrollContent: { flexGrow: 1 },
@@ -258,7 +236,7 @@ const styles = StyleSheet.create({
   sectionHeaderGeral: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56' },
   cardsGeralContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 35 },
-  cardGeral: { backgroundColor: '#FFF', borderRadius: 15, width: '23%', paddingVertical: 15, paddingHorizontal: 5, alignItems: 'center', elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4 },
+  cardGeral: { backgroundColor: '#FFF', borderRadius: 15, width: '23%', paddingVertical: 15, paddingHorizontal: 5, alignItems: 'center', elevation: 3 },
   cardHeaderGeral: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 10 },
   cardLabelGeral: { fontSize: 9, color: '#2A3A56', fontWeight: 'bold' },
   cardValueGeral: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56', marginBottom: 5 },
@@ -274,16 +252,6 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: 'bold', color: '#FFF' },
   alertaFooter: { flexDirection: 'row', gap: 20, marginLeft: 42, opacity: 0.6 },
   alertaFooterText: { fontSize: 12, color: '#2A3A56' },
-  desempenhoHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  desempenhoTitle: { fontSize: 16, color: '#2A3A56', fontWeight: 'bold' },
-  desempenhoIcons: { flexDirection: 'row', gap: 15 },
-  iconButtonDesempenho: { backgroundColor: '#EDFCED', width: 35, height: 35, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0' },
-  graficoContainer: { backgroundColor: '#EDFCED', borderRadius: 20, padding: 15, minHeight: 220 },
-  graficoContentRow: { flexDirection: 'row', marginBottom: 10 },
-  graficoEscalaLateral: { justifyContent: 'space-between', alignItems: 'flex-end', width: 35, paddingRight: 8, paddingVertical: 10 },
-  graficoPercentText: { color: '#2A3A56', fontSize: 11, fontWeight: 'bold', opacity: 0.5 },
-  graficoPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  graficoContainer: { backgroundColor: '#EDFCED', borderRadius: 20, padding: 15, minHeight: 220, justifyContent: 'center', alignItems: 'center' },
   logoGrafico: { width: '100%', height: 140 },
-  graficoDaysRow: { flexDirection: 'row', justifyContent: 'space-around', marginLeft: 35 },
-  graficoDayText: { fontSize: 12, fontWeight: 'bold', color: '#2A3A56' }
 });
