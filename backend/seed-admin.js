@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const Admin = require('./models-mongodb/Admin'); 
 
 // Coloque sua string de conexão do MongoDB aqui ou use process.env.MONGO_URI
-const MONGO_URI = 'mongodb://admin:1234567890qwerty@ac-x12nzmn-shard-00-00.8lnociv.mongodb.net:27017,ac-x12nzmn-shard-00-01.8lnociv.mongodb.net:27017,ac-x12nzmn-shard-00-02.8lnociv.mongodb.net:27017/selene?ssl=true&replicaSet=atlas-q1sjx4-shard-0&authSource=admin'; 
+// const MONGO_URI = 'url_do_seu_mongodb_aqui'; 
 
 async function criarUsuarioAdmin() {
   try {
