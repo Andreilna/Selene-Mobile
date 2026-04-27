@@ -21,6 +21,7 @@ interface Estufa {
   status: string;
 }
 
+
 export default function EstufasScreen() {
   const router = useRouter();
   const [estufas, setEstufas] = useState<Estufa[]>([]);

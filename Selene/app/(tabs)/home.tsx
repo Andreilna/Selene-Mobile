@@ -8,7 +8,7 @@ import {
   ActivityIndicator 
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, Octicons, Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image'; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -106,8 +106,8 @@ export default function HomeScreen() {
                   <Text style={styles.avatarText}>{iniciais}</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.iconButton}>
-                  <Octicons name="bell" size={24} color="#F5F5F5" />
+                <TouchableOpacity onPress={() => router.push('/alertas')}>
+                  <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -207,6 +207,8 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
