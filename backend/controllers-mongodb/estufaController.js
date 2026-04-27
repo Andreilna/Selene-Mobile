@@ -1,18 +1,69 @@
-const Estufa = require('../models-mongodb/Estufa'); // Certifique-se de ter o Model
+const Estufa = require('../models-mongodb/Estufa'); // Verifique se o nome do arquivo do model é este
 
 class EstufaController {
+  
+  /**
+   * Lista todas as estufas cadastradas no banco
+   * Usada na tela: (tabs)/estufas.tsx
+   */
   static async listar(req, res) {
     try {
-      // Busca todas as estufas no banco
+      // Busca todas as estufas. O .sort({ createdAt: -1 }) faz as mais novas aparecerem primeiro.
       const estufas = await Estufa.find().sort({ createdAt: -1 });
 
-      res.json({
+      return res.status(200).json({
         success: true,
         data: estufas
       });
     } catch (error) {
       console.error('Erro ao listar estufas:', error);
-      res.status(500).json({ success: false, message: 'Erro interno do servidor' });
+      return res.status(500).json({
+        success: false,
+        message: 'Erro interno ao buscar estufas',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Cria uma nova estufa no banco de dados
+   * Usada na tela: nova-estufa.tsx
+   */
+  static async cadastrar(req, res) {
+    try {
+      const { nome, quantidade_compostos, endereco_camera, observacoes, data_criacao, status } = req.body;
+
+      // Validação básica
+      if (!nome) {
+        return res.status(400).json({
+          success: false,
+          message: 'O nome da estufa é obrigatório.'
+        });
+      }
+
+      // Cria o registro no MongoDB
+      const novaEstufa = await Estufa.create({
+        nome,
+        quantidade_compostos,
+        endereco_camera,
+        observacoes,
+        data_criacao: data_criacao || new Date().toLocaleDateString('pt-BR'),
+        status: status || 'Baixo'
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Estufa cadastrada com sucesso!',
+        data: novaEstufa
+      });
+
+    } catch (error) {
+      console.error('Erro ao cadastrar estufa:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao processar o cadastro.',
+        error: error.message
+      });
     }
   }
 }
