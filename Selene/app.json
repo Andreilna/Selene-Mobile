@@ -39,9 +39,11 @@
       "typedRoutes": true
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "161141de-65b4-4a53-91d4-c2c80a6ae871"
+        "projectId": "6ba38eeb-9e5a-46bb-9f8b-378a98d014c2"
       }
-    }
+    },
+    "owner": "dreyobrabo"
   }
 }
