@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Octicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, Octicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 
@@ -79,8 +79,8 @@ export default function ProfileScreen() {
             <View style={styles.miniAvatar}>
               <Text style={styles.miniAvatarText}>{userData.iniciais}</Text>
             </View>
-            <TouchableOpacity>
-              <Octicons name="bell" size={24} color="#2A3A56" />
+            <TouchableOpacity onPress={() => router.push('/alertas')}>
+              <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
             </TouchableOpacity>
           </View>
         </SafeAreaView>

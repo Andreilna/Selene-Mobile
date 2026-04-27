@@ -8,8 +8,7 @@ import {
   ActivityIndicator 
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
-import { Image } from 'expo-image'; 
+import { Ionicons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
@@ -17,7 +16,6 @@ import * as SecureStore from 'expo-secure-store';
 export default function HomeScreen() {
   const router = useRouter();
   
-  // Estados com valores padrão genéricos
   const [nomeUsuario, setNomeUsuario] = useState('Usuário');
   const [iniciais, setIniciais] = useState('US');
   const [loading, setLoading] = useState(true);
@@ -25,27 +23,18 @@ export default function HomeScreen() {
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
-        // Busca o nome salvo no login sem valor fixo de fallback aqui
         const nomeSalvo = await SecureStore.getItemAsync('userName'); 
-        
         if (nomeSalvo) {
           const partes = nomeSalvo.trim().split(' ');
-          
-          // Define o nome (Primeiro + Segundo nome ou apenas o primeiro)
           const primeiroSegundo = partes.length > 1 
             ? `${partes[0]} ${partes[1]}` 
             : partes[0];
           setNomeUsuario(primeiroSegundo);
 
-          // Gera as iniciais dinâmicas
           const init = partes.length > 1 
             ? (partes[0][0] + partes[1][0]).toUpperCase()
             : partes[0][0].toUpperCase();
           setIniciais(init);
-        } else {
-          // Opcional: Se não houver nome, você pode mandar o usuário de volta para o login
-          // router.replace('/(auth)');
-          console.warn("Nenhum usuário encontrado no SecureStore");
         }
       } catch (e) {
         console.error("Erro ao carregar dados do SecureStore", e);
@@ -53,7 +42,6 @@ export default function HomeScreen() {
         setLoading(false);
       }
     };
-
     carregarDadosUsuario();
   }, []);
 
@@ -83,7 +71,7 @@ export default function HomeScreen() {
     <View style={styles.mainContainer}>
       <StatusBar style="light" />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} showsVerticalScrollIndicator={false}>
         <View style={styles.topContainer}>
           <SafeAreaView edges={['top', 'left', 'right']} style={styles.topContent}>
             <View style={styles.header}>
@@ -101,13 +89,13 @@ export default function HomeScreen() {
               <View style={styles.headerIcons}>
                 <TouchableOpacity 
                   style={styles.avatarCircle}
-                  onPress={() => router.push('/(tabs)/profile')} 
+                  onPress={() => router.push('/profile')} 
                 >
                   <Text style={styles.avatarText}>{iniciais}</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.iconButton}>
-                  <Octicons name="bell" size={24} color="#F5F5F5" />
+                <TouchableOpacity onPress={() => router.push('/suporte')}>
+                  <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -151,56 +139,49 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.cardsGeralContainer}>
-            {renderCardGeral(<MaterialCommunityIcons name="thermometer" size={16} color="#2A3A56" />, 'Temperatura', '21° C')}
-            {renderCardGeral(<MaterialCommunityIcons name="water-percent" size={16} color="#2A3A56" />, 'Umidade', '15%')}
+            {renderCardGeral(<MaterialCommunityIcons name="thermometer" size={16} color="#2A3A56" />, 'Temp.', '21° C')}
+            {renderCardGeral(<MaterialCommunityIcons name="water-percent" size={16} color="#2A3A56" />, 'Umid.', '15%')}
             {renderCardGeral(<Ionicons name="partly-sunny" size={16} color="#2A3A56" />, 'Luz', '20H')}
             {renderCardGeral(<MaterialCommunityIcons name="cloud" size={16} color="#2A3A56" />, 'CO2', '100')}
           </View>
 
           <View style={[styles.sectionHeaderGeral, { marginBottom: 15 }]}>
             <Ionicons name="warning-outline" size={24} color="#2A3A56" />
-            <Text style={styles.sectionTitle}>Alertas({alertas.length})</Text>
+            <Text style={styles.sectionTitle}>Alertas ({alertas.length})</Text>
           </View>
 
           {alertas.map(alerta => (
-            <View key={alerta.id} style={styles.cardAlerta}>
-                <View style={styles.cardAlertaMain}>
-                    <View style={styles.cardAlertaContentRow}>
-                        <View style={styles.alertaIconContainer}>
-                            <Ionicons 
-                                name={alerta.tipo === 'risco' ? "close-circle-outline" : "warning-outline"} 
-                                size={28} 
-                                color={alerta.gravidade === 'Alta' ? '#EF4444' : '#F59E0B'} 
-                            />
-                        </View>
-                        <View style={styles.alertaTextContainer}>
-                            <Text style={styles.alertaTitle}>{alerta.mensagem}</Text>
-                            <Text style={styles.alertaSubtitle}>{alerta.submensagem}</Text>
-                        </View>
-                    </View>
-                    <View style={[styles.badgeGravidade, { backgroundColor: alerta.gravidade === 'Alta' ? '#EF4444' : '#F59E0B' }]}>
-                        <Text style={styles.badgeText}>{alerta.gravidade}</Text>
-                    </View>
-                </View>
-                <View style={styles.alertaFooter}>
-                    <Text style={styles.alertaFooterText}>Estufa {alerta.estufa}</Text>
-                    <Text style={styles.alertaFooterText}>{alerta.tempo}</Text>
-                </View>
-            </View>
+            <TouchableOpacity 
+              key={alerta.id} 
+              activeOpacity={0.8}
+              onPress={() => router.push(`/detalhes/${alerta.estufa}`)}
+            >
+              <View style={styles.cardAlerta}>
+                  <View style={styles.cardAlertaMain}>
+                      <View style={styles.cardAlertaContentRow}>
+                          <View style={styles.alertaIconContainer}>
+                              <Ionicons 
+                                  name={alerta.tipo === 'risco' ? "close-circle-outline" : "warning-outline"} 
+                                  size={28} 
+                                  color={alerta.gravidade === 'Alta' ? '#EF4444' : '#F59E0B'} 
+                              />
+                          </View>
+                          <View style={styles.alertaTextContainer}>
+                              <Text style={styles.alertaTitle}>{alerta.mensagem}</Text>
+                              <Text style={styles.alertaSubtitle}>{alerta.submensagem}</Text>
+                          </View>
+                      </View>
+                      <View style={[styles.badgeGravidade, { backgroundColor: alerta.gravidade === 'Alta' ? '#EF4444' : '#F59E0B' }]}>
+                          <Text style={styles.badgeText}>{alerta.gravidade}</Text>
+                      </View>
+                  </View>
+                  <View style={styles.alertaFooter}>
+                      <Text style={styles.alertaFooterText}>Estufa {alerta.estufa}</Text>
+                      <Text style={styles.alertaFooterText}>{alerta.tempo}</Text>
+                  </View>
+              </View>
+            </TouchableOpacity>
           ))}
-          
-          <View style={[styles.sectionHeaderGeral, { marginBottom: 15, marginTop: 25 }]}>
-            <MaterialCommunityIcons name="chart-areaspline" size={24} color="#2A3A56" />
-            <Text style={styles.sectionTitle}>Desempenho Geral</Text>
-          </View>
-
-          <View style={styles.graficoContainer}>
-            <Image
-              source={require('../../assets/images/grafico_placeholder.svg')}
-              style={styles.logoGrafico}
-              contentFit="contain"
-            />
-          </View>
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -211,13 +192,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
   scrollContent: { flexGrow: 1 },
-  topContainer: {
-    backgroundColor: '#95C159',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
+  topContainer: { backgroundColor: '#95C159', borderBottomLeftRadius: 40, borderBottomRightRadius: 40, paddingBottom: 40, paddingHorizontal: 20 },
   topContent: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 35, marginTop: 15 },
   welcomeText: { fontSize: 22, fontWeight: 'bold', color: '#2A3A56' },
@@ -225,7 +200,6 @@ const styles = StyleSheet.create({
   headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   avatarCircle: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#EDFCED', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0' },
   avatarText: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
-  iconButton: { padding: 5 },
   resumoContainer: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 25 },
   resumoItem: { alignItems: 'center' },
   resumoHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
@@ -258,6 +232,4 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 11, fontWeight: 'bold', color: '#FFF' },
   alertaFooter: { flexDirection: 'row', gap: 20, marginLeft: 42, opacity: 0.6 },
   alertaFooterText: { fontSize: 12, color: '#2A3A56' },
-  graficoContainer: { backgroundColor: '#EDFCED', borderRadius: 20, padding: 15, minHeight: 220, justifyContent: 'center', alignItems: 'center' },
-  logoGrafico: { width: '100%', height: 140 },
 });
