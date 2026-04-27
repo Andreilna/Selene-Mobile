@@ -84,14 +84,14 @@ export default function EstufasScreen() {
         <View style={styles.header}>
           <View style={{ width: 28 }} />
           <Text style={styles.headerTitle}>Estufas</Text>
-          <div style={styles.headerIcons}>
+          <View style={styles.headerIcons}>
             <View style={styles.profileCircle}>
               <Text style={styles.profileText}>LB</Text>
             </View>
             <TouchableOpacity onPress={fetchEstufas}>
               <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
             </TouchableOpacity>
-          </div>
+          </View>
         </View>
 
         <View style={styles.content}>
