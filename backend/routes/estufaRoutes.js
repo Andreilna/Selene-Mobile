@@ -3,10 +3,14 @@ const router = express.Router();
 const EstufaController = require('../controllers-mongodb/estufaController');
 const authMiddleware = require('../middleware/auth-mongodb');
 
-// ROTA 1: Para a tela de listagem puxar os dados
+// Rota para listar todas (GET /api/v1/estufas/listar)
 router.get('/listar', authMiddleware, EstufaController.listar);
 
-// ROTA 2: Para a tela de nova-estufa salvar os dados
+// Rota para cadastrar (POST /api/v1/estufas/cadastrar)
 router.post('/cadastrar', authMiddleware, EstufaController.cadastrar);
+
+// Rota para buscar uma específica (GET /api/v1/estufas/detalhes/:id)
+// ATENÇÃO: Verifique se escreveu "detalhes" (plural) e se tem os ":" antes do id
+router.get('/detalhes/:id', authMiddleware, EstufaController.buscarPorId);
 
 module.exports = router;

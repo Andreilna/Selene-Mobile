@@ -1,6 +1,21 @@
 const Estufa = require('../models-mongodb/Estufa'); // Verifique se o nome do arquivo do model é este
 
 class EstufaController {
+
+    static async buscarPorId(req, res) {
+        try {
+            const { id } = req.params;
+            const estufa = await Estufa.findById(id);
+            
+            if (!estufa) {
+            return res.status(404).json({ success: false, message: 'Estufa não encontrada' });
+            }
+
+            res.status(200).json({ success: true, data: estufa });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Erro ao buscar detalhes' });
+        }
+        }
   
   /**
    * Lista todas as estufas cadastradas no banco
