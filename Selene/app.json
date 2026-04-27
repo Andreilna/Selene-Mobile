@@ -6,17 +6,16 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "selene",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#E6F4FE"
+        "foregroundImage": "./assets/images/splash-icon.png",
+        "backgroundColor": "#FFFFFF"
       },
-      "backgroundColor": "#F5F5F5",
+      "backgroundColor": "#FFFFFF",
       "package": "com.dinozin.selene",
       "softwareKeyboardLayoutMode": "pan"
     },
@@ -31,7 +30,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#FFFFFF"
         }
       ],
       "expo-secure-store"

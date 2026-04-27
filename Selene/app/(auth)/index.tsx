@@ -30,54 +30,72 @@ export default function Login() {
     }
 
     setLoading(true);
-    const loginData = { 
-      email: email.trim().toLowerCase(), 
-      senha: password 
-    };
 
     try {
       let response;
       let isLoggedAsAdmin = false;
 
       try {
-        // 1ª TENTATIVA: Rota de Admin
-        response = await axios.post('https://selene-mobile.onrender.com/api/v1/admin/login', loginData);
+        // --- 1ª TENTATIVA: Rota de Admin ---
+        // O AdminController espera 'usuario' e 'senha'
+        const adminData = { 
+          usuario: email.trim().toLowerCase(), 
+          senha: password 
+        };
+        
+        console.log("Tentando login como Admin...");
+        response = await axios.post('https://selene-mobile.onrender.com/api/v1/admin/login', adminData);
         isLoggedAsAdmin = true;
+
       } catch (adminError: any) {
-        // Se der 401 ou 404 na rota admin, tenta a rota de usuário comum
-        if (adminError.response?.status === 401 || adminError.response?.status === 404) {
-          response = await axios.post('https://selene-mobile.onrender.com/api/v1/auth/login', loginData);
+        // Se der erro de "não encontrado" (404), "não autorizado" (401) 
+        // ou campos inválidos (400) no Admin, tenta Usuário Comum
+        const status = adminError.response?.status;
+        if (status === 401 || status === 404 || status === 400) {
+          
+          console.log("Admin não encontrado ou dados inválidos, tentando Usuário...");
+          
+          // --- 2ª TENTATIVA: Rota de Usuário ---
+          // O AuthController espera 'email' e 'senha'
+          const userData = { 
+            email: email.trim().toLowerCase(), 
+            senha: password 
+          };
+          
+          response = await axios.post('https://selene-mobile.onrender.com/api/v1/auth/login', userData);
           isLoggedAsAdmin = false;
         } else {
-          throw adminError; // Se for erro de conexão/servidor, para aqui
+          // Se for erro de conexão ou 500, para tudo aqui
+          throw adminError;
         }
       }
 
-      // Se chegamos aqui, temos uma resposta de sucesso de uma das duas rotas
-      if (response.data) {
-        // Extração flexível dos dados (ajustado para seus models)
-        const token = response.data.token || response.data.data?.token;
-        const userData = response.data.admin || response.data.usuario || response.data.data?.usuario;
+      // --- TRATAMENTO DO SUCESSO ---
+      if (response && response.data) {
+        const { data } = response.data; // O seu backend retorna { success, message, data: { token, admin/usuario } }
+        const token = data?.token;
+        const userDetails = isLoggedAsAdmin ? data?.admin : data?.usuario;
 
-        if (!token || !userData) {
-          throw new Error("Dados de resposta inválidos");
+        if (!token || !userDetails) {
+          throw new Error("Resposta do servidor com estrutura inesperada.");
         }
 
-        // SALVANDO NO SECURE STORE
+        // Persistência de dados
         await SecureStore.setItemAsync('userToken', token);
-        await SecureStore.setItemAsync('userName', userData.nome_completo || userData.nome);
-        await SecureStore.setItemAsync('userEmail', userData.email);
-        await SecureStore.setItemAsync('userId', userData._id);
+        await SecureStore.setItemAsync('userName', userDetails.nome_completo || userDetails.usuario || 'Usuário');
+        await SecureStore.setItemAsync('userEmail', userDetails.email || '');
+        await SecureStore.setItemAsync('userId', userDetails._id);
         
-        // Define o Role: se logou pela rota admin, usa o nível do banco, senão é 'user'
-        const role = isLoggedAsAdmin ? (userData.nivel_acesso || 'admin') : 'user';
+        // Define Role (Nível de Acesso)
+        const role = isLoggedAsAdmin ? (userDetails.nivel_acesso || 'admin') : 'user';
         await SecureStore.setItemAsync('userRole', role);
 
+        console.log(`Login bem sucedido como: ${role}`);
         router.replace('/(tabs)/home'); 
       }
       
     } catch (error: any) {
-      console.log("Erro no login:", error.response?.data || error.message);
+      console.log("Erro final no login:", error.response?.data || error.message);
       const errorMsg = error.response?.data?.message || "E-mail ou senha incorretos.";
       Alert.alert("Ops!", errorMsg);
     } finally {
@@ -99,16 +117,15 @@ export default function Login() {
         </View>
 
         <View style={styles.bottomContainer}>
-          <Text style={styles.label}>Email:</Text>
+          <Text style={styles.label}>Email / Usuário:</Text>
           <View style={styles.inputContainer}>
             <TextInput 
               style={styles.input} 
-              placeholder="exemplo@selene.com" 
+              placeholder="Digite seu acesso" 
               placeholderTextColor="#A0A0A0" 
               value={email} 
-              onChangeText={(text) => setEmail(text.toLowerCase())}
+              onChangeText={(text) => setEmail(text)}
               autoCapitalize="none" 
-              keyboardType="email-address"
               autoCorrect={false}
             />
           </View>

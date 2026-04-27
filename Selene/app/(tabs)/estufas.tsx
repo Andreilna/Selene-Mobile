@@ -1,265 +1,138 @@
-import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  Platform 
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons';
-import { Image } from 'expo-image'; 
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
 
-export default function HomeScreen() {
-  const dadosGerais = {
-    nome: 'Lucas Barros',
-    totalAnalises: 560,
-    totalDeteccoes: 23,
-    porcentagem: 30,
+interface Estufa {
+  _id: string;
+  nome: string;
+  data_criacao: string; // Ou o campo que você salvou
+  status: string;
+}
+
+export default function EstufasScreen() {
+  const router = useRouter();
+  const [estufas, setEstufas] = useState<Estufa[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchEstufas = async () => {
+    try {
+      setLoading(true);
+      const token = await SecureStore.getItemAsync('userToken');
+      
+      const response = await axios.get('https://selene-mobile.onrender.com/api/v1/estufas/listar', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setEstufas(response.data.data);
+      }
+    } catch (error: any) {
+      console.log("Erro ao buscar dados:", error.response?.data || error.message);
+      Alert.alert("Erro", "Não foi possível carregar as estufas.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const alertas = [
-    {
-      id: 1,
-      tipo: 'risco',
-      gravidade: 'Alta',
-      mensagem: 'Risco elevado detectado',
-      submensagem: 'Detecção de possível contaminação por fungo invasor',
-      estufa: 2,
-      tempo: 'há 15 minutos',
-    },
-    {
-      id: 2,
-      tipo: 'umidade',
-      gravidade: 'Média',
-      mensagem: 'Umidade acima do ideal',
-      submensagem: 'Umidade está 5% acima do recomendado',
-      estufa: 3,
-      tempo: 'há cerca de 1 hora',
-    },
-  ];
+  useEffect(() => {
+    fetchEstufas();
+  }, []);
 
-  const renderCardGeral = (icon: any, label: string, value: string) => (
-    <View style={styles.cardGeral}>
-      <View style={styles.cardHeaderGeral}>
-        <Text style={styles.cardLabelGeral}>{label}</Text>
-        {icon}
+  const renderItem = ({ item }: { item: Estufa }) => (
+    <View style={styles.card}>
+      <View style={styles.iconContainer}>
+        <MaterialCommunityIcons name="greenhouse" size={28} color="#00D2B1" />
       </View>
-      <Text style={styles.cardValueGeral}>{value}</Text>
-      <Text style={styles.cardStatusGeral}>Estável</Text>
+      <View style={styles.infoContainer}>
+        <Text style={styles.estufaNome}>{item.nome}</Text>
+        <Text style={styles.estufaData}>{item.data_criacao}</Text>
+      </View>
+      <View style={[styles.statusBadge, item.status === 'Médio' ? styles.statusMedio : styles.statusBaixo]}>
+        <Text style={styles.statusText}>{item.status || 'Ativo'}</Text>
+      </View>
     </View>
   );
 
   return (
-    <View style={styles.mainContainer}>
-      <StatusBar style="light" />
-      
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent} 
-        bounces={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Topo Verde */}
-        <View style={styles.topContainer}>
-          <SafeAreaView edges={['top', 'left', 'right']} style={styles.topContent}>
-            <View style={styles.header}>
-              <View>
-                <Text style={styles.welcomeText}>Olá, {dadosGerais.nome}</Text>
-                <Text style={styles.subwelcomeText}>Bem-vindo novamente!</Text>
-              </View>
-              <View style={styles.headerIcons}>
-                <View style={styles.avatarCircle}>
-                  <Text style={styles.avatarText}>LB</Text>
-                </View>
-                <TouchableOpacity style={styles.iconButton}>
-                  <Octicons name="bell" size={24} color="#F5F5F5" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.resumoContainer}>
-              <View style={styles.resumoItem}>
-                <View style={styles.resumoHeader}>
-                    <Ionicons name="document-text-outline" size={20} color="#2A3A56" />
-                    <Text style={styles.resumoLabel}>Total Análises</Text>
-                </View>
-                <Text style={styles.resumoValue}>{dadosGerais.totalAnalises}</Text>
-              </View>
-              <View style={styles.verticalDivider} />
-              <View style={styles.resumoItem}>
-                <View style={styles.resumoHeader}>
-                    <Ionicons name="warning-outline" size={20} color="#2A3A56" />
-                    <Text style={styles.resumoLabel}>Total Detecções</Text>
-                </View>
-                <Text style={[styles.resumoValue, { color: '#2A3A56' }]}>{dadosGerais.totalDeteccoes}</Text>
-              </View>
-            </View>
-
-            <View style={styles.progressContainer}>
-                <View style={[styles.progressBar, { width: `${dadosGerais.porcentagem}%` }]}>
-                    <Text style={styles.progressText}>{dadosGerais.porcentagem}%</Text>
-                </View>
-                <Text style={styles.progressValueText}>{dadosGerais.totalAnalises}</Text>
-            </View>
-            
-            <View style={styles.progressDescriptionRow}>
-                <Ionicons name="checkmark-circle-outline" size={20} color="#2A3A56" />
-                <Text style={styles.progressDescriptionText}>{dadosGerais.porcentagem}% De Detecções</Text>
-            </View>
-          </SafeAreaView>
-        </View>
-
-        {/* Conteúdo Inferior */}
-        <View style={styles.bottomContainer}>
-          <View style={styles.sectionHeaderGeral}>
-            <MaterialCommunityIcons name="view-dashboard-outline" size={24} color="#2A3A56" />
-            <Text style={styles.sectionTitle}>Visão Geral</Text>
-          </View>
-
-          <View style={styles.cardsGeralContainer}>
-            {renderCardGeral(<MaterialCommunityIcons name="thermometer" size={16} color="#2A3A56" />, 'Temperatura', '21° C')}
-            {renderCardGeral(<MaterialCommunityIcons name="water-percent" size={16} color="#2A3A56" />, 'Umidade', '15%')}
-            {renderCardGeral(<Ionicons name="partly-sunny" size={16} color="#2A3A56" />, 'Luz', '20H')}
-            {renderCardGeral(<MaterialCommunityIcons name="cloud" size={16} color="#2A3A56" />, 'CO2', '100')}
-          </View>
-
-          <View style={[styles.sectionHeaderGeral, { marginBottom: 15 }]}>
-            <Ionicons name="warning-outline" size={24} color="#2A3A56" />
-            <Text style={styles.sectionTitle}>Alertas({alertas.length})</Text>
-          </View>
-
-          {alertas.map(alerta => (
-            <View key={alerta.id} style={styles.cardAlerta}>
-                <View style={styles.cardAlertaMain}>
-                    <View style={styles.cardAlertaContentRow}>
-                        <View style={styles.alertaIconContainer}>
-                            <Ionicons 
-                                name={alerta.tipo === 'risco' ? "close-circle-outline" : "warning-outline"} 
-                                size={28} 
-                                color={alerta.gravidade === 'Alta' ? '#EF4444' : '#F59E0B'} 
-                            />
-                        </View>
-                        <View style={styles.alertaTextContainer}>
-                            <Text style={styles.alertaTitle}>{alerta.mensagem}</Text>
-                            <Text style={styles.alertaSubtitle}>{alerta.submensagem}</Text>
-                        </View>
-                    </View>
-                    <View style={[styles.badgeGravidade, { backgroundColor: alerta.gravidade === 'Alta' ? '#EF4444' : '#F59E0B' }]}>
-                        <Text style={styles.badgeText}>{alerta.gravidade}</Text>
-                    </View>
-                </View>
-                <View style={styles.alertaFooter}>
-                    <Text style={styles.alertaFooterText}>Estufa {alerta.estufa}</Text>
-                    <Text style={styles.alertaFooterText}>{alerta.tempo}</Text>
-                </View>
-            </View>
-          ))}
-          
-          <View style={[styles.sectionHeaderGeral, { marginBottom: 15, marginTop: 25 }]}>
-            <MaterialCommunityIcons name="chart-areaspline" size={24} color="#2A3A56" />
-            <Text style={styles.sectionTitle}>Desempenho Geral</Text>
-          </View>
-
-          <View style={styles.desempenhoHeaderRow}>
-            <Text style={styles.desempenhoTitle}>Relatório Monitoramento</Text>
-            <View style={styles.desempenhoIcons}>
-              <TouchableOpacity style={styles.iconButtonDesempenho}><Ionicons name="search-outline" size={20} color="#2A3A56" /></TouchableOpacity>
-              <TouchableOpacity style={styles.iconButtonDesempenho}><Ionicons name="calendar-outline" size={20} color="#2A3A56" /></TouchableOpacity>
-            </View>
-          </View>
-
-          {/* ÁREA DO GRÁFICO ARRUMADA */}
-          <View style={styles.graficoContainer}>
-            <View style={styles.graficoContentRow}>
-              <View style={styles.graficoEscalaLateral}>
-                <Text style={styles.graficoPercentText}>15%</Text>
-                <Text style={styles.graficoPercentText}>10%</Text>
-                <Text style={styles.graficoPercentText}>5%</Text>
-                <Text style={styles.graficoPercentText}>1%</Text>
-              </View>
-              <View style={styles.graficoPlaceholder}>
-                <Image
-                  source={require('../../assets/images/grafico_placeholder.svg')}
-                  style={styles.logoGrafico}
-                  contentFit="contain"
-                />
-              </View>
-            </View>
-            <View style={styles.graficoDaysRow}>
-              {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map(dia => (
-                <Text key={dia} style={styles.graficoDayText}>{dia}</Text>
-              ))}
-            </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <View style={{ width: 28 }} />
+          <Text style={styles.headerTitle}>Estufas</Text>
+          <View style={styles.headerIcons}>
+            <View style={styles.profileCircle}><Text style={styles.profileText}>LB</Text></View>
+            <TouchableOpacity><Feather name="bell" size={24} color="white" style={{ marginLeft: 12 }} /></TouchableOpacity>
           </View>
         </View>
-        <View style={{ height: 100 }} />
-      </ScrollView>
-    </View>
+
+        <View style={styles.content}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#95C159" style={{ marginTop: 50 }} />
+          ) : (
+            <>
+              <View style={styles.statsSummary}>
+                <Text style={styles.statsText}>Total Estufas: <Text style={styles.statsValue}>{estufas.length}</Text></Text>
+                <View style={styles.statsDivider} />
+                <Text style={styles.statsText}>Analizadas: <Text style={styles.statsValue}>{estufas.length}</Text></Text>
+              </View>
+
+              <FlatList
+                data={estufas}
+                keyExtractor={(item) => item._id}
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma estufa cadastrada.</Text>}
+                ListHeaderComponent={() => (
+                  <View style={styles.listHeader}>
+                    <Text style={styles.monthTitle}>Registros</Text>
+                    <TouchableOpacity onPress={fetchEstufas}>
+                      <Feather name="refresh-cw" size={20} color="#00D2B1" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            </>
+          )}
+
+          <TouchableOpacity style={styles.btnNovaEstufa} onPress={() => router.push('/nova-estufa')}>
+            <Text style={styles.btnText}>Nova Estufa</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
+// ... Mantém os estilos (Styles) anteriores
 const styles = StyleSheet.create({
-  mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
-  scrollContent: { flexGrow: 1 },
-  topContainer: {
-    backgroundColor: '#95C159',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
-  topContent: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 35, marginTop: 15 },
-  welcomeText: { fontSize: 22, fontWeight: 'bold', color: '#2A3A56' },
-  subwelcomeText: { fontSize: 14, color: '#2A3A56', opacity: 0.8 },
-  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  avatarCircle: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#EDFCED', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0' },
-  avatarText: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
-  iconButton: { padding: 5 },
-  resumoContainer: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 25 },
-  resumoItem: { alignItems: 'center' },
-  resumoHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  resumoLabel: { fontSize: 14, color: '#2A3A56', fontWeight: 'bold' },
-  resumoValue: { fontSize: 48, fontWeight: 'bold', color: '#F5F5F5' },
-  verticalDivider: { width: 1.5, height: 60, backgroundColor: '#2A3A56', opacity: 0.3 },
-  progressContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EDFCED', borderRadius: 15, height: 35, padding: 3, marginBottom: 10 },
-  progressBar: { backgroundColor: '#2A3A56', height: '100%', borderRadius: 12, justifyContent: 'center', paddingHorizontal: 15 },
-  progressText: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-  progressValueText: { position: 'absolute', right: 15, color: '#A0A0A0', fontSize: 14, fontWeight: 'bold' },
-  progressDescriptionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 5 },
-  progressDescriptionText: { fontSize: 14, color: '#2A3A56', fontWeight: 'bold' },
-  bottomContainer: { paddingHorizontal: 20, paddingTop: 30 },
-  sectionHeaderGeral: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56' },
-  cardsGeralContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 35 },
-  cardGeral: { backgroundColor: '#FFF', borderRadius: 15, width: '23%', paddingVertical: 15, paddingHorizontal: 5, alignItems: 'center', elevation: 3, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4 },
-  cardHeaderGeral: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 10 },
-  cardLabelGeral: { fontSize: 9, color: '#2A3A56', fontWeight: 'bold' },
-  cardValueGeral: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56', marginBottom: 5 },
-  cardStatusGeral: { fontSize: 10, color: '#95C159', fontWeight: 'bold' },
-  cardAlerta: { backgroundColor: '#FFF', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 3 },
-  cardAlertaMain: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 },
-  cardAlertaContentRow: { flexDirection: 'row', gap: 12, flex: 1 },
-  alertaIconContainer: { width: 30, justifyContent: 'center' },
-  alertaTextContainer: { flex: 1 },
-  alertaTitle: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
-  alertaSubtitle: { fontSize: 13, color: '#2A3A56', opacity: 0.8 },
-  badgeGravidade: { borderRadius: 15, paddingHorizontal: 12, paddingVertical: 4 },
-  badgeText: { fontSize: 11, fontWeight: 'bold', color: '#FFF' },
-  alertaFooter: { flexDirection: 'row', gap: 20, marginLeft: 42, opacity: 0.6 },
-  alertaFooterText: { fontSize: 12, color: '#2A3A56' },
-  desempenhoHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  desempenhoTitle: { fontSize: 16, color: '#2A3A56', fontWeight: 'bold' },
-  desempenhoIcons: { flexDirection: 'row', gap: 15 },
-  iconButtonDesempenho: { backgroundColor: '#EDFCED', width: 35, height: 35, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0' },
-  graficoContainer: { backgroundColor: '#EDFCED', borderRadius: 20, padding: 15, minHeight: 220 },
-  graficoContentRow: { flexDirection: 'row', marginBottom: 10 },
-  graficoEscalaLateral: { justifyContent: 'space-between', alignItems: 'flex-end', width: 35, paddingRight: 8, paddingVertical: 10 },
-  graficoPercentText: { color: '#2A3A56', fontSize: 11, fontWeight: 'bold', opacity: 0.5 },
-  graficoPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logoGrafico: { width: '100%', height: 140 },
-  graficoDaysRow: { flexDirection: 'row', justifyContent: 'space-around', marginLeft: 35 },
-  graficoDayText: { fontSize: 12, fontWeight: 'bold', color: '#2A3A56' }
+  container: { flex: 1, backgroundColor: '#95C159' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 25, paddingVertical: 15, minHeight: 70 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#2A3A56' },
+  headerIcons: { flexDirection: 'row', alignItems: 'center' },
+  profileCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
+  profileText: { color: '#2A3A56', fontWeight: 'bold', fontSize: 14 },
+  statsSummary: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F9F7', paddingVertical: 10, borderRadius: 20, marginBottom: 15, marginTop: -10 },
+  statsText: { fontSize: 13, color: '#2A3A56' },
+  statsValue: { fontWeight: 'bold', fontSize: 15 },
+  statsDivider: { width: 1, height: 15, backgroundColor: 'rgba(42, 58, 86, 0.2)', marginHorizontal: 15 },
+  content: { flex: 1, backgroundColor: '#FFF', borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingHorizontal: 20, paddingTop: 20 },
+  listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, marginTop: 5, paddingHorizontal: 5 },
+  monthTitle: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 15, borderRadius: 22, marginBottom: 12, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 6 },
+  iconContainer: { width: 52, height: 52, borderRadius: 16, backgroundColor: '#F0F9F7', justifyContent: 'center', alignItems: 'center' },
+  infoContainer: { flex: 1, marginLeft: 15 },
+  estufaNome: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
+  estufaData: { fontSize: 12, color: '#007AFF', marginTop: 2 },
+  statusBadge: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 20 },
+  statusBaixo: { backgroundColor: '#A5C96E' },
+  statusMedio: { backgroundColor: '#8E8E8E' },
+  statusText: { color: '#FFF', fontWeight: 'bold', fontSize: 13 },
+  btnNovaEstufa: { position: 'absolute', bottom: 30, alignSelf: 'center', backgroundColor: '#D1FFD7', paddingVertical: 14, paddingHorizontal: 45, borderRadius: 25, elevation: 2 },
+  btnText: { color: '#2A3A56', fontWeight: 'bold', fontSize: 15 },
+  emptyText: { textAlign: 'center', color: '#999', marginTop: 40 }
 });
