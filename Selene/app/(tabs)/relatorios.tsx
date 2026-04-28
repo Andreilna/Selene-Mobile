@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
 // ==========================================
 // DADOS MOCKADOS (EXEMPLOS DE RELATÓRIOS)
@@ -43,7 +43,6 @@ export default function RelatoriosScreen() {
   const [nomeUsuario, setNomeUsuario] = useState("Usuário");
   const [iniciais, setIniciais] = useState("US");
   const [loading, setLoading] = useState(true);
-  const [loadingEstufas, setLoadingEstufas] = useState(true);
 
   // ================= USER =================
   useEffect(() => {
@@ -107,6 +106,7 @@ export default function RelatoriosScreen() {
           <View style={styles.header}>
             <View>
               <Text style={styles.welcomeText}>Relatórios</Text>
+              <Text style={styles.subwelcomeText}></Text>
             </View>
 
             <View style={styles.headerIcons}>
@@ -167,20 +167,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
-    paddingBottom: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
     paddingHorizontal: 20,
   },
-  topContent: { flex: 1 },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 35,
-    marginTop: 15,
+    marginTop: 10,
+    marginBottom: 20,
   },
+
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -191,63 +199,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
+
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  resumoContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    marginBottom: 25,
-  },
-  resumoItem: { alignItems: "center" },
-  resumoHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
-  },
-  resumoLabel: { fontSize: 14, color: "#2A3A56", fontWeight: "bold" },
-  resumoValue: { fontSize: 48, fontWeight: "bold", color: "#F5F5F5" },
-  verticalDivider: {
-    width: 1.5,
-    height: 60,
-    backgroundColor: "#2A3A56",
-    opacity: 0.3,
-  },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#EDFCED",
-    borderRadius: 15,
-    height: 35,
-    padding: 3,
-    marginBottom: 10,
-  },
-  progressBar: {
-    backgroundColor: "#2A3A56",
-    height: "100%",
-    borderRadius: 12,
-    justifyContent: "center",
-    paddingHorizontal: 15,
-  },
-  progressText: { color: "#FFF", fontSize: 14, fontWeight: "bold" },
-  progressValueText: {
-    position: "absolute",
-    right: 15,
-    color: "#A0A0A0",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  progressDescriptionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginLeft: 5,
-  },
-  progressDescriptionText: {
-    fontSize: 14,
-    color: "#2A3A56",
-    fontWeight: "bold",
-  },
 
   // Painel Branco Arredondado
   content: {

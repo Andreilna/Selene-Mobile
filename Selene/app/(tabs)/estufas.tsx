@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
-} from 'react-native';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+  Alert,
+} from "react-native";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 interface Estufa {
   _id: string;
@@ -27,19 +27,20 @@ export default function EstufasScreen() {
   const [estufas, setEstufas] = useState<Estufa[]>([]);
   const [loadingEstufas, setLoadingEstufas] = useState(true);
 
-  const [iniciais, setIniciais] = useState('US');
+  const [iniciais, setIniciais] = useState("US");
 
   // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
-        const nomeSalvo = await SecureStore.getItemAsync('userName');
+        const nomeSalvo = await SecureStore.getItemAsync("userName");
         if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(' ');
+          const partes = nomeSalvo.trim().split(" ");
 
-          const init = partes.length > 1
-            ? (partes[0][0] + partes[1][0]).toUpperCase()
-            : partes[0][0].toUpperCase();
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
 
           setIniciais(init);
         }
@@ -56,13 +57,13 @@ export default function EstufasScreen() {
     try {
       setLoadingEstufas(true);
 
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await SecureStore.getItemAsync("userToken");
 
       const response = await axios.get(
-        'https://selene-mobile.onrender.com/api/v1/estufas/listar',
+        "https://selene-mobile.onrender.com/api/v1/estufas/listar",
         {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+          headers: { Authorization: `Bearer ${token}` },
+        },
       );
 
       if (response.data.success) {
@@ -99,11 +100,13 @@ export default function EstufasScreen() {
           <Text style={styles.estufaData}>{item.data_criacao}</Text>
         </View>
 
-        <View style={[
-          styles.statusBadge,
-          item.status === 'Médio' ? styles.statusMedio : styles.statusBaixo
-        ]}>
-          <Text style={styles.statusText}>{item.status || 'Ativo'}</Text>
+        <View
+          style={[
+            styles.statusBadge,
+            item.status === "Médio" ? styles.statusMedio : styles.statusBaixo,
+          ]}
+        >
+          <Text style={styles.statusText}>{item.status || "Ativo"}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -111,8 +114,7 @@ export default function EstufasScreen() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top']}>
-
+      <SafeAreaView style={styles.container} edges={["top"]}>
         {/* ================= HEADER ================= */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
@@ -124,13 +126,18 @@ export default function EstufasScreen() {
             <View style={styles.headerIcons}>
               <TouchableOpacity
                 style={styles.avatarCircle}
-                onPress={() => router.push('/profile')}
+                onPress={() => router.push("/profile")}
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push('/alertas')}>
-                <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
+              <TouchableOpacity onPress={() => router.push("/alertas")}>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -146,13 +153,15 @@ export default function EstufasScreen() {
             <>
               <View style={styles.statsSummary}>
                 <Text style={styles.statsText}>
-                  Total Estufas: <Text style={styles.statsValue}>{estufas.length}</Text>
+                  Total Estufas:{" "}
+                  <Text style={styles.statsValue}>{estufas.length}</Text>
                 </Text>
 
                 <View style={styles.statsDivider} />
 
                 <Text style={styles.statsText}>
-                  Analizadas: <Text style={styles.statsValue}>{estufas.length}</Text>
+                  Analizadas:{" "}
+                  <Text style={styles.statsValue}>{estufas.length}</Text>
                 </Text>
               </View>
 
@@ -163,7 +172,9 @@ export default function EstufasScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 100 }}
                 ListEmptyComponent={
-                  <Text style={styles.emptyText}>Nenhuma estufa encontrada.</Text>
+                  <Text style={styles.emptyText}>
+                    Nenhuma estufa encontrada.
+                  </Text>
                 }
                 ListHeaderComponent={() => (
                   <View style={styles.listHeader}>
@@ -179,134 +190,147 @@ export default function EstufasScreen() {
 
           <TouchableOpacity
             style={styles.btnNovaEstufa}
-            onPress={() => router.push('/nova-estufa')}
+            onPress={() => router.push("/nova-estufa")}
           >
             <Text style={styles.btnText}>Nova Estufa</Text>
           </TouchableOpacity>
         </View>
-
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#95C159' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: "#95C159" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
 
   // ✅ HEADER CORRIGIDO
   topContainer: {
-    backgroundColor: '#95C159',
+    backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
     paddingBottom: 30,
     paddingTop: 10,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
 
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 10,
-    marginBottom: 20
+    marginBottom: 20,
   },
 
-  welcomeText: { fontSize: 22, fontWeight: 'bold', color: '#2A3A56' },
-  subwelcomeText: { fontSize: 14, color: '#2A3A56', opacity: 0.8 },
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
 
   headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
   },
 
-  avatarCircle: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#EDFCED', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0' },
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
 
-  avatarText: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
 
   // CONTENT
   content: {
     flex: 1,
-    backgroundColor: '#FFF',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    paddingHorizontal: 20,
-    paddingTop: 20
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 30,
   },
 
   statsSummary: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F0F9F7',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F0F9F7",
     paddingVertical: 12,
     borderRadius: 20,
-    marginBottom: 20
+    marginBottom: 20,
   },
 
-  statsText: { fontSize: 13, color: '#2A3A56' },
-  statsValue: { fontWeight: 'bold', fontSize: 15 },
-  statsDivider: { width: 1, height: 15, backgroundColor: 'rgba(42, 58, 86, 0.1)', marginHorizontal: 15 },
+  statsText: { fontSize: 13, color: "#2A3A56" },
+  statsValue: { fontWeight: "bold", fontSize: 15 },
+  statsDivider: {
+    width: 1,
+    height: 15,
+    backgroundColor: "rgba(42, 58, 86, 0.1)",
+    marginHorizontal: 15,
+  },
 
   listHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
   },
 
-  monthTitle: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
+  monthTitle: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
 
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
     padding: 15,
     borderRadius: 22,
     marginBottom: 12,
-    elevation: 3
+    elevation: 3,
   },
 
   iconContainer: {
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#F0F9F7',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#F0F9F7",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   infoContainer: { flex: 1, marginLeft: 15 },
 
-  estufaNome: { fontSize: 16, fontWeight: 'bold', color: '#2A3A56' },
-  estufaData: { fontSize: 12, color: '#007AFF' },
+  estufaNome: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  estufaData: { fontSize: 12, color: "#007AFF" },
 
   statusBadge: {
     paddingVertical: 8,
     paddingHorizontal: 18,
-    borderRadius: 20
+    borderRadius: 20,
   },
 
-  statusBaixo: { backgroundColor: '#95C159' },
-  statusMedio: { backgroundColor: '#A5A5A5' },
+  statusBaixo: { backgroundColor: "#95C159" },
+  statusMedio: { backgroundColor: "#A5A5A5" },
 
-  statusText: { color: '#FFF', fontWeight: 'bold' },
+  statusText: { color: "#FFF", fontWeight: "bold" },
 
   btnNovaEstufa: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 30,
-    alignSelf: 'center',
-    backgroundColor: '#D1FFD7',
+    alignSelf: "center",
+    backgroundColor: "#D1FFD7",
     paddingVertical: 14,
     paddingHorizontal: 40,
-    borderRadius: 25
+    borderRadius: 25,
   },
 
-  btnText: { color: '#2A3A56', fontWeight: 'bold' },
+  btnText: { color: "#2A3A56", fontWeight: "bold" },
 
   emptyText: {
-    textAlign: 'center',
-    color: '#999',
-    marginTop: 40
-  }
+    textAlign: "center",
+    color: "#999",
+    marginTop: 40,
+  },
 });
