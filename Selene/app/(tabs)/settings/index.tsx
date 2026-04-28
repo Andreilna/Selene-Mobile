@@ -82,7 +82,7 @@ export default function SettingsMenu() {
           <View style={styles.header}>
             <View>
               <Text style={styles.welcomeText}>Configurações</Text>
-              <Text style={styles.subwelcomeText}></Text>
+              <Text style={styles.subwelcomeText}>Suas Configurações</Text>
             </View>
 
             <View style={styles.headerIcons}>

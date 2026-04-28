@@ -6,9 +6,6 @@ import { LogBox } from 'react-native';
 // CONFIGURAÇÕES GLOBAIS DO AMBIENTE
 // ==========================================================
 
-// Silencia o aviso da New Architecture que aparece em builds recentes do Android/iOS
-LogBox.ignoreLogs(['setLayoutAnimationEnabledExperimental is currently a no-op']);
-
 export default function RootLayout() {
   return (
     <Stack 

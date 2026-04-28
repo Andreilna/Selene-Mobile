@@ -13,15 +13,6 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 
-/**
- * Habilita animações de layout no Android (LayoutAnimation)
- * Útil se você decidir animar a transição do seletor FAQ/Contate.
- */
-if (Platform.OS === 'android') {
-  UIManager.setLayoutAnimationEnabledExperimental && 
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 export default function ContatoScreen() {
   const router = useRouter();
   const [iniciais, setIniciais] = useState('AL');

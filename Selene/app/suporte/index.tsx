@@ -14,14 +14,6 @@ import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-/**
- * CONFIGURAÇÃO: LayoutAnimation para Android
- * No Android, as animações de layout precisam ser habilitadas manualmente via UIManager.
- */
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 export default function FAQScreen() {
   const router = useRouter();
   
