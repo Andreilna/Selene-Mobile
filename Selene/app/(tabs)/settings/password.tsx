@@ -243,14 +243,14 @@ export default function PasswordScreen() {
             </View>
 
             <TouchableOpacity
-              style={[styles.mainButton, loading && { opacity: 0.7 }]}
+              style={[styles.confirmButton, loading && { opacity: 0.7 }]}
               onPress={handleUpdatePassword}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={styles.buttonText}>Salvar Nova Senha</Text>
+                <Text style={styles.btnText}>Salvar Nova Senha</Text>
               )}
             </TouchableOpacity>
           </ScrollView>
@@ -352,5 +352,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   eyeIcon: { padding: 5 },
-  buttonText: { color: "#FFF", fontSize: 16, fontWeight: "bold" },
+  confirmButton: {
+    backgroundColor: "#00D1A0",
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  btnText: { color: "#FFF", fontWeight: "bold" },
 });

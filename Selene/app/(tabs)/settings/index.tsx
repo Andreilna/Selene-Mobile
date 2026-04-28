@@ -32,7 +32,7 @@ const menuItems = [
     id: "3",
     label: "Suporte",
     icon: "help-circle-outline",
-    route: "/suporte",
+    route: "/settings/suporte",
   },
   {
     id: "4",

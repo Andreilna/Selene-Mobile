@@ -14,6 +14,7 @@ export default function SettingsLayout() {
         name="notifications"
         options={{
           title: "Notificações",
+          animation: "fade",
         }}
       />
 
@@ -21,6 +22,15 @@ export default function SettingsLayout() {
         name="password"
         options={{
           title: "Alterar Senha",
+          animation: "fade",
+        }}
+      />
+
+      <Stack.Screen
+        name="suporte/index"
+        options={{
+          title: "Suporte",
+          animation: "fade",
         }}
       />
 
