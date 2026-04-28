@@ -16,22 +16,29 @@ import * as SecureStore from 'expo-secure-store';
 
 export default function ProfileScreen() {
   const router = useRouter();
+
+  // ==========================================
+  // ESTADOS (STATES)
+  // ==========================================
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false); // Estado para controle de admin
+  const [isAdmin, setIsAdmin] = useState(false); 
   const [userData, setUserData] = useState({
     nome: '',
     id: '',
     iniciais: ''
   });
 
+  // ==========================================
+  // CARREGAMENTO DE DADOS DO STORAGE
+  // ==========================================
   useEffect(() => {
     const loadProfileData = async () => {
       try {
         const nomeCompleto = await SecureStore.getItemAsync('userName');
         const userId = await SecureStore.getItemAsync('userId');
-        const role = await SecureStore.getItemAsync('userRole'); // Puxa o cargo do user
+        const role = await SecureStore.getItemAsync('userRole'); 
 
-        // Verifica se é admin para mostrar botões extras
+        // Define se mostra as opções de Gerenciamento
         setIsAdmin(role === 'admin');
 
         if (nomeCompleto) {
@@ -56,6 +63,9 @@ export default function ProfileScreen() {
     loadProfileData();
   }, []);
 
+  // ==========================================
+  // LÓGICA DE LOGOUT (ENCERRAR SESSÃO)
+  // ==========================================
   const handleLogout = async () => {
     Alert.alert("Sair", "Deseja encerrar a sessão?", [
       { text: "Cancelar", style: "cancel" },
@@ -72,6 +82,10 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+      
+      {/* ---------------------------------------------------------
+          INÍCIO DO HEADER (FUNDO VERDE)
+      ---------------------------------------------------------- */}
       <View style={styles.headerBackground}>
         <SafeAreaView style={styles.headerContent}>
           <Text style={styles.headerTitle}>Perfil</Text>
@@ -85,8 +99,17 @@ export default function ProfileScreen() {
           </View>
         </SafeAreaView>
       </View>
+      {/* ---------------------------------------------------------
+          FIM DO HEADER (FUNDO VERDE)
+      ---------------------------------------------------------- */}
 
+
+      {/* ---------------------------------------------------------
+          CARD DE PERFIL (BRANCO FLUTUANTE)
+      ---------------------------------------------------------- */}
       <View style={styles.profileCard}>
+        
+        {/* FOTO DE PERFIL CIRCULAR */}
         <View style={styles.imageContainer}>
           <Image 
             source="https://i.pravatar.cc/300" 
@@ -94,6 +117,7 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* NOME E ID DO USUÁRIO */}
         {loading ? (
           <ActivityIndicator size="large" color="#95C159" style={{ marginTop: 20 }} />
         ) : (
@@ -105,7 +129,7 @@ export default function ProfileScreen() {
 
         <ScrollView style={styles.menuList} showsVerticalScrollIndicator={false}>
           
-          {/* SEÇÃO ADMINISTRATIVA (Só aparece se isAdmin for true) */}
+          {/* SEÇÃO ADMINISTRATIVA (Condicional: só aparece para Admin) */}
           {isAdmin && (
             <View style={styles.adminSection}>
               <Text style={styles.sectionLabel}>Administração</Text>
@@ -119,7 +143,6 @@ export default function ProfileScreen() {
 
               <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/sensors')}>
                 <View style={[styles.menuIconContainer, { backgroundColor: '#2A3A56' }]}>
-                  <MaterialCommunityIcons name="センサー" size={22} color="#FFF" /> 
                   <Ionicons name="hardware-chip-outline" size={22} color="#FFF" />
                 </View>
                 <Text style={styles.menuText}>Gerenciar Sensores</Text>
@@ -128,6 +151,7 @@ export default function ProfileScreen() {
             </View>
           )}
 
+          {/* SEÇÃO DE CONFIGURAÇÕES PADRÃO */}
           <Text style={styles.sectionLabel}>Configurações</Text>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(tabs)/edit-profile')}>
@@ -151,20 +175,31 @@ export default function ProfileScreen() {
             <Text style={styles.menuText}>Suporte</Text>
           </TouchableOpacity>
 
+          {/* BOTÃO DE LOGOUT */}
           <TouchableOpacity style={[styles.menuItem, { marginTop: 10 }]} onPress={handleLogout}>
             <View style={[styles.menuIconContainer, { backgroundColor: '#FF4B4B' }]}>
               <MaterialCommunityIcons name="logout" size={22} color="#FFF" />
             </View>
             <Text style={[styles.menuText, { color: '#FF4B4B' }]}>Sair da Conta</Text>
           </TouchableOpacity>
+          
         </ScrollView>
       </View>
+      {/* ---------------------------------------------------------
+          FIM DO CARD DE PERFIL
+      ---------------------------------------------------------- */}
+
     </View>
   );
 }
 
+// ==========================================
+// ESTILOS (STYLESHEET)
+// ==========================================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
+  
+  // Header Verde
   headerBackground: { 
     backgroundColor: '#95C159', 
     height: 180, 
@@ -186,6 +221,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#2A3A56'
   },
   miniAvatarText: { fontSize: 12, fontWeight: 'bold', color: '#2A3A56' },
+
+  // Card Branco Central
   profileCard: { 
     flex: 1, 
     backgroundColor: '#FFF', 
@@ -209,6 +246,8 @@ const styles = StyleSheet.create({
   profileImage: { width: 120, height: 120, borderRadius: 60 },
   userName: { fontSize: 22, fontWeight: 'bold', color: '#2A3A56', textAlign: 'center' },
   userId: { fontSize: 14, color: '#2A3A56', textAlign: 'center', opacity: 0.6, marginBottom: 25 },
+  
+  // Menu e Itens
   menuList: { paddingHorizontal: 25 },
   sectionLabel: { fontSize: 12, fontWeight: 'bold', color: '#A0A0A0', textTransform: 'uppercase', marginBottom: 15, marginLeft: 5 },
   menuItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },

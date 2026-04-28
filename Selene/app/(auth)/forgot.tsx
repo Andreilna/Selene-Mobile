@@ -7,7 +7,6 @@ import {
   StyleSheet, 
   Alert, 
   ActivityIndicator, 
-  Platform,
   ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -17,10 +16,17 @@ import * as Clipboard from 'expo-clipboard';
 import { StatusBar } from 'expo-status-bar';
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // ==========================================
+  // ESTADOS (STATES)
+  // ==========================================
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // ==========================================
+  // LÓGICA DE RECUPERAÇÃO
+  // ==========================================
   const handleRequestReset = async () => {
     if (!email) {
       Alert.alert("Erro", "Por favor, informe seu e-mail.");
@@ -64,7 +70,6 @@ export default function ForgotPassword() {
   };
 
   return (
-    // View principal com fundo fixo para matar a barra branca
     <View style={styles.mainContainer}>
       <StatusBar style="dark" />
       
@@ -74,12 +79,16 @@ export default function ForgotPassword() {
         keyboardShouldPersistTaps="handled"
       >
         
-        {/* Parte Superior */}
+        {/* ---------------------------------------------------------
+            TOPO: TÍTULO DA PÁGINA (FUNDO CLARO)
+        ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <Text style={styles.mainTitle}>Esqueceu Sua Senha?</Text>
         </View>
 
-        {/* Parte Inferior - Verde */}
+        {/* ---------------------------------------------------------
+            CORPO: FORMULÁRIO DE RESET (FUNDO VERDE)
+        ---------------------------------------------------------- */}
         <View style={styles.bottomContainer}>
           
           <Text style={styles.resetTitle}>Nova Senha Temporária</Text>
@@ -87,6 +96,7 @@ export default function ForgotPassword() {
             Ao confirmar, nosso sistema irá gerar uma combinação segura de caracteres para você acessar o Selene imediatamente.
           </Text>
 
+          {/* CAMPO DE E-MAIL */}
           <Text style={styles.label}>Endereço Email:</Text>
           <View style={styles.inputContainer}>
             <TextInput 
@@ -100,6 +110,7 @@ export default function ForgotPassword() {
             />
           </View>
           
+          {/* BOTÕES DE AÇÃO */}
           <View style={styles.buttonActionContainer}>
             <TouchableOpacity 
               style={[styles.buttonPrimary, loading && { opacity: 0.7 }]} 
@@ -122,16 +133,17 @@ export default function ForgotPassword() {
             </TouchableOpacity>
           </View>
 
+          {/* SOCIAL LOGIN FOOTER */}
           <View style={styles.socialContainer}>
             <Text style={styles.socialText}>Acessar com:</Text>
-            <View style={styles.socialIconsRow}>
+            <div style={styles.socialIconsRow}>
               <TouchableOpacity style={styles.socialIconButton}>
                 <FontAwesome5 name="facebook-f" size={20} color="#2A3A56" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialIconButton}>
                 <FontAwesome5 name="google" size={20} color="#2A3A56" />
               </TouchableOpacity>
-            </View>
+            </div>
           </View>
 
         </View>
@@ -140,11 +152,13 @@ export default function ForgotPassword() {
   );
 }
 
+// ==========================================
+// ESTILIZAÇÃO (STYLES)
+// ==========================================
 const styles = StyleSheet.create({
-  mainContainer: { 
-    flex: 1, 
-    backgroundColor: '#F5F5F5' 
-  },
+  mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
+  
+  // Header fixo no topo
   topContainer: { 
     flex: 0.3, 
     justifyContent: 'center', 
@@ -153,12 +167,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     minHeight: 180 
   },
-  mainTitle: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    color: '#2A3A56', 
-    textAlign: 'center' 
-  },
+  mainTitle: { fontSize: 28, fontWeight: 'bold', color: '#2A3A56', textAlign: 'center' },
+
+  // Painel Verde Arredondado
   bottomContainer: { 
     flex: 1, 
     backgroundColor: '#95C159', 
@@ -168,25 +179,11 @@ const styles = StyleSheet.create({
     paddingTop: 40, 
     paddingBottom: 40 
   },
-  resetTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#2A3A56', 
-    marginBottom: 10 
-  },
-  resetDescription: { 
-    fontSize: 13, 
-    color: '#2A3A56', 
-    lineHeight: 18, 
-    marginBottom: 35 
-  },
-  label: { 
-    color: '#2A3A56', 
-    fontSize: 14, 
-    fontWeight: 'bold', 
-    marginBottom: 5, 
-    marginLeft: 5 
-  },
+  resetTitle: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56', marginBottom: 10 },
+  resetDescription: { fontSize: 13, color: '#2A3A56', lineHeight: 18, marginBottom: 35 },
+  label: { color: '#2A3A56', fontSize: 14, fontWeight: 'bold', marginBottom: 5, marginLeft: 5 },
+  
+  // Input de e-mail
   inputContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -196,62 +193,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     height: 50 
   },
-  input: { 
-    flex: 1, 
-    color: '#333', 
-    fontSize: 16 
-  },
-  buttonActionContainer: { 
-    alignItems: 'center', 
-    marginBottom: 40 
-  },
+  input: { flex: 1, color: '#333', fontSize: 16 },
+
+  // Área dos Botões
+  buttonActionContainer: { alignItems: 'center', marginBottom: 40 },
   buttonPrimary: { 
     backgroundColor: '#2A3A56', 
-    width: '70%', 
+    width: '80%', 
     height: 50, 
     borderRadius: 25, 
     justifyContent: 'center', 
     alignItems: 'center', 
     marginBottom: 12 
   },
-  buttonTextPrimary: { 
-    color: '#FFF', 
-    fontWeight: 'bold', 
-    fontSize: 16 
-  },
+  buttonTextPrimary: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
   buttonSecondary: { 
     backgroundColor: '#EDFCED', 
-    width: '70%', 
+    width: '80%', 
     height: 50, 
     borderRadius: 25, 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
-  buttonTextSecondary: { 
-    color: '#2A3A56', 
-    fontWeight: 'bold', 
-    fontSize: 16 
-  },
-  socialContainer: { 
-    alignItems: 'center', 
-    marginTop: 'auto' 
-  },
-  socialText: { 
-    color: '#2A3A56', 
-    fontSize: 14, 
-    marginBottom: 15 
-  },
-  socialIconsRow: { 
-    flexDirection: 'row' 
-  },
+  buttonTextSecondary: { color: '#2A3A56', fontWeight: 'bold', fontSize: 16 },
+
+  // Social Footer
+  socialContainer: { alignItems: 'center', marginTop: 'auto' },
+  socialText: { color: '#2A3A56', fontSize: 14, marginBottom: 15 },
+  socialIconsRow: { flexDirection: 'row' },
   socialIconButton: { 
-    width: 50, 
-    height: 50, 
-    borderRadius: 25, 
-    borderWidth: 1.5, 
-    borderColor: '#2A3A56', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    width: 50, height: 50, borderRadius: 25, 
+    borderWidth: 1.5, borderColor: '#2A3A56', 
+    justifyContent: 'center', alignItems: 'center', 
     marginHorizontal: 10 
   }
 });

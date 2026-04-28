@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  KeyboardAvoidingView, 
+  Platform, 
+  Alert 
+} from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import { Feather, Ionicons } from '@expo/vector-icons'; // Importando ícones Feather e Ionicons
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-// Interface para tipar as mensagens vindas da API
+/**
+ * INTERFACE: Define a estrutura de cada mensagem vinda do backend (Render/PostgreSQL)
+ */
 interface Message {
   _id: string;
   texto: string;
@@ -17,20 +29,24 @@ interface Message {
 
 export default function ChatScreen() {
   const router = useRouter();
-  const { id: chatId } = useLocalSearchParams(); // Pega o ID do chat via rota
-  const scrollViewRef = useRef<ScrollView>(null);
+  const { id: chatId } = useLocalSearchParams(); // Captura o ID do chat via URL dinâmica (ex: suporte/123)
+  const scrollViewRef = useRef<ScrollView>(null); // Referência para controlar o scroll automático
 
-  // Estados da tela
+  // ==========================================
+  // ESTADOS (STATES)
+  // ==========================================
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Função para buscar o histórico de mensagens
+  /**
+   * FUNÇÃO: fetchMessages
+   * Busca o histórico de mensagens no endpoint do Render.
+   */
   const fetchMessages = async () => {
     try {
       const token = await SecureStore.getItemAsync('userToken');
-      // Supomos que você salvou o ID do usuário logado no login
       const userId = await SecureStore.getItemAsync('userId'); 
       setCurrentUserId(userId);
 
@@ -51,9 +67,12 @@ export default function ChatScreen() {
     }
   };
 
-  // Função para enviar uma nova mensagem
+  /**
+   * FUNÇÃO: handleSendMessage
+   * Envia a mensagem digitada e atualiza a lista local para feedback imediato.
+   */
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return; // Não envia mensagem vazia
+    if (!newMessage.trim()) return; // Evita enviar apenas espaços
 
     try {
       const token = await SecureStore.getItemAsync('userToken');
@@ -67,8 +86,8 @@ export default function ChatScreen() {
       });
 
       if (response.data.success) {
-        setNewMessage(''); // Limpa o input
-        // Adiciona a mensagem enviada localmente para feedback imediato
+        setNewMessage(''); // Limpa o campo de texto
+        // Spread operator para adicionar a nova mensagem ao final do array atual
         setMessages(prev => [...prev, response.data.data]); 
       }
     } catch (error) {
@@ -77,17 +96,17 @@ export default function ChatScreen() {
     }
   };
 
-  // Carrega as mensagens ao abrir a tela e rola para o final
+  // Carrega as mensagens assim que o componente é montado ou o ID do chat muda
   useEffect(() => {
     fetchMessages();
   }, [chatId]);
 
+  // Sempre que a lista de mensagens aumentar, rola a tela para o final (mensagens novas)
   useEffect(() => {
-    // Rola para o final quando novas mensagens chegam
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // Função auxiliar para formatar a hora (Ex: 14:00)
+  // Formata a string ISO do banco para HH:MM
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -95,9 +114,10 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaProvider>
+      {/* Container principal com o verde do cabeçalho */}
       <SafeAreaView style={styles.container} edges={['top']}>
         
-        {/* HEADER SELENE (Idêntico ao mockup 23) */}
+        {/* HEADER: Navegação e Identificação do Usuário */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Feather name="arrow-left" size={26} color="#2A3A56" />
@@ -107,7 +127,7 @@ export default function ChatScreen() {
           
           <View style={styles.headerIcons}>
             <View style={styles.profileCircle}>
-              <Text style={styles.profileText}>LB</Text>
+              <Text style={styles.profileText}>AL</Text> 
             </View>
             <TouchableOpacity onPress={() => router.push('/alertas')}>
               <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
@@ -115,15 +135,20 @@ export default function ChatScreen() {
           </View>
         </View>
 
-        {/* ÁREA DE CONVERSA (Fundo claro arredondado) */}
+        {/* ÁREA DE CONTEÚDO: Fundo claro com bordas arredondadas (Mockup 23) */}
         <View style={styles.content}>
           
-          {/* SELETOR (Simulado do mockup) */}
+          {/* SELETOR: Alterna entre Assistente IA e FAQ */}
           <View style={styles.selectorContainer}>
-            <TouchableOpacity style={[styles.selectorTab, styles.selectorActive]}><Text style={styles.selectorTextActive}>Assistente Digital</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.selectorTab}><Text style={styles.selectorText}>Central De Ajuda</Text></TouchableOpacity>
+            <TouchableOpacity style={[styles.selectorTab, styles.selectorActive]}>
+              <Text style={styles.selectorTextActive}>Assistente Digital</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.selectorTab}>
+              <Text style={styles.selectorText}>Central De Ajuda</Text>
+            </TouchableOpacity>
           </View>
 
+          {/* LISTA DE MENSAGENS */}
           <ScrollView 
             ref={scrollViewRef}
             style={styles.chatScroll}
@@ -137,7 +162,9 @@ export default function ChatScreen() {
             ) : (
               messages.map((item) => (
                 <View key={item._id} style={styles.messageRow}>
-                  {/* Lógica de Balão: Se foi o Admin, balão verde claro à esquerda. Se foi o usuário logado, balão turquesa à direita. */}
+                  {/* Lógica de Balão: 
+                      item.isAdmin ? Esquerda (Verde Alface) : Direita (Turquesa Selene) 
+                  */}
                   <View style={[
                     styles.bubble, 
                     item.isAdmin ? styles.bubbleThem : styles.bubbleMe
@@ -154,27 +181,28 @@ export default function ChatScreen() {
             )}
           </ScrollView>
 
-          {/* BARRA DE INPUT (Idêntica ao rodapé do mockup 23) */}
+          {/* INPUT FIXO: KeyboardAvoidingView evita que o teclado cubra o campo de digitação */}
           <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
           >
             <View style={styles.inputWrapper}>
-              {/* Botões de Mídia (Câmera e Microfone como na imagem) */}
-              <TouchableOpacity style={styles.iconBtn}><Feather name="camera" size={24} color="#00D2B1" /></TouchableOpacity>
+              <TouchableOpacity style={styles.iconBtn}>
+                <Feather name="camera" size={24} color="#00D2B1" />
+              </TouchableOpacity>
               
-              {/* Campo de Texto */}
               <TextInput 
                 style={styles.input} 
                 placeholder="Digite aqui..." 
                 value={newMessage}
                 onChangeText={setNewMessage}
-                multiline={false} // Mantém uma linha como no mockup
+                multiline={false} 
               />
               
-              <TouchableOpacity style={styles.iconBtn}><Feather name="mic" size={24} color="#00D2B1" /></TouchableOpacity>
+              <TouchableOpacity style={styles.iconBtn}>
+                <Feather name="mic" size={24} color="#00D2B1" />
+              </TouchableOpacity>
               
-              {/* Botão de Enviar (Círculo Turquesa) */}
               <TouchableOpacity style={styles.sendBtn} onPress={handleSendMessage}>
                 <Ionicons name="send" size={20} color="#FFF" />
               </TouchableOpacity>
@@ -187,42 +215,55 @@ export default function ChatScreen() {
   );
 }
 
-// ESTILIZAÇÃO COMPLETA
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#95C159' }, // Fundo Verde Alface do header
+  container: { flex: 1, backgroundColor: '#95C159' }, 
   
-  // Header
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 25, paddingVertical: 15 },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 25, 
+    paddingVertical: 15 
+  },
   backBtn: { padding: 5 },
   headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#2A3A56' },
   headerIcons: { flexDirection: 'row', alignItems: 'center' },
   profileCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
   profileText: { color: '#2A3A56', fontWeight: 'bold', fontSize: 13 },
   
-  // Conteúdo Branco Arredondado
-  content: { flex: 1, backgroundColor: '#F4F9F1', borderTopLeftRadius: 50, borderTopRightRadius: 50, paddingHorizontal: 20, paddingTop: 25 },
+  content: { 
+    flex: 1, 
+    backgroundColor: '#F4F9F1', 
+    borderTopLeftRadius: 50, 
+    borderTopRightRadius: 50, 
+    paddingHorizontal: 20, 
+    paddingTop: 25 
+  },
   
-  // Seletor (Assistente / Central)
-  selectorContainer: { flexDirection: 'row', backgroundColor: '#F8F8F8', borderRadius: 15, padding: 5, marginBottom: 25 },
+  selectorContainer: { 
+    flexDirection: 'row', 
+    backgroundColor: '#F8F8F8', 
+    borderRadius: 15, 
+    padding: 5, 
+    marginBottom: 25 
+  },
   selectorTab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   selectorActive: { backgroundColor: '#2A3A56' },
   selectorTextActive: { color: '#FFF', fontSize: 13, fontWeight: 'bold' },
   selectorText: { color: '#666', fontSize: 12 },
   
-  // Área do Chat
   chatScroll: { flex: 1 },
   infoText: { textAlign: 'center', color: '#AAA', marginTop: 20 },
   
-  // Balões de Mensagem
   messageRow: { marginBottom: 15 },
   bubble: { padding: 15, borderRadius: 20, maxWidth: '80%' },
   
-  // Balão Deles (Admin/Assistente) - Verde Claro
+  // Design específico para mensagens recebidas (Admin)
   bubbleThem: { alignSelf: 'flex-start', backgroundColor: '#E8F5E9', borderTopLeftRadius: 0 },
   textThem: { color: '#2A3A56', fontSize: 15 },
   timeThem: { alignSelf: 'flex-start', marginLeft: 10 },
   
-  // Balão Meu (Usuário) - Turquesa/Verde Água
+  // Design específico para mensagens enviadas (Usuário)
   bubbleMe: { alignSelf: 'flex-end', backgroundColor: '#00D2B1', borderTopRightRadius: 0 },
   textMe: { color: '#FFF', fontSize: 15 },
   timeMe: { alignSelf: 'flex-end', marginRight: 10 },
@@ -230,9 +271,27 @@ const styles = StyleSheet.create({
   msgText: { lineHeight: 20 },
   timeText: { fontSize: 10, color: '#AAA', marginTop: 5 },
   
-  // Barra de Input (Rodapé)
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 10, borderRadius: 30, marginBottom: 15, elevation: 5, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10 },
+  inputWrapper: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#FFF', 
+    padding: 10, 
+    borderRadius: 30, 
+    marginBottom: 15, 
+    elevation: 5, // Sombra para Android
+    shadowColor: '#000', // Sombra para iOS
+    shadowOpacity: 0.1, 
+    shadowRadius: 10 
+  },
   iconBtn: { padding: 8 },
   input: { flex: 1, height: 40, paddingHorizontal: 15, color: '#2A3A56' },
-  sendBtn: { backgroundColor: '#00D2B1', width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginLeft: 5 }
+  sendBtn: { 
+    backgroundColor: '#00D2B1', 
+    width: 40, 
+    height: 40, 
+    borderRadius: 20, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginLeft: 5 
+  }
 });

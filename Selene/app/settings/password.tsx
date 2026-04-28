@@ -6,7 +6,8 @@ import {
   TextInput, 
   TouchableOpacity, 
   Alert, 
-  ActivityIndicator 
+  ActivityIndicator,
+  ScrollView 
 } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,19 +17,23 @@ import * as SecureStore from 'expo-secure-store';
 export default function PasswordScreen() {
   const router = useRouter();
   
-  // Estados para os campos de texto
+  // ==========================================
+  // ESTADOS (STATES)
+  // ==========================================
   const [senhaAtual, setSenhaAtual] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [iniciais, setIniciais] = useState('AL');
 
-  // Estados independentes para visibilidade das senhas
+  // Visibilidade das senhas independente
   const [showSenhaAtual, setShowSenhaAtual] = useState(false);
   const [showNovaSenha, setShowNovaSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
-  // Carrega as iniciais dinâmicas ao montar a tela
+  // ==========================================
+  // LOGICA DE INICIAIS
+  // ==========================================
   useEffect(() => {
     const carregarIniciais = async () => {
       const nome = await SecureStore.getItemAsync('userName');
@@ -43,6 +48,9 @@ export default function PasswordScreen() {
     carregarIniciais();
   }, []);
 
+  // ==========================================
+  // CHAMADA API
+  // ==========================================
   const handleUpdatePassword = async () => {
     if (!senhaAtual || !novaSenha || !confirmarSenha) {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
@@ -65,7 +73,7 @@ export default function PasswordScreen() {
       const token = await SecureStore.getItemAsync('userToken');
 
       if (!token) {
-        Alert.alert("Erro de Sessão", "Não encontramos seu acesso. Por favor, faça login novamente.");
+        Alert.alert("Erro de Sessão", "Acesso não encontrado. Faça login novamente.");
         setLoading(false);
         return;
       }
@@ -92,7 +100,7 @@ export default function PasswordScreen() {
       }
     } catch (error) {
       console.error("Erro na requisição:", error);
-      Alert.alert("Erro de Conexão", "Não foi possível falar com o servidor.");
+      Alert.alert("Erro de Conexão", "Não foi possível conectar ao servidor.");
     } finally {
       setLoading(false);
     }
@@ -100,6 +108,7 @@ export default function PasswordScreen() {
 
   return (
     <View style={styles.container}>
+      {/* HEADER VERDE SELENE */}
       <View style={styles.topSection}>
         <SafeAreaView edges={['top']} style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -114,77 +123,80 @@ export default function PasswordScreen() {
         </SafeAreaView>
       </View>
 
+      {/* FORMULÁRIO EM CARD */}
       <View style={styles.contentCard}>
-        <Text style={styles.cardInfo}>Mantenha sua conta segura atualizando sua senha regularmente.</Text>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <Text style={styles.cardInfo}>Mantenha sua conta segura atualizando sua senha regularmente.</Text>
 
-        {/* Senha Atual */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Senha Atual:</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput 
-              placeholder="••••••••••••" 
-              secureTextEntry={!showSenhaAtual}
-              style={styles.input} 
-              placeholderTextColor="#A0A0A0"
-              value={senhaAtual}
-              autoCapitalize="none"
-              onChangeText={setSenhaAtual}
-            />
-            <TouchableOpacity onPress={() => setShowSenhaAtual(!showSenhaAtual)} style={styles.eyeIcon}>
-              <Feather name={showSenhaAtual ? "eye" : "eye-off"} size={20} color="#2A3A56" />
-            </TouchableOpacity>
+          {/* Senha Atual */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Senha Atual:</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput 
+                placeholder="••••••••••••" 
+                secureTextEntry={!showSenhaAtual}
+                style={styles.input} 
+                placeholderTextColor="#A0A0A0"
+                value={senhaAtual}
+                autoCapitalize="none"
+                onChangeText={setSenhaAtual}
+              />
+              <TouchableOpacity onPress={() => setShowSenhaAtual(!showSenhaAtual)} style={styles.eyeIcon}>
+                <Feather name={showSenhaAtual ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* Nova Senha */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Nova Senha:</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput 
-              placeholder="••••••••••••" 
-              secureTextEntry={!showNovaSenha}
-              style={styles.input} 
-              placeholderTextColor="#A0A0A0"
-              value={novaSenha}
-              autoCapitalize="none"
-              onChangeText={setNovaSenha}
-            />
-            <TouchableOpacity onPress={() => setShowNovaSenha(!showNovaSenha)} style={styles.eyeIcon}>
-              <Feather name={showNovaSenha ? "eye" : "eye-off"} size={20} color="#2A3A56" />
-            </TouchableOpacity>
+          {/* Nova Senha */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Nova Senha:</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput 
+                placeholder="••••••••••••" 
+                secureTextEntry={!showNovaSenha}
+                style={styles.input} 
+                placeholderTextColor="#A0A0A0"
+                value={novaSenha}
+                autoCapitalize="none"
+                onChangeText={setNovaSenha}
+              />
+              <TouchableOpacity onPress={() => setShowNovaSenha(!showNovaSenha)} style={styles.eyeIcon}>
+                <Feather name={showNovaSenha ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* Confirmar Nova Senha */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Confirmar Nova Senha:</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput 
-              placeholder="••••••••••••" 
-              secureTextEntry={!showConfirmarSenha}
-              style={styles.input} 
-              placeholderTextColor="#A0A0A0"
-              value={confirmarSenha}
-              autoCapitalize="none"
-              onChangeText={setConfirmarSenha}
-            />
-            <TouchableOpacity onPress={() => setShowConfirmarSenha(!showConfirmarSenha)} style={styles.eyeIcon}>
-              <Feather name={showConfirmarSenha ? "eye" : "eye-off"} size={20} color="#2A3A56" />
-            </TouchableOpacity>
+          {/* Confirmar Nova Senha */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirmar Nova Senha:</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput 
+                placeholder="••••••••••••" 
+                secureTextEntry={!showConfirmarSenha}
+                style={styles.input} 
+                placeholderTextColor="#A0A0A0"
+                value={confirmarSenha}
+                autoCapitalize="none"
+                onChangeText={setConfirmarSenha}
+              />
+              <TouchableOpacity onPress={() => setShowConfirmarSenha(!showConfirmarSenha)} style={styles.eyeIcon}>
+                <Feather name={showConfirmarSenha ? "eye" : "eye-off"} size={20} color="#2A3A56" />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        <TouchableOpacity 
-          style={[styles.mainButton, loading && { opacity: 0.7 }]} 
-          onPress={handleUpdatePassword}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Salvar Nova Senha</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.mainButton, loading && { opacity: 0.7 }]} 
+            onPress={handleUpdatePassword}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.buttonText}>Salvar Nova Senha</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
       </View>
     </View>
   );
@@ -201,7 +213,7 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15 },
   headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56' },
-  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  headerIcons: { flexDirection: 'row', alignItems: 'center' },
   avatarCircle: { 
     width: 36, 
     height: 36, 
@@ -216,11 +228,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', 
     marginTop: -30, 
     marginHorizontal: 20, 
+    marginBottom: 20,
     borderRadius: 30, 
     padding: 25, 
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 10
   },
@@ -244,10 +256,8 @@ const styles = StyleSheet.create({
     borderRadius: 30, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginTop: 20 
+    marginTop: 10 
   },
-  eyeIcon: {
-    padding: 5,
-  },
+  eyeIcon: { padding: 5 },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
 });

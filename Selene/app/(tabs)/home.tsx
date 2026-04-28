@@ -16,10 +16,16 @@ import * as SecureStore from 'expo-secure-store';
 export default function HomeScreen() {
   const router = useRouter();
   
+  // ==========================================
+  // ESTADOS (STATES) DO USUÁRIO
+  // ==========================================
   const [nomeUsuario, setNomeUsuario] = useState('Usuário');
   const [iniciais, setIniciais] = useState('US');
   const [loading, setLoading] = useState(true);
 
+  // ==========================================
+  // LÓGICA DE CARREGAMENTO (STORAGE/API)
+  // ==========================================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
@@ -45,6 +51,9 @@ export default function HomeScreen() {
     carregarDadosUsuario();
   }, []);
 
+  // ==========================================
+  // DADOS MOCKADOS (SERÃO SUBSTITUÍDOS PELA API)
+  // ==========================================
   const dadosGerais = {
     totalAnalises: 560,
     totalDeteccoes: 23,
@@ -56,6 +65,9 @@ export default function HomeScreen() {
     { id: 2, tipo: 'umidade', gravidade: 'Média', mensagem: 'Umidade acima do ideal', submensagem: 'Umidade 5% acima do recomendado', estufa: 3, tempo: 'há 1 hora' },
   ];
 
+  // ==========================================
+  // FUNÇÕES DE RENDERIZAÇÃO AUXILIARES
+  // ==========================================
   const renderCardGeral = (icon: any, label: string, value: string) => (
     <View style={styles.cardGeral}>
       <View style={styles.cardHeaderGeral}>
@@ -72,8 +84,14 @@ export default function HomeScreen() {
       <StatusBar style="light" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} showsVerticalScrollIndicator={false}>
+        
+        {/* ---------------------------------------------------------
+            INÍCIO DO HEADER (ÁREA VERDE)
+        ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <SafeAreaView edges={['top', 'left', 'right']} style={styles.topContent}>
+            
+            {/* SAUDAÇÃO E PERFIL */}
             <View style={styles.header}>
               <View>
                 {loading ? (
@@ -94,12 +112,13 @@ export default function HomeScreen() {
                   <Text style={styles.avatarText}>{iniciais}</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity onPress={() => router.push('/suporte')}>
+                <TouchableOpacity onPress={() => router.push('/alertas')}>
                   <Feather name="bell" size={24} color="#2A3A56" style={{ marginLeft: 12 }} />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* RESUMO DE NÚMEROS (ANÁLISES E DETECÇÕES) */}
             <View style={styles.resumoContainer}>
               <View style={styles.resumoItem}>
                 <View style={styles.resumoHeader}>
@@ -118,6 +137,7 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            {/* BARRA DE PROGRESSO DE SAÚDE */}
             <View style={styles.progressContainer}>
                 <View style={[styles.progressBar, { width: `${dadosGerais.porcentagem}%` }]}>
                     <Text style={styles.progressText}>{dadosGerais.porcentagem}%</Text>
@@ -131,8 +151,17 @@ export default function HomeScreen() {
             </View>
           </SafeAreaView>
         </View>
+        {/* ---------------------------------------------------------
+            FIM DO HEADER (ÁREA VERDE)
+        ---------------------------------------------------------- */}
 
+
+        {/* ---------------------------------------------------------
+            INÍCIO DO CONTEÚDO (ÁREA BRANCA)
+        ---------------------------------------------------------- */}
         <View style={styles.bottomContainer}>
+          
+          {/* SEÇÃO: VISÃO GERAL (CARDS PEQUENOS) */}
           <View style={styles.sectionHeaderGeral}>
             <MaterialCommunityIcons name="view-dashboard-outline" size={24} color="#2A3A56" />
             <Text style={styles.sectionTitle}>Visão Geral</Text>
@@ -145,6 +174,7 @@ export default function HomeScreen() {
             {renderCardGeral(<MaterialCommunityIcons name="cloud" size={16} color="#2A3A56" />, 'CO2', '100')}
           </View>
 
+          {/* SEÇÃO: ALERTAS RECENTES */}
           <View style={[styles.sectionHeaderGeral, { marginBottom: 15 }]}>
             <Ionicons name="warning-outline" size={24} color="#2A3A56" />
             <Text style={styles.sectionTitle}>Alertas ({alertas.length})</Text>
@@ -183,15 +213,26 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        {/* ---------------------------------------------------------
+            FIM DO CONTEÚDO (ÁREA BRANCA)
+        ---------------------------------------------------------- */}
+
+        {/* ESPAÇAMENTO FINAL PARA O SCROLL NÃO CORTAR O CONTEÚDO */}
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
   );
 }
 
+// ==========================================
+// ESTILIZAÇÃO (STYLES)
+// ==========================================
 const styles = StyleSheet.create({
+  // Estilos globais
   mainContainer: { flex: 1, backgroundColor: '#F5F5F5' },
   scrollContent: { flexGrow: 1 },
+  
+  // Estilos do Topo (Verde)
   topContainer: { backgroundColor: '#95C159', borderBottomLeftRadius: 40, borderBottomRightRadius: 40, paddingBottom: 40, paddingHorizontal: 20 },
   topContent: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 35, marginTop: 15 },
@@ -212,15 +253,21 @@ const styles = StyleSheet.create({
   progressValueText: { position: 'absolute', right: 15, color: '#A0A0A0', fontSize: 14, fontWeight: 'bold' },
   progressDescriptionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 5 },
   progressDescriptionText: { fontSize: 14, color: '#2A3A56', fontWeight: 'bold' },
+  
+  // Estilos do Conteúdo (Branco)
   bottomContainer: { paddingHorizontal: 20, paddingTop: 30 },
   sectionHeaderGeral: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56' },
+  
+  // Estilos dos Cards de Visão Geral
   cardsGeralContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 35 },
   cardGeral: { backgroundColor: '#FFF', borderRadius: 15, width: '23%', paddingVertical: 15, paddingHorizontal: 5, alignItems: 'center', elevation: 3 },
   cardHeaderGeral: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 10 },
   cardLabelGeral: { fontSize: 9, color: '#2A3A56', fontWeight: 'bold' },
   cardValueGeral: { fontSize: 18, fontWeight: 'bold', color: '#2A3A56', marginBottom: 5 },
   cardStatusGeral: { fontSize: 10, color: '#95C159', fontWeight: 'bold' },
+  
+  // Estilos dos Cards de Alerta
   cardAlerta: { backgroundColor: '#FFF', borderRadius: 15, padding: 15, marginBottom: 15, elevation: 3 },
   cardAlertaMain: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 },
   cardAlertaContentRow: { flexDirection: 'row', gap: 12, flex: 1 },
