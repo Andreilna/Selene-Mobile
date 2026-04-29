@@ -124,7 +124,9 @@ export default function ChatScreen() {
 
       setNewMessage("");
     } catch (err) {
-      console.log("ERRO SEND:", err);
+      console.log("ERRO SEND STATUS:", err.response?.status);
+
+      console.log("ERRO SEND DATA:", err.response?.data);
     }
   };
 
