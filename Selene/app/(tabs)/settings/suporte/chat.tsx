@@ -1,5 +1,3 @@
-// (mantive sua estrutura e só corrigi integração)
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
@@ -28,87 +26,175 @@ export default function ChatScreen() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const fetchMessages = async () => {
-    const token = await SecureStore.getItemAsync("userToken");
-    const userId = await SecureStore.getItemAsync("userId");
-    setCurrentUserId(userId);
+    try {
+      const token = await SecureStore.getItemAsync("userToken");
+      const userId = await SecureStore.getItemAsync("userId");
 
-    const res = await axios.get(
-      `http://SEU_IP:3000/api/v1/chats/${chatId}/mensagens`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      if (!token || !chatId) return;
 
-    setMessages(res.data);
+      setCurrentUserId(userId);
+
+      const res = await axios.get(
+        `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("MENSAGENS:", res.data);
+
+      setMessages(res.data.data || res.data || []);
+
+    } catch (err) {
+      console.log("ERRO FETCH MSG:", err);
+    }
   };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const token = await SecureStore.getItemAsync("userToken");
+    try {
+      const token = await SecureStore.getItemAsync("userToken");
 
-    const res = await axios.post(
-      `http://SEU_IP:3000/api/v1/chats/${chatId}/mensagens`,
-      { texto: newMessage },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      if (!token || !chatId) return;
 
-    setMessages(prev => [...prev, res.data]);
-    setNewMessage("");
+      const res = await axios.post(
+        `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`,
+        { texto: newMessage },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const nova = res.data.data || res.data;
+
+      setMessages(prev => [...prev, nova]);
+      setNewMessage("");
+
+    } catch (err) {
+      console.log("ERRO SEND:", err);
+    }
   };
 
-  useEffect(() => { fetchMessages(); }, []);
-  useEffect(() => { scrollViewRef.current?.scrollToEnd({ animated: true }); }, [messages]);
+  useEffect(() => {
+    fetchMessages();
+  }, [chatId]);
+
+  useEffect(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [messages]);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <ScrollView ref={scrollViewRef} style={styles.chatScroll}>
-            {messages.map((item) => {
-              const isMe = item.autor === currentUserId;
 
-              return (
-                <View key={item._id} style={styles.messageRow}>
-                  <View style={[
-                    styles.bubble,
-                    isMe ? styles.bubbleMe : styles.bubbleThem
-                  ]}>
-                    <Text style={isMe ? styles.textMe : styles.textThem}>
-                      {item.texto}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
+        <View style={styles.topContainer}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
 
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.input}
-                value={newMessage}
-                onChangeText={setNewMessage}
-                placeholder="Digite..."
-              />
-              <TouchableOpacity style={styles.sendBtn} onPress={handleSendMessage}>
-                <Ionicons name="send" size={20} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
+            <Text style={styles.welcomeText}>Chat</Text>
+          </View>
         </View>
+
+        <ScrollView ref={scrollViewRef} style={{ flex: 1 }}>
+          {messages.map((msg) => (
+            <View
+              key={msg._id}
+              style={[
+                styles.bubble,
+                msg.autor === currentUserId
+                  ? styles.bubbleMe
+                  : styles.bubbleThem
+              ]}
+            >
+              <Text style={msg.autor === currentUserId ? styles.textMe : styles.textThem}>
+                {msg.texto}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              value={newMessage}
+              onChangeText={setNewMessage}
+              placeholder="Digite..."
+            />
+            <TouchableOpacity style={styles.sendBtn} onPress={handleSendMessage}>
+              <Ionicons name="send" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159",
+  },
 
   content: {
     flex: 1,
     backgroundColor: "#FFF",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    padding: 20,
+    padding: 25,
+  },
+
+  topContainer: {
+    backgroundColor: "#95C159",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
+
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+  },
+
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#999",
+    marginBottom: 20,
   },
 
   chatScroll: { flex: 1 },
