@@ -34,207 +34,196 @@ export default function ChatScreen() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
   const [role, setRole] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
-      try {
-        const nomeSalvo = await SecureStore.getItemAsync("userName");
-        if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(" ");
+      const nome = await SecureStore.getItemAsync("userName");
+      if (nome) {
+        const partes = nome.split(" ");
+        const init =
+          partes.length > 1
+            ? (partes[0][0] + partes[1][0]).toUpperCase()
+            : partes[0][0].toUpperCase();
 
-          const init =
-            partes.length > 1
-              ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
-
-          setIniciais(init);
-        }
-      } catch (e) {
-        console.log(e);
+        setIniciais(init);
       }
     };
-
     carregarDadosUsuario();
   }, []);
 
-  // ============================
-  // PEGAR ROLE E USER
-  // ============================
-
+  // ================= LOAD USER =================
   const loadUserData = async () => {
     const userId = await SecureStore.getItemAsync("userId");
-
     const userRole = await SecureStore.getItemAsync("userRole");
 
     setCurrentUserId(userId);
     setRole(userRole);
   };
 
-  // ============================
-  // BUSCAR MENSAGENS
-  // ============================
+  // ================= FORMATAR HORA =================
+  const formatTime = (date: string) => {
+    return new Date(date).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
+  // ================= AGRUPAR DATA =================
+  const getDateLabel = (date: string) => {
+    const today = new Date();
+    const msgDate = new Date(date);
+
+    const isToday = msgDate.toDateString() === today.toDateString();
+
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const isYesterday = msgDate.toDateString() === yesterday.toDateString();
+
+    if (isToday) return "Hoje";
+    if (isYesterday) return "Ontem";
+
+    return msgDate.toLocaleDateString("pt-BR");
+  };
+
+  // ================= FETCH =================
   const fetchMessages = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
 
-      console.log("ROLE:", role);
-      console.log("TOKEN:", token);
-
-      if (!token || !chatId) return;
-
-      let url = "";
-
-      if (role === "admin" || role === "superadmin") {
-        url = `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`;
-      } else {
-        url = `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
-      }
-
-      console.log("URL:", url);
+      let url =
+        role === "admin" || role === "superadmin"
+          ? `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`
+          : `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
 
       const res = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      console.log("MENSAGENS:", res.data);
 
       setMessages(res.data.data || res.data || []);
     } catch (err) {
-      console.log("ERRO FETCH MSG:", err);
+      console.log(err);
     }
   };
 
-  // ============================
-  // ENVIAR MENSAGEM
-  // ============================
-
+  // ================= SEND =================
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
     try {
       const token = await SecureStore.getItemAsync("userToken");
 
-      if (!token || !chatId) return;
+      let url =
+        role === "admin" || role === "superadmin"
+          ? `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`
+          : `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
 
-      let url = "";
-
-      if (role === "admin" || role === "superadmin") {
-        url = `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`;
-      } else {
-        url = `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
-      }
+      setIsTyping(true);
 
       const res = await axios.post(
         url,
         { texto: newMessage },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       const nova = res.data.data || res.data;
 
       setMessages((prev) => [...prev, nova]);
-
       setNewMessage("");
+      setIsTyping(false);
     } catch (err) {
-      console.log("ERRO SEND STATUS:", err.response?.status);
-
-      console.log("ERRO SEND DATA:", err.response?.data);
+      console.log(err);
+      setIsTyping(false);
     }
   };
 
-  // ============================
-  // LOAD
-  // ============================
-
+  // ================= EFFECTS =================
   useEffect(() => {
     loadUserData();
   }, []);
-
   useEffect(() => {
     if (role) fetchMessages();
   }, [chatId, role]);
-
-  // ============================
-  // AUTO SCROLL
-  // ============================
-
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  // ============================
-  // UI
-  // ============================
+  // ================= RENDER =================
+  let lastDate = "";
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={["top"]}>
+      <SafeAreaView style={styles.container}>
+        {/* ================= HEADER ================= */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
+
             <View>
               <Text style={styles.welcomeText}>Suporte Online</Text>
               <Text style={styles.subwelcomeText}>Chat</Text>
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity
-                style={styles.avatarCircle}
-                onPress={() => router.push("/profile")}
-              >
+              <TouchableOpacity style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
-                <Feather
-                  name="bell"
-                  size={24}
-                  color="#2A3A56"
-                  style={{ marginLeft: 12 }}
-                />
-              </TouchableOpacity>
+              <Feather name="bell" size={24} color="#2A3A56" />
             </View>
           </View>
         </View>
 
+        {/* ================= CHAT ================= */}
         <View style={styles.content}>
-          <ScrollView ref={scrollViewRef} style={{ flex: 1 }}>
+          <ScrollView ref={scrollViewRef}>
             {messages.map((msg) => {
               const isMe =
-                role === "admin" || role === "superadmin"
+                role === "admin"
                   ? msg.tipo === "admin"
                   : msg.autor === currentUserId;
 
+              const dateLabel = getDateLabel(msg.createdAt);
+              const showDate = dateLabel !== lastDate;
+              lastDate = dateLabel;
+
               return (
-                <View
-                  key={msg._id}
-                  style={[
-                    styles.bubble,
-                    isMe ? styles.bubbleMe : styles.bubbleThem,
-                  ]}
-                >
-                  <Text style={isMe ? styles.textMe : styles.textThem}>
-                    {msg.texto}
-                  </Text>
+                <View key={msg._id}>
+                  {/* DATA (Hoje / Ontem) */}
+                  {showDate && (
+                    <Text style={styles.dateLabel}>{dateLabel}</Text>
+                  )}
+
+                  <View
+                    style={[
+                      styles.bubble,
+                      isMe ? styles.bubbleMe : styles.bubbleThem,
+                    ]}
+                  >
+                    <Text style={isMe ? styles.textMe : styles.textThem}>
+                      {msg.texto}
+                    </Text>
+
+                    {/* HORA */}
+                    <Text style={styles.timeText}>
+                      {formatTime(msg.createdAt)}
+                    </Text>
+                  </View>
                 </View>
               );
             })}
+
+            {/* DIGITANDO */}
+            {isTyping && <Text style={styles.typingText}>digitando...</Text>}
           </ScrollView>
 
+          {/* ================= INPUT ================= */}
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
@@ -261,18 +250,20 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#95C159",
-  },
+  // ================= CONTAINER =================
+  container: { flex: 1, backgroundColor: "#95C159" },
 
   content: {
     flex: 1,
     backgroundColor: "#FFF",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    padding: 25,
+    padding: 20,
   },
+
+  /// =========================
+  // HEADER (TOPO VERDE)
+  // =========================
 
   topContainer: {
     backgroundColor: "#95C159",
@@ -287,6 +278,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
   },
 
   welcomeText: {
@@ -295,16 +288,52 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
   },
 
-  bubble: {
-    padding: 12,
-    borderRadius: 20,
-    maxWidth: "80%",
-    marginVertical: 4,
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8,
   },
 
-  bubbleThem: {
-    alignSelf: "flex-start",
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  // =========================
+  // AVATAR
+  // =========================
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
+
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // ================= CHAT =================
+  bubble: {
+    padding: 10,
+    borderRadius: 15,
+    marginVertical: 5,
+    maxWidth: "75%",
   },
 
   bubbleMe: {
@@ -312,18 +341,39 @@ const styles = StyleSheet.create({
     backgroundColor: "#00D2B1",
   },
 
-  textThem: {
-    color: "#2A3A56",
+  bubbleThem: {
+    alignSelf: "flex-start",
+    backgroundColor: "#E8F5E9",
   },
 
-  textMe: {
-    color: "#FFF",
+  textMe: { color: "#FFF" },
+  textThem: { color: "#000" },
+
+  timeText: {
+    fontSize: 10,
+    marginTop: 4,
+    opacity: 0.6,
+    alignSelf: "flex-end",
   },
 
+  dateLabel: {
+    alignSelf: "center",
+    marginVertical: 10,
+    fontSize: 12,
+    color: "#999",
+  },
+
+  typingText: {
+    fontStyle: "italic",
+    color: "#999",
+    marginTop: 10,
+  },
+
+  // ================= INPUT =================
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    marginTop: 10,
   },
 
   input: {
@@ -340,24 +390,4 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 20,
   },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-
-  avatarCircle: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: "#EDFCED",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-  },
-
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
 });

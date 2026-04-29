@@ -261,10 +261,17 @@ export default function PasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Estrutura Principal
-  container: { flex: 1, backgroundColor: "#95C159" },
+  // =========================
+  // CONTAINER PRINCIPAL
+  // =========================
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159",
+  },
 
-  // Header Superior
+  // =========================
+  // HEADER (TOPO VERDE)
+  // =========================
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -282,8 +289,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
+
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8,
+  },
 
   headerIcons: {
     flexDirection: "row",
@@ -291,6 +307,9 @@ const styles = StyleSheet.create({
     gap: 15,
   },
 
+  // =========================
+  // AVATAR
+  // =========================
   avatarCircle: {
     width: 45,
     height: 45,
@@ -302,9 +321,15 @@ const styles = StyleSheet.create({
     borderColor: "#E0E0E0",
   },
 
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
 
-  // Painel Branco Arredondado
+  // =========================
+  // CONTEÚDO (PAINEL BRANCO)
+  // =========================
   content: {
     flex: 1,
     backgroundColor: "#FFF",
@@ -313,25 +338,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 30,
   },
+
   sectionTitle: {
     fontSize: 14,
     color: "#666",
     marginBottom: 20,
     fontWeight: "600",
   },
+
   cardInfo: {
     fontSize: 13,
     color: "#666",
     marginBottom: 25,
     textAlign: "center",
   },
-  inputGroup: { marginBottom: 20 },
+
+  // =========================
+  // INPUTS / FORMULÁRIO
+  // =========================
+  inputGroup: {
+    marginBottom: 20,
+  },
+
   label: {
     fontSize: 14,
     fontWeight: "bold",
     color: "#2A3A56",
     marginBottom: 8,
   },
+
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -342,7 +377,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-  input: { flex: 1, color: "#2A3A56", fontSize: 16 },
+
+  input: {
+    flex: 1,
+    color: "#2A3A56",
+    fontSize: 16,
+  },
+
+  eyeIcon: {
+    padding: 5,
+  },
+
+  // =========================
+  // BOTÕES
+  // =========================
   mainButton: {
     backgroundColor: "#2A3A56",
     height: 55,
@@ -351,7 +399,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  eyeIcon: { padding: 5 },
+
   confirmButton: {
     backgroundColor: "#00D1A0",
     height: 50,
@@ -359,5 +407,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  btnText: { color: "#FFF", fontWeight: "bold" },
+
+  btnText: {
+    color: "#FFF",
+    fontWeight: "bold",
+  },
 });

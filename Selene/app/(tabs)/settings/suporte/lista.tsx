@@ -62,8 +62,6 @@ export default function ListaChats() {
   // BUSCAR CHATS
   // =========================
 
-  console.log("ROLE:", role);
-
   const fetchChats = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
@@ -81,19 +79,13 @@ export default function ListaChats() {
         url = "https://selene-mobile.onrender.com/api/v1/chats";
       }
 
-      console.log("BUSCANDO CHATS:", url);
-
       const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("STATUS:", res.status);
-
       const data = await res.json();
-
-      console.log("CHATS RAW:", data);
 
       let lista: Chat[] = [];
 
@@ -102,8 +94,6 @@ export default function ListaChats() {
       } else if (data.data && Array.isArray(data.data)) {
         lista = data.data;
       }
-
-      console.log("CHATS FINAL:", lista.length);
 
       setChats(lista);
     } catch (err) {
@@ -177,47 +167,46 @@ export default function ListaChats() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER */}
-
+        {/* ---------------------------------------------------------
+                    INÍCIO DO HEADER (VERDE SELENE)
+                ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
-
             <View>
               <Text style={styles.welcomeText}>Suporte Online</Text>
-
               <Text style={styles.subwelcomeText}>Suporte</Text>
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.avatarCircle}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={() => router.push("/profile")}
+              >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <Feather name="bell" size={24} color="#2A3A56" />
+              <TouchableOpacity onPress={() => router.push("/alertas")}>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
+        {/* ---------------------------------------------------------
+                    FIM DO HEADER
+                ---------------------------------------------------------- */}
 
         {/* LISTA */}
 
         <View style={styles.content}>
           <Text style={styles.sectionTitle}>Conversas</Text>
-
-          {/* BOTÃO NOVO CHAT */}
-
-          {role !== "admin" && (
-            <TouchableOpacity
-              style={styles.newChatButton}
-              onPress={iniciarNovoChat}
-            >
-              <Feather name="plus" size={18} color="#FFF" />
-
-              <Text style={styles.newChatText}>Nova Conversa</Text>
-            </TouchableOpacity>
-          )}
 
           {/* LISTA CHATS */}
 
@@ -269,6 +258,19 @@ export default function ListaChats() {
               </TouchableOpacity>
             )}
           />
+
+          {/* BOTÃO NOVO CHAT */}
+
+          {role !== "admin" && (
+            <TouchableOpacity
+              style={styles.newChatButton}
+              onPress={iniciarNovoChat}
+            >
+              <Feather name="plus" size={18} color="#FFF" />
+
+              <Text style={styles.newChatText}>Nova Conversa</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -280,6 +282,9 @@ export default function ListaChats() {
 // =========================
 
 const styles = StyleSheet.create({
+  // =========================
+  // CONTAINERS PRINCIPAIS
+  // =========================
   container: {
     flex: 1,
     backgroundColor: "#95C159",
@@ -292,6 +297,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 50,
     padding: 25,
   },
+
+  /// =========================
+  // HEADER (TOPO VERDE)
+  // =========================
 
   topContainer: {
     backgroundColor: "#95C159",
@@ -306,6 +315,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 10,
+    marginBottom: 20,
   },
 
   welcomeText: {
@@ -317,13 +328,17 @@ const styles = StyleSheet.create({
   subwelcomeText: {
     fontSize: 14,
     color: "#2A3A56",
+    opacity: 0.8,
   },
 
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 15,
   },
-
+  // =========================
+  // AVATAR
+  // =========================
   avatarCircle: {
     width: 45,
     height: 45,
@@ -331,13 +346,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
 
   avatarText: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "#2A3A56",
   },
 
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // =========================
+  // TEXTOS / SEÇÕES
+  // =========================
   sectionTitle: {
     fontSize: 14,
     fontWeight: "bold",
@@ -345,6 +375,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  // =========================
+  // BOTÃO NOVO CHAT
+  // =========================
   newChatButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -362,6 +395,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
+  // =========================
+  // CARD DE CHAT
+  // =========================
   chatCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -369,15 +405,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 22,
     marginBottom: 15,
-  },
-
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#E8F5E9",
-    justifyContent: "center",
-    alignItems: "center",
   },
 
   chatInfo: {

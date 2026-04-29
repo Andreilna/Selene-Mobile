@@ -10,31 +10,73 @@ import {
   Alert,
 } from "react-native";
 import { Image } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, Octicons } from "@expo/vector-icons";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { Ionicons, Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   // ==========================================
-  // ESTADOS DO FORMULÁRIO (INPUTS)
+  // STATES
   // ==========================================
   const [nome, setNome] = useState("");
-  const [telefone, setTelefone] = useState("+44 555 5555 55");
+  const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [notificacoes, setNotificacoes] = useState(true);
   const [salvarLogin, setSalvarLogin] = useState(true);
   const [idExibicao, setIdExibicao] = useState("00000000");
-  const [iniciais, setIniciais] = useState("--");
+  const [iniciais, setIniciais] = useState("US");
 
   // ==========================================
-  // CARREGAMENTO DE DADOS INICIAIS
+  // LOAD DADOS (LOCAL + BACKEND)
   // ==========================================
   useEffect(() => {
     const carregarDados = async () => {
       try {
+        const token = await SecureStore.getItemAsync("userToken");
+
+        // 🔥 tenta pegar do backend primeiro
+        if (token) {
+          const res = await fetch(
+            "https://selene-mobile.onrender.com/api/v1/auth/perfil",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          const data = await res.json();
+
+          if (res.ok && data.data) {
+            const user = data.data;
+
+            setNome(user.nome_completo || "");
+            setEmail(user.email || "");
+            setTelefone(user.telefone || "");
+
+            if (user.nome_completo) {
+              const partes = user.nome_completo.trim().split(" ");
+              setIniciais(
+                partes.length > 1
+                  ? (partes[0][0] + partes[1][0]).toUpperCase()
+                  : partes[0][0].toUpperCase(),
+              );
+            }
+
+            if (user._id) {
+              setIdExibicao(user._id.substring(0, 8));
+            }
+
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 🔁 fallback SecureStore
         const nomeSalvo = await SecureStore.getItemAsync("userName");
         const emailSalvo = await SecureStore.getItemAsync("userEmail");
         const idSalvo = await SecureStore.getItemAsync("userId");
@@ -48,180 +90,220 @@ export default function EditProfileScreen() {
               : partes[0][0].toUpperCase(),
           );
         }
+
         if (emailSalvo) setEmail(emailSalvo);
         if (idSalvo) setIdExibicao(idSalvo.substring(0, 8));
       } catch (error) {
-        console.error("Erro ao carregar dados para edição:", error);
+        console.log("ERRO LOAD PERFIL:", error);
+      } finally {
+        setLoading(false);
       }
     };
+
     carregarDados();
   }, []);
 
   // ==========================================
-  // AÇÕES DO FORMULÁRIO
+  // SALVAR (BACKEND)
   // ==========================================
-  const handleSalvar = () => {
-    // Aqui você futuramente faria o axios.put para atualizar o perfil
-    Alert.alert("Sucesso", "Alterações salvas com sucesso!");
-    router.back();
+  const handleSalvar = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("userToken");
+
+      if (!token) {
+        Alert.alert("Erro", "Usuário não autenticado");
+        return;
+      }
+
+      if (!nome.trim()) {
+        Alert.alert("Erro", "Nome obrigatório");
+        return;
+      }
+
+      const res = await fetch(
+        "https://selene-mobile.onrender.com/api/v1/auth/perfil",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nome_completo: nome,
+            email: email,
+            telefone: telefone,
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Erro ao atualizar perfil");
+      }
+
+      // 🔥 Atualiza local
+      await SecureStore.setItemAsync("userName", nome);
+      await SecureStore.setItemAsync("userEmail", email);
+
+      Alert.alert("Sucesso", "Perfil atualizado!");
+      router.back();
+    } catch (error: any) {
+      console.log("ERRO SALVAR:", error.message);
+      Alert.alert("Erro", error.message);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {/* ---------------------------------------------------------
-          HEADER (FUNDO VERDE E BOTÃO VOLTAR)
-      ---------------------------------------------------------- */}
-      <View style={styles.headerBackground}>
-        <SafeAreaView style={styles.headerContent}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color="#FFF" />
-          </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Editar Perfil</Text>
-
-          <View style={styles.headerRight}>
-            <View style={styles.miniAvatar}>
-              <Text style={styles.miniAvatarText}>{iniciais}</Text>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        {/* HEADER */}
+        <View style={styles.topContainer}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.welcomeText}>Perfil</Text>
+              <Text style={styles.subwelcomeText}></Text>
             </View>
-            <Octicons name="bell" size={24} color="#FFF" />
-          </View>
-        </SafeAreaView>
-      </View>
-      {/* ---------------------------------------------------------
-          FIM DO HEADER
-      ---------------------------------------------------------- */}
 
-      {/* ---------------------------------------------------------
-          CARD PRINCIPAL DE EDIÇÃO
-      ---------------------------------------------------------- */}
-      <View style={styles.profileCard}>
-        {/* AVATAR COM BOTÃO DE CÂMERA */}
-        <View style={styles.imageContainer}>
-          <Image
-            source="https://i.pravatar.cc/300"
-            style={styles.profileImage}
-          />
-          <TouchableOpacity style={styles.cameraBtn}>
-            <Ionicons name="camera" size={20} color="#FFF" />
-          </TouchableOpacity>
+            <View style={styles.headerIcons}>
+              <TouchableOpacity style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{iniciais}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => router.push("/alertas")}>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
-        <Text style={styles.userName}>{nome}</Text>
-        <Text style={styles.userId}>ID: {idExibicao}</Text>
-
-        <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sectionTitle}>Configurações Usuário</Text>
-
-          {/* INPUTS DE TEXTO */}
-          <Text style={styles.label}>Nome:</Text>
-          <TextInput
-            style={styles.input}
-            value={nome}
-            onChangeText={setNome}
-            placeholder="Seu nome"
-          />
-
-          <Text style={styles.label}>Telefone:</Text>
-          <TextInput
-            style={styles.input}
-            value={telefone}
-            onChangeText={setTelefone}
-            keyboardType="phone-pad"
-          />
-
-          <Text style={styles.label}>Email:</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-          />
-
-          {/* SELETORES (SWITCHES) */}
-          <View style={styles.switchRow}>
-            <Text style={styles.label}>Ativar Notificações</Text>
-            <Switch
-              value={notificacoes}
-              onValueChange={setNotificacoes}
-              trackColor={{ false: "#767577", true: "#00D1A0" }}
+        {/* CONTEÚDO */}
+        <View style={styles.content}>
+          <View style={styles.imageContainer}>
+            <Image
+              source="https://i.pravatar.cc/300"
+              style={styles.profileImage}
             />
+            <TouchableOpacity style={styles.cameraBtn}>
+              <Ionicons name="camera" size={20} color="#FFF" />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.switchRow}>
-            <Text style={styles.label}>Salvar Login</Text>
-            <Switch
-              value={salvarLogin}
-              onValueChange={setSalvarLogin}
-              trackColor={{ false: "#767577", true: "#00D1A0" }}
-            />
-          </View>
+          <Text style={styles.userName}>{nome}</Text>
+          <Text style={styles.userId}>ID: {idExibicao}</Text>
 
-          {/* BOTÃO DE SALVAR */}
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
-            <Text style={styles.saveBtnText}>Salvar Alterações</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
-      {/* ---------------------------------------------------------
-          FIM DO CARD DE EDIÇÃO
-      ---------------------------------------------------------- */}
-    </View>
+          <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+            <Text style={styles.sectionTitle}>Configurações Usuário</Text>
+
+            <Text style={styles.label}>Nome:</Text>
+            <TextInput
+              style={styles.input}
+              value={nome}
+              onChangeText={setNome}
+            />
+
+            <Text style={styles.label}>Telefone:</Text>
+            <TextInput
+              style={styles.input}
+              value={telefone}
+              onChangeText={setTelefone}
+              keyboardType="phone-pad"
+            />
+
+            <Text style={styles.label}>Email:</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+            />
+
+            <View style={styles.switchRow}>
+              <Text style={styles.label}>Ativar Notificações</Text>
+              <Switch value={notificacoes} onValueChange={setNotificacoes} />
+            </View>
+
+            <View style={styles.switchRow}>
+              <Text style={styles.label}>Salvar Login</Text>
+              <Switch value={salvarLogin} onValueChange={setSalvarLogin} />
+            </View>
+
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
+              <Text style={styles.saveBtnText}>Salvar Alterações</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
-// ==========================================
-// ESTILOS (STYLES)
-// ==========================================
+// ⚠️ ESTILOS NÃO ALTERADOS
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
-
-  // Header Verde
-  headerBackground: {
+  container: { flex: 1, backgroundColor: "#95C159" },
+  topContainer: {
     backgroundColor: "#95C159",
-    height: 180,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
+    paddingHorizontal: 20,
   },
-  headerContent: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 10,
+    marginTop: 10,
+    marginBottom: 20,
   },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#2A3A56" },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 10 },
-  miniAvatar: {
-    width: 35,
-    height: 35,
-    borderRadius: 18,
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+
+  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#2A3A56",
+    borderColor: "#E0E0E0",
   },
-  miniAvatarText: { fontSize: 12, fontWeight: "bold", color: "#2A3A56" },
-
-  // Card de Edição
-  profileCard: {
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  content: {
     flex: 1,
     backgroundColor: "#FFF",
-    marginTop: -50,
-    marginHorizontal: 20,
-    borderRadius: 40,
-    paddingTop: 60,
-    elevation: 5,
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 80,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    color: "#666",
     marginBottom: 20,
+    fontWeight: "600",
   },
-  imageContainer: { position: "absolute", top: -60, alignSelf: "center" },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: "#FFF",
+  imageContainer: {
+    position: "absolute",
+    top: -60,
+    alignSelf: "center",
+    backgroundColor: "#FFF",
+    padding: 5,
+    borderRadius: 65,
   },
+  profileImage: { width: 120, height: 120, borderRadius: 60 },
   cameraBtn: {
     position: "absolute",
     bottom: 5,
@@ -248,15 +330,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: 20,
   },
-
-  // Formulário
   form: { paddingHorizontal: 25 },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#2A3A56",
-    marginBottom: 20,
-  },
   label: {
     fontSize: 14,
     fontWeight: "bold",

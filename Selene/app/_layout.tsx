@@ -41,6 +41,13 @@ export default function RootLayout() {
         }}
       />
 
+      <Stack.Screen 
+        name="(admin)" 
+        options={{
+          animation: 'simple_push',
+        }}
+      />
+
       {/* ---------------------------------------------------------
           TELAS MODAIS OU FLUXOS ESPECÍFICOS
       ---------------------------------------------------------- */}

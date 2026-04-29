@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   Alert,
@@ -10,21 +9,18 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import {
-  Ionicons,
-  Octicons,
-  MaterialCommunityIcons,
-  Feather,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+
+import { StyleSheet } from "react-native"; // mantém separado
 
 export default function ProfileScreen() {
   const router = useRouter();
 
-  // ==========================================
+  // =========================
   // STATES
-  // ==========================================
+  // =========================
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [iniciais, setIniciais] = useState("US");
@@ -35,71 +31,76 @@ export default function ProfileScreen() {
     iniciais: "",
   });
 
-// ==========================================
-// LOAD USER DATA + INICIAIS
-// ==========================================
-useEffect(() => {
-  const loadUserData = async () => {
-    try {
-      const nomeCompleto = await SecureStore.getItemAsync("userName");
-      const userId = await SecureStore.getItemAsync("userId");
-      const role = await SecureStore.getItemAsync("userRole");
+  // =========================
+  // LOAD USER
+  // =========================
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const nomeCompleto = await SecureStore.getItemAsync("userName");
+        const userId = await SecureStore.getItemAsync("userId");
+        const role = await SecureStore.getItemAsync("userRole");
 
-      setIsAdmin(role === "admin");
+        setIsAdmin(role === "admin" || role === "superadmin");
 
-      if (nomeCompleto) {
-        const partes = nomeCompleto.trim().split(" ");
+        if (nomeCompleto) {
+          const partes = nomeCompleto.trim().split(" ");
 
-        const init =
-          partes.length > 1
-            ? (partes[0][0] + partes[1][0]).toUpperCase()
-            : partes[0][0].toUpperCase();
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
 
-        // mantém os dois estados que você já usava
-        setIniciais(init);
+          setIniciais(init);
 
-        setUserData({
-          nome: nomeCompleto,
-          id: userId ? userId.substring(0, 8) : "25030024",
-          iniciais: init,
-        });
+          setUserData({
+            nome: nomeCompleto,
+            id: userId ? userId.substring(0, 8) : "--------",
+            iniciais: init,
+          });
+        }
+      } catch (e) {
+        console.error("Erro ao carregar dados:", e);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error("Erro ao carregar dados:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  loadUserData();
-}, []);
+    loadUserData();
+  }, []);
 
-  // ==========================================
+  // =========================
   // LOGOUT
-  // ==========================================
+  // =========================
   const handleLogout = async () => {
     Alert.alert("Sair", "Deseja encerrar a sessão?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Sair",
         onPress: async () => {
-          await SecureStore.deleteItemAsync("userToken");
-          await SecureStore.deleteItemAsync("userRole");
-          router.replace("/(auth)");
+          try {
+            await SecureStore.deleteItemAsync("userToken");
+            await SecureStore.deleteItemAsync("userRole");
+            await SecureStore.deleteItemAsync("userName");
+            await SecureStore.deleteItemAsync("userEmail");
+            await SecureStore.deleteItemAsync("userId");
+
+            router.replace("/(auth)");
+          } catch (e) {
+            console.log("Erro ao sair:", e);
+          }
         },
       },
     ]);
   };
 
-  // ==========================================
+  // =========================
   // UI
-  // ==========================================
+  // =========================
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* ---------------------------------------------------------
-                  INÍCIO DO HEADER (VERDE SELENE)
-              ---------------------------------------------------------- */}
+        {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <View>
@@ -108,10 +109,7 @@ useEffect(() => {
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity
-                style={styles.avatarCircle}
-                onPress={() => router.push("/profile")}
-              >
+              <TouchableOpacity style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
@@ -126,15 +124,10 @@ useEffect(() => {
             </View>
           </View>
         </View>
-        {/* ---------------------------------------------------------
-                  FIM DO HEADER
-              ---------------------------------------------------------- */}
 
-        {/* ---------------------------------------------------------
-          CARD DE PERFIL (BRANCO FLUTUANTE)
-      ---------------------------------------------------------- */}
+        {/* CONTEÚDO */}
         <View style={styles.content}>
-          {/* FOTO DE PERFIL CIRCULAR */}
+          {/* FOTO */}
           <View style={styles.imageContainer}>
             <Image
               source="https://i.pravatar.cc/300"
@@ -142,7 +135,7 @@ useEffect(() => {
             />
           </View>
 
-          {/* NOME E ID DO USUÁRIO */}
+          {/* DADOS */}
           {loading ? (
             <ActivityIndicator
               size="large"
@@ -151,16 +144,17 @@ useEffect(() => {
             />
           ) : (
             <>
-              <Text style={styles.userName}>{userData.nome}</Text>
+              <Text style={styles.userName}>{userData.nome || "Usuário"}</Text>
               <Text style={styles.userId}>ID: {userData.id}</Text>
             </>
           )}
 
+          {/* MENU */}
           <ScrollView
             style={styles.menuList}
             showsVerticalScrollIndicator={false}
           >
-            {/* SEÇÃO ADMINISTRATIVA (Condicional: só aparece para Admin) */}
+            {/* ADMIN */}
             {isAdmin && (
               <View style={styles.adminSection}>
                 <Text style={styles.sectionLabel}>Administração</Text>
@@ -198,12 +192,12 @@ useEffect(() => {
                   </View>
                   <Text style={styles.menuText}>Gerenciar Sensores</Text>
                 </TouchableOpacity>
+
                 <View style={styles.divider} />
               </View>
             )}
 
-            {/* SEÇÃO DE CONFIGURAÇÕES PADRÃO */}
-
+            {/* EDITAR PERFIL */}
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push("/(tabs)/edit-profile")}
@@ -219,6 +213,7 @@ useEffect(() => {
               <Text style={styles.menuText}>Editar Perfil</Text>
             </TouchableOpacity>
 
+            {/* SEGURANÇA */}
             <TouchableOpacity
               style={styles.menuItem}
               onPress={() => router.push("/settings/password")}
@@ -238,7 +233,12 @@ useEffect(() => {
               <Text style={styles.menuText}>Segurança</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+
+            {/* SUPORTE */}
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/(tabs)/settings/suporte")}
+            >
               <View
                 style={[
                   styles.menuIconContainer,
@@ -250,7 +250,7 @@ useEffect(() => {
               <Text style={styles.menuText}>Suporte</Text>
             </TouchableOpacity>
 
-            {/* BOTÃO DE LOGOUT */}
+            {/* LOGOUT */}
             <TouchableOpacity
               style={[styles.menuItem, { marginTop: 10 }]}
               onPress={handleLogout}
@@ -269,9 +269,6 @@ useEffect(() => {
             </TouchableOpacity>
           </ScrollView>
         </View>
-        {/* ---------------------------------------------------------
-          FIM DO CARD DE PERFIL
-      ---------------------------------------------------------- */}
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -284,14 +281,7 @@ const styles = StyleSheet.create({
   // ==========================================
   // ESTRUTURA PRINCIPAL
   // ==========================================
-  container: {
-    flex: 1,
-    backgroundColor: "#95C159",
-  },
-
-  // ==========================================
-  // HEADER (FUNDO VERDE)
-  // ==========================================
+  container: { flex: 1, backgroundColor: "#95C159" },
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -300,7 +290,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -308,16 +297,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
   },
-
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-
+  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarCircle: {
     width: 45,
     height: 45,
@@ -328,7 +310,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
 
   // ==========================================
