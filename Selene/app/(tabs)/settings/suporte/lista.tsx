@@ -75,13 +75,9 @@ export default function ListaChats() {
 
       let url = "";
 
-      // ADMIN usa rota admin
-      if (role === "admin") {
+      if (role === "admin" || role === "superadmin") {
         url = "https://selene-mobile.onrender.com/api/v1/admin/chats";
-      }
-
-      // USER usa rota normal
-      else {
+      } else {
         url = "https://selene-mobile.onrender.com/api/v1/chats";
       }
 

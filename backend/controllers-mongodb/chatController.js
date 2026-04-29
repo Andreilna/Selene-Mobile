@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const Chat = require("../models-mongodb/Chat");
-
 const Message = require("../models-mongodb/Message");
 
 class ChatController {
@@ -33,7 +32,6 @@ class ChatController {
     try {
       const userId = req.user.id;
 
-      // evita duplicação
       const chatExistente = await Chat.findOne({
         userId,
         status: "ativo",
@@ -82,8 +80,13 @@ class ChatController {
   static async responderMensagemAdmin(req, res) {
     try {
       const { chatId } = req.params;
-
       const { texto } = req.body;
+
+      if (!texto) {
+        return res.status(400).json({
+          error: "Texto obrigatório",
+        });
+      }
 
       if (!mongoose.Types.ObjectId.isValid(chatId)) {
         return res.status(400).json({
@@ -91,17 +94,29 @@ class ChatController {
         });
       }
 
+      // 🔥 VALIDA SE CHAT EXISTE
+      const chat = await Chat.findById(chatId);
+
+      if (!chat) {
+        return res.status(404).json({
+          error: "Chat não encontrado",
+        });
+      }
+
+      // 🔥 CRIA MENSAGEM ADMIN
       const mensagem = await Message.create({
         chatId,
+
         texto,
 
-        // 🔥 CORREÇÃO AQUI
-        autor: req.adminId.toString(),
+        autor: req.adminId, // correto
 
         tipo: "admin",
       });
 
-      await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
+      // 🔥 ATUALIZA CHAT
+      chat.updatedAt = new Date();
+      await chat.save();
 
       res.status(201).json(mensagem);
     } catch (err) {
@@ -129,9 +144,7 @@ class ChatController {
 
       const chat = await Chat.findByIdAndUpdate(
         chatId,
-
         { status: "encerrado" },
-
         { new: true },
       );
 
@@ -186,8 +199,13 @@ class ChatController {
   static async enviarMensagem(req, res) {
     try {
       const { chatId } = req.params;
-
       const { texto } = req.body;
+
+      if (!texto) {
+        return res.status(400).json({
+          error: "Texto obrigatório",
+        });
+      }
 
       if (!mongoose.Types.ObjectId.isValid(chatId)) {
         return res.status(400).json({
@@ -197,6 +215,7 @@ class ChatController {
 
       const mensagem = await Message.create({
         chatId,
+
         texto,
 
         autor: req.user.id,

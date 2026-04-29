@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, KeyboardAvoidingView, Platform
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
@@ -20,7 +26,6 @@ interface Message {
 }
 
 export default function ChatScreen() {
-
   const router = useRouter();
   const { chatId } = useLocalSearchParams();
 
@@ -29,109 +34,78 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
-  const [currentUserId, setCurrentUserId] =
-    useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const [role, setRole] =
-    useState<string | null>(null);
-
+  const [role, setRole] = useState<string | null>(null);
 
   // ============================
   // PEGAR ROLE E USER
   // ============================
 
   const loadUserData = async () => {
+    const userId = await SecureStore.getItemAsync("userId");
 
-    const userId =
-      await SecureStore.getItemAsync("userId");
-
-    const userRole =
-      await SecureStore.getItemAsync("userRole");
+    const userRole = await SecureStore.getItemAsync("userRole");
 
     setCurrentUserId(userId);
     setRole(userRole);
   };
-
 
   // ============================
   // BUSCAR MENSAGENS
   // ============================
 
   const fetchMessages = async () => {
-
     try {
+      const token = await SecureStore.getItemAsync("userToken");
 
-      const token =
-        await SecureStore.getItemAsync("userToken");
+      console.log("ROLE:", role);
+      console.log("TOKEN:", token);
 
       if (!token || !chatId) return;
 
       let url = "";
 
-      // ADMIN usa rota admin
-      if (role === "admin") {
-
-        url =
-          `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`;
-
+      if (role === "admin" || role === "superadmin") {
+        url = `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`;
       } else {
-
-        url =
-          `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
-
+        url = `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
       }
 
-      const res = await axios.get(
-        url,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      console.log("URL:", url);
+
+      const res = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("MENSAGENS:", res.data);
 
-      setMessages(
-        res.data.data || res.data || []
-      );
-
+      setMessages(res.data.data || res.data || []);
     } catch (err) {
-
       console.log("ERRO FETCH MSG:", err);
-
     }
-
   };
-
 
   // ============================
   // ENVIAR MENSAGEM
   // ============================
 
   const handleSendMessage = async () => {
-
     if (!newMessage.trim()) return;
 
     try {
-
-      const token =
-        await SecureStore.getItemAsync("userToken");
+      const token = await SecureStore.getItemAsync("userToken");
 
       if (!token || !chatId) return;
 
       let url = "";
 
       if (role === "admin") {
-
-        url =
-          `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`;
-
+        url = `https://selene-mobile.onrender.com/api/v1/admin/chats/${chatId}/mensagens`;
       } else {
-
-        url =
-          `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
-
+        url = `https://selene-mobile.onrender.com/api/v1/chats/${chatId}/mensagens`;
       }
 
       const res = await axios.post(
@@ -139,148 +113,85 @@ export default function ChatScreen() {
         { texto: newMessage },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
 
-      const nova =
-        res.data.data || res.data;
+      const nova = res.data.data || res.data;
 
-      setMessages(prev => [...prev, nova]);
+      setMessages((prev) => [...prev, nova]);
 
       setNewMessage("");
-
     } catch (err) {
-
       console.log("ERRO SEND:", err);
-
     }
-
   };
-
 
   // ============================
   // LOAD
   // ============================
 
   useEffect(() => {
-
     loadUserData();
-
   }, []);
 
-
   useEffect(() => {
-
-    if (role)
-      fetchMessages();
-
+    if (role) fetchMessages();
   }, [chatId, role]);
-
 
   // ============================
   // AUTO SCROLL
   // ============================
 
   useEffect(() => {
-
-    scrollViewRef.current
-      ?.scrollToEnd({ animated: true });
-
+    scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
-
 
   // ============================
   // UI
   // ============================
 
   return (
-
     <SafeAreaProvider>
-
       <SafeAreaView style={styles.container}>
-
         <View style={styles.topContainer}>
-
           <View style={styles.header}>
-
-            <TouchableOpacity
-              onPress={() => router.back()}
-            >
-
-              <Feather
-                name="arrow-left"
-                size={28}
-                color="#2A3A56"
-              />
-
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
 
-            <Text style={styles.welcomeText}>
-              Chat
-            </Text>
-
+            <Text style={styles.welcomeText}>Chat</Text>
           </View>
-
         </View>
 
-
-        <ScrollView
-          ref={scrollViewRef}
-          style={{ flex: 1 }}
-        >
-
+        <ScrollView ref={scrollViewRef} style={{ flex: 1 }}>
           {messages.map((msg) => {
-
             const isMe =
-              role === "admin"
+              role === "admin" || role === "superadmin"
                 ? msg.tipo === "admin"
                 : msg.autor === currentUserId;
 
             return (
-
               <View
                 key={msg._id}
                 style={[
                   styles.bubble,
-                  isMe
-                    ? styles.bubbleMe
-                    : styles.bubbleThem
+                  isMe ? styles.bubbleMe : styles.bubbleThem,
                 ]}
               >
-
-                <Text
-                  style={
-                    isMe
-                      ? styles.textMe
-                      : styles.textThem
-                  }
-                >
-
+                <Text style={isMe ? styles.textMe : styles.textThem}>
                   {msg.texto}
-
                 </Text>
-
               </View>
-
             );
-
           })}
-
         </ScrollView>
 
-
         <KeyboardAvoidingView
-          behavior={
-            Platform.OS === "ios"
-              ? "padding"
-              : "height"
-          }
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-
           <View style={styles.inputWrapper}>
-
             <TextInput
               style={styles.input}
               value={newMessage}
@@ -292,30 +203,16 @@ export default function ChatScreen() {
               style={styles.sendBtn}
               onPress={handleSendMessage}
             >
-
-              <Ionicons
-                name="send"
-                size={20}
-                color="#FFF"
-              />
-
+              <Ionicons name="send" size={20} color="#FFF" />
             </TouchableOpacity>
-
           </View>
-
         </KeyboardAvoidingView>
-
       </SafeAreaView>
-
     </SafeAreaProvider>
-
   );
-
 }
 
-
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: "#95C159",
@@ -346,7 +243,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 20,
     maxWidth: "80%",
-    marginVertical: 4
+    marginVertical: 4,
   },
 
   bubbleThem: {
@@ -360,17 +257,17 @@ const styles = StyleSheet.create({
   },
 
   textThem: {
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
 
   textMe: {
-    color: "#FFF"
+    color: "#FFF",
   },
 
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10
+    padding: 10,
   },
 
   input: {
@@ -386,6 +283,5 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     padding: 10,
     borderRadius: 20,
-  }
-
+  },
 });
