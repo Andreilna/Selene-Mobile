@@ -1,30 +1,39 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const ChatController = require('../controllers-mongodb/chatController');
-const authMiddleware = require('../middleware/auth-mongodb');
+const chatController = require("../controllers-mongodb/chatController");
+
+const authMiddleware = require("../middleware/auth-mongodb");
 
 // ==============================
-// CHATS
+// CHATS (USUÁRIO)
 // ==============================
 
-// GET /api/v1/chats - Listar chats do usuário
-router.get('/', authMiddleware, ChatController.listarChats);
+// GET /api/v1/chats
+router.get("/", authMiddleware, chatController.listarChats);
 
-// POST /api/v1/chats - Criar novo chat (abrir suporte)
-router.post('/', authMiddleware, ChatController.criarChat);
+// POST /api/v1/chats
+router.post("/", authMiddleware, chatController.criarChat);
 
-// PATCH /api/v1/chats/:chatId/encerrar - Encerrar chat
-router.patch('/:chatId/encerrar', authMiddleware, ChatController.encerrarChat);
+// PATCH encerrar
+router.patch("/:chatId/encerrar", authMiddleware, chatController.encerrarChat);
 
 // ==============================
 // MENSAGENS
 // ==============================
 
-// GET /api/v1/chats/:chatId/mensagens - Buscar mensagens
-router.get('/:chatId/mensagens', authMiddleware, ChatController.listarMensagens);
+// GET mensagens
+router.get(
+  "/:chatId/mensagens",
+  authMiddleware,
+  chatController.listarMensagens,
+);
 
-// POST /api/v1/chats/:chatId/mensagens - Enviar mensagem
-router.post('/:chatId/mensagens', authMiddleware, ChatController.enviarMensagem);
+// POST mensagem USER
+router.post(
+  "/:chatId/mensagens",
+  authMiddleware,
+  chatController.enviarMensagem,
+);
 
 module.exports = router;

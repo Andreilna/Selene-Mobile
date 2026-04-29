@@ -9,8 +9,8 @@ const ChatSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      default: "ativo",
       enum: ["ativo", "encerrado"],
+      default: "ativo",
     },
 
     userId: {
@@ -18,7 +18,7 @@ const ChatSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Chat", ChatSchema);

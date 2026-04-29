@@ -13,6 +13,7 @@ const adminRoutes = require('./adminRoutes');
 const configuracaoAlertaRoutes = require('./configuracaoAlertaRoutes');
 const estufaRoutes = require('./estufaRoutes'); // Nova rota para estufas
 const chatRoutes = require('./chatRoutes');
+const adminChatRoutes = require('./adminChatRoutes');
 
 // Configurar rotas com prefixo
 router.use('/dispositivos', dispositivoRoutes);
@@ -24,6 +25,8 @@ router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/configuracoes-alerta', configuracaoAlertaRoutes);
 router.use('/estufas', estufaRoutes); // Rota para estufas
+router.use('/admin', adminRoutes);
+router.use('/admin', adminChatRoutes);
 router.use('/chats', chatRoutes);
 
 // Health Check - Verificar se API está funcionando

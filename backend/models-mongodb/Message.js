@@ -18,8 +18,15 @@ const MessageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // 🔥 IMPORTANTE
+    tipo: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Message", MessageSchema);
