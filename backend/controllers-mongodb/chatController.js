@@ -1,26 +1,23 @@
 const mongoose = require("mongoose");
 
 const Chat = require("../models-mongodb/Chat");
+
 const Message = require("../models-mongodb/Message");
 
-class chatController {
+class ChatController {
   // =========================
-  // LISTAR CHATS (USUÁRIO)
+  // USER - LISTAR CHATS
   // =========================
 
   static async listarChats(req, res) {
     try {
-      const userId = req.user._id.toString();
+      const userId = req.user.id;
 
-      const chats = await Chat.find({
-        userId: userId,
-      }).sort({
-        updatedAt: -1,
-      });
+      const chats = await Chat.find({ userId }).sort({ updatedAt: -1 });
 
       res.json(chats);
     } catch (err) {
-      console.log("❌ ERRO LISTAR CHATS:", err);
+      console.log("ERRO LISTAR CHATS:", err);
 
       res.status(500).json({
         error: err.message,
@@ -29,16 +26,16 @@ class chatController {
   }
 
   // =========================
-  // CRIAR CHAT (SEM DUPLICAR)
+  // USER - CRIAR CHAT
   // =========================
 
   static async criarChat(req, res) {
     try {
-      const userId = req.user._id.toString();
+      const userId = req.user.id;
 
-      // 🔥 evita duplicação
+      // evita duplicação
       const chatExistente = await Chat.findOne({
-        userId: userId,
+        userId,
         status: "ativo",
       });
 
@@ -47,16 +44,14 @@ class chatController {
       }
 
       const chat = await Chat.create({
-        userId: userId,
-
+        userId,
         nome: "Suporte",
-
         status: "ativo",
       });
 
       res.status(201).json(chat);
     } catch (err) {
-      console.log("❌ ERRO CRIAR CHAT:", err);
+      console.log("ERRO CRIAR CHAT:", err);
 
       res.status(500).json({
         error: err.message,
@@ -65,18 +60,90 @@ class chatController {
   }
 
   // =========================
-  // ADMIN - LISTAR TODOS CHATS
+  // ADMIN - LISTAR TODOS
   // =========================
 
   static async listarChatsAdmin(req, res) {
     try {
-      const chats = await Chat.find().sort({
-        updatedAt: -1,
-      });
+      const chats = await Chat.find().sort({ updatedAt: -1 });
 
       res.json(chats);
     } catch (err) {
-      console.log("❌ ERRO LISTAR CHATS ADMIN:", err);
+      res.status(500).json({
+        error: err.message,
+      });
+    }
+  }
+
+  // =========================
+  // ADMIN - RESPONDER
+  // =========================
+
+  static async responderMensagemAdmin(req, res) {
+    try {
+      const { chatId } = req.params;
+
+      const { texto } = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(chatId)) {
+        return res.status(400).json({
+          error: "chatId inválido",
+        });
+      }
+
+      const mensagem = await Message.create({
+        chatId,
+        texto,
+
+        // 🔥 CORREÇÃO AQUI
+        autor: req.adminId.toString(),
+
+        tipo: "admin",
+      });
+
+      await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
+
+      res.status(201).json(mensagem);
+    } catch (err) {
+      console.log("ERRO RESPONDER ADMIN:", err);
+
+      res.status(500).json({
+        error: err.message,
+      });
+    }
+  }
+
+  // =========================
+  // USER - ENCERRAR CHAT
+  // =========================
+
+  static async encerrarChat(req, res) {
+    try {
+      const { chatId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(chatId)) {
+        return res.status(400).json({
+          error: "chatId inválido",
+        });
+      }
+
+      const chat = await Chat.findByIdAndUpdate(
+        chatId,
+
+        { status: "encerrado" },
+
+        { new: true },
+      );
+
+      if (!chat) {
+        return res.status(404).json({
+          error: "Chat não encontrado",
+        });
+      }
+
+      res.json(chat);
+    } catch (err) {
+      console.log("ERRO ENCERRAR CHAT:", err);
 
       res.status(500).json({
         error: err.message,
@@ -92,7 +159,6 @@ class chatController {
     try {
       const { chatId } = req.params;
 
-      // 🔥 valida ID
       if (!mongoose.Types.ObjectId.isValid(chatId)) {
         return res.status(400).json({
           error: "chatId inválido",
@@ -100,14 +166,12 @@ class chatController {
       }
 
       const mensagens = await Message.find({
-        chatId: chatId,
-      }).sort({
-        createdAt: 1,
-      });
+        chatId,
+      }).sort({ createdAt: 1 });
 
       res.json(mensagens);
     } catch (err) {
-      console.log("❌ ERRO LISTAR MENSAGENS:", err);
+      console.log("ERRO LISTAR MENSAGENS:", err);
 
       res.status(500).json({
         error: err.message,
@@ -116,12 +180,13 @@ class chatController {
   }
 
   // =========================
-  // ENVIAR MENSAGEM (USER)
+  // USER - ENVIAR MENSAGEM
   // =========================
 
   static async enviarMensagem(req, res) {
     try {
       const { chatId } = req.params;
+
       const { texto } = req.body;
 
       if (!mongoose.Types.ObjectId.isValid(chatId)) {
@@ -130,114 +195,20 @@ class chatController {
         });
       }
 
-      if (!texto || texto.trim() === "") {
-        return res.status(400).json({
-          error: "Mensagem vazia",
-        });
-      }
-
       const mensagem = await Message.create({
         chatId,
+        texto,
 
-        texto: texto.trim(),
-
-        autor: req.user._id.toString(),
+        autor: req.user.id,
 
         tipo: "user",
       });
 
-      await Chat.findByIdAndUpdate(chatId, {
-        updatedAt: new Date(),
-      });
+      await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
 
       res.status(201).json(mensagem);
     } catch (err) {
-      console.log("❌ ERRO ENVIAR MENSAGEM USER:", err);
-
-      res.status(500).json({
-        error: err.message,
-      });
-    }
-  }
-
-  // =========================
-  // RESPONDER MENSAGEM (ADMIN)
-  // =========================
-
-  static async responderMensagemAdmin(req, res) {
-    try {
-      const { chatId } = req.params;
-      const { texto } = req.body;
-
-      if (!mongoose.Types.ObjectId.isValid(chatId)) {
-        return res.status(400).json({
-          error: "chatId inválido",
-        });
-      }
-
-      if (!texto || texto.trim() === "") {
-        return res.status(400).json({
-          error: "Mensagem vazia",
-        });
-      }
-
-      const mensagem = await Message.create({
-        chatId,
-
-        texto: texto.trim(),
-
-        autor: "admin",
-
-        tipo: "admin",
-      });
-
-      await Chat.findByIdAndUpdate(chatId, {
-        updatedAt: new Date(),
-      });
-
-      res.status(201).json(mensagem);
-    } catch (err) {
-      console.log("❌ ERRO ENVIAR MENSAGEM ADMIN:", err);
-
-      res.status(500).json({
-        error: err.message,
-      });
-    }
-  }
-
-  // =========================
-  // ENCERRAR CHAT
-  // =========================
-
-  static async encerrarChat(req, res) {
-    try {
-      const { chatId } = req.params;
-
-      if (!mongoose.Types.ObjectId.isValid(chatId)) {
-        return res.status(400).json({
-          error: "chatId inválido",
-        });
-      }
-
-      const chat = await Chat.findByIdAndUpdate(
-        chatId,
-        {
-          status: "encerrado",
-        },
-        {
-          new: true,
-        },
-      );
-
-      if (!chat) {
-        return res.status(404).json({
-          error: "Chat não encontrado",
-        });
-      }
-
-      res.json(chat);
-    } catch (err) {
-      console.log("❌ ERRO ENCERRAR CHAT:", err);
+      console.log("ERRO ENVIAR MSG:", err);
 
       res.status(500).json({
         error: err.message,
@@ -246,4 +217,4 @@ class chatController {
   }
 }
 
-module.exports = chatController;
+module.exports = ChatController;
