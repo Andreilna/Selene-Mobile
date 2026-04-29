@@ -10,7 +10,6 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -300,7 +299,7 @@ export default function FAQScreen() {
 
                 <TouchableOpacity
                   style={styles.btnChat}
-                  onPress={() => router.push("/suporte/chat")}
+                  onPress={() => router.push("/(tabs)/settings/suporte/lista")}
                 >
                   <Text style={styles.btnText}>Suporte ao Produtor</Text>
                 </TouchableOpacity>

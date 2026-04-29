@@ -136,14 +136,14 @@ export default function ForgotPassword() {
           {/* SOCIAL LOGIN FOOTER */}
           <View style={styles.socialContainer}>
             <Text style={styles.socialText}>Acessar com:</Text>
-            <div style={styles.socialIconsRow}>
+            <View style={styles.socialIconsRow}>
               <TouchableOpacity style={styles.socialIconButton}>
                 <FontAwesome5 name="facebook-f" size={20} color="#2A3A56" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.socialIconButton}>
                 <FontAwesome5 name="google" size={20} color="#2A3A56" />
               </TouchableOpacity>
-            </div>
+            </View>
           </View>
 
         </View>
