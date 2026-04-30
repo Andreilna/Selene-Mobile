@@ -6,46 +6,46 @@ class AdminController {
   static async login(req, res) {
     try {
       const { usuario, senha } = req.body;
-      
+
       if (!usuario || !senha) {
         return res.status(400).json({
           success: false,
           message: 'Usuário e senha são obrigatórios'
         });
       }
-      
+
       // Buscar admin com senha (select: false no schema)
       const admin = await Admin.findOne({ usuario }).select('+senha');
-      
+
       if (!admin || !(await admin.verificarSenha(senha))) {
         return res.status(401).json({
           success: false,
           message: 'Usuário ou senha inválidos'
         });
       }
-      
+
       if (!admin.ativo) {
         return res.status(401).json({
           success: false,
           message: 'Administrador desativado'
         });
       }
-      
+
       // Atualizar último login
       admin.ultimo_login = new Date();
       await admin.save();
-      
+
       // Gerar token JWT específico para admin
       const token = jwt.sign(
-        { 
-          adminId: admin._id, 
+        {
+          adminId: admin._id,
           usuario: admin.usuario,
-          nivel: admin.nivel_acesso 
+          nivel: admin.nivel_acesso
         },
         process.env.JWT_SECRET || 'secret_fallback',
         { expiresIn: '24h' }
       );
-      
+
       res.json({
         success: true,
         message: 'Login de administrador realizado com sucesso',
@@ -54,7 +54,7 @@ class AdminController {
           admin: admin.toJSON()
         }
       });
-      
+
     } catch (error) {
       console.error('Erro no login admin:', error);
       res.status(500).json({
@@ -68,19 +68,19 @@ class AdminController {
   static async criarAdmin(req, res) {
     try {
       const { usuario, senha, nome_completo, email, nivel_acesso } = req.body;
-      
+
       // Verificar se admin já existe
-      const adminExistente = await Admin.findOne({ 
-        $or: [{ usuario }, { email: email.toLowerCase() }] 
+      const adminExistente = await Admin.findOne({
+        $or: [{ usuario }, { email: email.toLowerCase() }]
       });
-      
+
       if (adminExistente) {
         return res.status(400).json({
           success: false,
           message: 'Usuário ou email já cadastrado'
         });
       }
-      
+
       // Criar admin
       const admin = await Admin.create({
         usuario,
@@ -89,13 +89,13 @@ class AdminController {
         email: email.toLowerCase(),
         nivel_acesso: nivel_acesso || 'admin'
       });
-      
+
       res.status(201).json({
         success: true,
         message: 'Administrador criado com sucesso',
         data: admin.toJSON()
       });
-      
+
     } catch (error) {
       console.error('Erro ao criar admin:', error);
       res.status(500).json({
@@ -109,12 +109,12 @@ class AdminController {
   static async listarAdmins(req, res) {
     try {
       const admins = await Admin.find().select('-senha');
-      
+
       res.json({
         success: true,
         data: admins
       });
-      
+
     } catch (error) {
       console.error('Erro ao listar admins:', error);
       res.status(500).json({
@@ -124,16 +124,50 @@ class AdminController {
     }
   }
 
+  static async perfil(req, res) {
+    try {
+      const admin = req.admin; // vem do middleware
+
+      res.json({
+        data: admin,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar perfil" });
+    }
+  }
+
+  // Atualizar Perfil
+  static async atualizarPerfil(req, res) {
+    try {
+      const adminId = req.admin._id;
+      const { nome_completo, email, telefone } = req.body;
+
+      const adminAtualizado = await Admin.findByIdAndUpdate(
+        adminId,
+        { nome_completo, email, telefone },
+        { new: true }
+      );
+
+      res.json({
+        message: "Perfil atualizado",
+        data: adminAtualizado,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao atualizar perfil" });
+    }
+  }
+
+
   // Verificar token admin (health check)
   static async verificarToken(req, res) {
     try {
       const admin = await Admin.findById(req.adminId).select('-senha');
-      
+
       res.json({
         success: true,
         data: admin
       });
-      
+
     } catch (error) {
       console.error('Erro ao verificar token admin:', error);
       res.status(500).json({

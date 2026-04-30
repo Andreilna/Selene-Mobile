@@ -15,4 +15,11 @@ router.get('/listar', adminAuthMiddleware, AdminController.listarAdmins);
 // GET /api/v1/admin/verificar - Verificar token admin (requer autenticação)
 router.get('/verificar', adminAuthMiddleware, AdminController.verificarToken);
 
+// GET /api/v1/admin/perfil
+router.get('/perfil', adminAuthMiddleware, AdminController.perfil);
+
+// PUT /api/v1/admin/perfil
+router.put('/perfil', adminAuthMiddleware, AdminController.atualizarPerfil);
+
+
 module.exports = router;

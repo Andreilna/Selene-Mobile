@@ -236,7 +236,7 @@ export default function ProfileScreen() {
             {/* SUPORTE */}
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => router.push("/(tabs)/settings/suporte")}
+              onPress={() => router.push("/support")}
             >
               <View
                 style={[

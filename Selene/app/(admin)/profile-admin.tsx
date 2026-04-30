@@ -100,16 +100,23 @@ export default function ProfileScreen() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER */}
+        {/* ---------------------------------------------------------
+               INÍCIO DO HEADER (VERDE SELENE)
+           ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
             <View>
               <Text style={styles.welcomeText}>Perfil</Text>
               <Text style={styles.subwelcomeText}></Text>
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.avatarCircle}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+              >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
@@ -124,6 +131,9 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+        {/* ---------------------------------------------------------
+               FIM DO HEADER
+           ---------------------------------------------------------- */}
 
         {/* CONTEÚDO */}
         <View style={styles.content}>
@@ -154,53 +164,11 @@ export default function ProfileScreen() {
             style={styles.menuList}
             showsVerticalScrollIndicator={false}
           >
-            {/* ADMIN */}
-            {isAdmin && (
-              <View style={styles.adminSection}>
-                <Text style={styles.sectionLabel}>Administração</Text>
-
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => router.push("/(admin)/users")}
-                >
-                  <View
-                    style={[
-                      styles.menuIconContainer,
-                      { backgroundColor: "#2A3A56" },
-                    ]}
-                  >
-                    <Ionicons name="people-outline" size={22} color="#FFF" />
-                  </View>
-                  <Text style={styles.menuText}>Gerenciar Usuários</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => router.push("/(admin)/sensors")}
-                >
-                  <View
-                    style={[
-                      styles.menuIconContainer,
-                      { backgroundColor: "#2A3A56" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="hardware-chip-outline"
-                      size={22}
-                      color="#FFF"
-                    />
-                  </View>
-                  <Text style={styles.menuText}>Gerenciar Sensores</Text>
-                </TouchableOpacity>
-
-                <View style={styles.divider} />
-              </View>
-            )}
 
             {/* EDITAR PERFIL */}
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => router.push("/(tabs)/edit-profile")}
+              onPress={() => router.push("/(admin)/edit-profile-admin")}
             >
               <View
                 style={[
@@ -236,7 +204,7 @@ export default function ProfileScreen() {
             {/* SUPORTE */}
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => router.push("/support")}
+              onPress={() => router.push("/support/lista")}
             >
               <View
                 style={[
@@ -296,7 +264,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 1,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56", textAlign: "left" },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
   headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarCircle: {
