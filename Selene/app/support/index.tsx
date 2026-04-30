@@ -299,7 +299,7 @@ export default function FAQScreen() {
 
                 <TouchableOpacity
                   style={styles.btnChat}
-                  onPress={() => router.push("/(tabs)/settings/suporte/lista")}
+                  onPress={() => router.push("/support/lista")}
                 >
                   <Text style={styles.btnText}>Suporte ao Produtor</Text>
                 </TouchableOpacity>
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 1,
   },
 
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },

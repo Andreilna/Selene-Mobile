@@ -157,7 +157,7 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         {/* ================= HEADER ================= */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    padding: 20,
+    padding: 25,
   },
 
   /// =========================
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 1,
   },
 
   welcomeText: {

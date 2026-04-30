@@ -228,7 +228,7 @@ export default function ListaChats() {
                 style={styles.chatCard}
                 onPress={() =>
                   router.push({
-                    pathname: "/(tabs)/settings/suporte/chat",
+                    pathname: "/support/chat",
                     params: {
                       chatId: item._id,
                     },
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 1,
   },
 
   welcomeText: {

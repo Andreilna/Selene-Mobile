@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 1,
   },
 
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
