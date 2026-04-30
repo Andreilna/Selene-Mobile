@@ -56,7 +56,7 @@ export default function EditProfileScreen() {
         const token = await SecureStore.getItemAsync("userToken");
 
         const endpoint = isAdmin
-          ? "https://selene-mobile.onrender.com/api/v1/admin/login"
+          ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
           : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
 
         // 🔥 BACKEND
@@ -127,22 +127,19 @@ export default function EditProfileScreen() {
   const handleSalvar = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
+      const role = await SecureStore.getItemAsync("userRole");
 
       if (!token) {
         Alert.alert("Erro", "Usuário não autenticado");
         return;
       }
 
-      if (!nome.trim()) {
-        Alert.alert("Erro", "Nome obrigatório");
-        return;
-      }
+      const url =
+        role === "admin" || role === "superadmin"
+          ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
+          : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
 
-      const endpoint = isAdmin
-        ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
-        : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
-
-      const res = await fetch(endpoint, {
+      const res = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -158,18 +155,18 @@ export default function EditProfileScreen() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Erro ao atualizar perfil");
+        throw new Error(data.message);
       }
-
-      // 🔥 Atualiza local
-      await SecureStore.setItemAsync("userName", nome);
-      await SecureStore.setItemAsync("userEmail", email);
 
       Alert.alert("Sucesso", "Perfil atualizado!");
       router.back();
-    } catch (error: any) {
-      console.log("ERRO SALVAR:", error.message);
-      Alert.alert("Erro", error.message);
+
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        Alert.alert("Erro", error.message);
+      } else {
+        Alert.alert("Erro", "Ocorreu um erro inesperado");
+      }
     }
   };
 

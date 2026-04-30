@@ -8,7 +8,7 @@ router.post('/login', AdminController.login);
 
 // POST /api/v1/admin/criar - Criar novo administrador (requer autenticação)
 router.post('/criar', adminAuthMiddleware, AdminController.criarAdmin);
-
+    
 // GET /api/v1/admin/listar - Listar administradores (requer autenticação)
 router.get('/listar', adminAuthMiddleware, AdminController.listarAdmins);
 
