@@ -1,8 +1,8 @@
 const Admin = require('../models-mongodb/Admin');
 const jwt = require('jsonwebtoken');
 
-class AdminController {
 
+class AdminController {
   // ==========================================
   // LOGIN
   // ==========================================
@@ -19,7 +19,6 @@ class AdminController {
 
       const login = usuario.trim().toLowerCase();
 
-      // 🔥 busca por usuario OU email
       const admin = await Admin.findOne({
         $or: [
           { usuario: login },
@@ -47,6 +46,7 @@ class AdminController {
       const token = jwt.sign(
         {
           adminId: admin._id,
+          usuario: admin.usuario,
           nivel: admin.nivel_acesso
         },
         process.env.JWT_SECRET || 'secret_fallback',
@@ -55,6 +55,7 @@ class AdminController {
 
       res.json({
         success: true,
+        message: 'Login de administrador realizado com sucesso',
         data: {
           token,
           admin: admin.toJSON()
@@ -63,6 +64,71 @@ class AdminController {
 
     } catch (error) {
       console.error('Erro no login admin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  }
+
+  // ==========================================
+  // CRIAR ADMIN
+  // ==========================================
+  static async criarAdmin(req, res) {
+    try {
+      const { usuario, senha, nome_completo, email, nivel_acesso } = req.body;
+
+      const adminExistente = await Admin.findOne({
+        $or: [
+          { usuario },
+          { email: email.toLowerCase() }
+        ]
+      });
+
+      if (adminExistente) {
+        return res.status(400).json({
+          success: false,
+          message: 'Usuário ou email já cadastrado'
+        });
+      }
+
+      const admin = await Admin.create({
+        usuario,
+        senha,
+        nome_completo,
+        email: email.toLowerCase(),
+        nivel_acesso: nivel_acesso || 'admin'
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Administrador criado com sucesso',
+        data: admin.toJSON()
+      });
+
+    } catch (error) {
+      console.error('Erro ao criar admin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
+    }
+  }
+
+  // ==========================================
+  // LISTAR ADMINS
+  // ==========================================
+  static async listarAdmins(req, res) {
+    try {
+      const admins = await Admin.find().select('-senha');
+
+      res.json({
+        success: true,
+        data: admins
+      });
+
+    } catch (error) {
+      console.error('Erro ao listar admins:', error);
       res.status(500).json({
         success: false,
         message: 'Erro interno do servidor'
@@ -91,9 +157,15 @@ class AdminController {
       const adminId = req.admin._id;
       const { nome_completo, email, telefone } = req.body;
 
+      const updateData = {};
+
+      if (nome_completo) updateData.nome_completo = nome_completo;
+      if (email) updateData.email = email.toLowerCase();
+      if (telefone) updateData.telefone = telefone;
+
       const adminAtualizado = await Admin.findByIdAndUpdate(
         adminId,
-        { nome_completo, email, telefone },
+        updateData,
         { new: true }
       );
 
@@ -101,8 +173,28 @@ class AdminController {
         message: "Perfil atualizado",
         data: adminAtualizado,
       });
+
     } catch (error) {
       res.status(500).json({ message: "Erro ao atualizar perfil" });
+    }
+  }
+
+  // ==========================================
+  // VERIFICAR TOKEN
+  // ==========================================
+  static async verificarToken(req, res) {
+    try {
+      res.json({
+        success: true,
+        data: req.admin
+      });
+
+    } catch (error) {
+      console.error('Erro ao verificar token admin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor'
+      });
     }
   }
 }
