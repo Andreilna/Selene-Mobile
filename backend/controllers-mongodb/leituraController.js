@@ -143,12 +143,11 @@ class LeituraController {
         dispositivo.usuario = req.userId || null;
         await dispositivo.save();
       }
-      
+
       console.log("🟡 VAI SALVAR LEITURA NO MONGO");
 
       // Criar leitura da câmera
       const leitura = await Leitura.create({
-        
         dispositivo: dispositivo._id,
         tipo_leitura: "CAMERA",
         dados: {
@@ -157,7 +156,6 @@ class LeituraController {
         },
         timestamp: new Date(),
       });
-      
 
       res.status(201).json({
         success: true,
@@ -515,18 +513,21 @@ class LeituraController {
 
       const { equipamento, foto, tamanho, timestamp, client_ip } = req.body;
 
-      console.log("🔑 MAC:", req.body.mac);
+      // 🔥 CORREÇÃO PRINCIPAL (NORMALIZAÇÃO DO MAC)
+      const mac = req.body.mac?.toLowerCase().trim();
 
-      if (!equipamento || !foto || !req.body.mac) {
+      console.log("🔑 MAC NORMALIZADO:", mac);
+
+      if (!equipamento || !foto || !mac) {
         return res.status(400).json({
           success: false,
           message: "Equipamento, foto e MAC são obrigatórios",
         });
       }
 
-      // Buscar dispositivo pelo MAC (sem criar novo se não existir)
+      // 🔥 BUSCA COM MAC NORMALIZADO
       const dispositivo = await Dispositivo.findOne({
-        mac_address: req.body.mac,
+        mac_address: mac,
       });
 
       console.log("🔎 DISPOSITIVO ENCONTRADO:", dispositivo);
@@ -538,27 +539,24 @@ class LeituraController {
         });
       }
 
-      // Atualizar status do dispositivo
       dispositivo.online = true;
       dispositivo.ultima_comunicacao = new Date();
       await dispositivo.save();
 
-      // Salvar imagem como arquivo
       const fotoPath = await LeituraController.salvarImagemArquivo(
         equipamento,
         dispositivo.usuario.toString(),
         foto,
         timestamp,
-        req.body.mac,
+        mac, // 🔥 CORRIGIDO
       );
 
-      // Criar leitura da câmera
       const leitura = await Leitura.create({
         dispositivo: dispositivo._id,
         tipo_leitura: "CAMERA",
         dados: {
-          foto_base64: foto, // Base64 no MongoDB
-          foto_path: fotoPath, // Caminho do arquivo
+          foto_base64: foto,
+          foto_path: fotoPath,
           tamanho_arquivo: tamanho,
           client_ip: client_ip,
           altura: req.body.altura || null,
