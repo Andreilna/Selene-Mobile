@@ -216,7 +216,6 @@ class AuthController {
       usuario.senha = novaSenha;
       await usuario.save();
 
-      console.log(`Recuperação para ${usuario.email}: nova senha = ${novaSenha}`);
       res.json({ success: true, message: 'E-mail enviado com sucesso (simulado)', data: { nova_senha: novaSenha } });
     } catch (error) {
       console.error('Erro na recuperação:', error);

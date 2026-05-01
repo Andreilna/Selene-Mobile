@@ -16,7 +16,6 @@ class ChatController {
 
       res.json(chats);
     } catch (err) {
-      console.log("ERRO LISTAR CHATS:", err);
 
       res.status(500).json({
         error: err.message,
@@ -49,7 +48,6 @@ class ChatController {
 
       res.status(201).json(chat);
     } catch (err) {
-      console.log("ERRO CRIAR CHAT:", err);
 
       res.status(500).json({
         error: err.message,
@@ -120,7 +118,6 @@ class ChatController {
 
       res.status(201).json(mensagem);
     } catch (err) {
-      console.log("ERRO RESPONDER ADMIN:", err);
 
       res.status(500).json({
         error: err.message,
@@ -156,7 +153,6 @@ class ChatController {
 
       res.json(chat);
     } catch (err) {
-      console.log("ERRO ENCERRAR CHAT:", err);
 
       res.status(500).json({
         error: err.message,
@@ -184,7 +180,6 @@ class ChatController {
 
       res.json(mensagens);
     } catch (err) {
-      console.log("ERRO LISTAR MENSAGENS:", err);
 
       res.status(500).json({
         error: err.message,
@@ -227,7 +222,6 @@ class ChatController {
 
       res.status(201).json(mensagem);
     } catch (err) {
-      console.log("ERRO ENVIAR MSG:", err);
 
       res.status(500).json({
         error: err.message,

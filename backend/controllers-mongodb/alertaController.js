@@ -206,7 +206,6 @@ class AlertaController {
       const alerta = new Alerta(dados);
       await alerta.save();
       
-      console.log(`⚠️  Novo alerta criado: ${dados.mensagem}`);
       return alerta;
       
     } catch (error) {

@@ -66,7 +66,6 @@ const adminAuthMiddleware = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log("ERRO AUTH ADMIN:", error.message);
 
     if (error.name === "TokenExpiredError") {
       return res.status(401).json({

@@ -68,8 +68,6 @@ const authMiddleware = async (req, res, next) => {
     req.userId = user._id;
     req.user = user;
 
-    console.log(`✅ Autenticado: ${user.email || user.nome} (${user._id})`);
-
     next();
   } catch (error) {
     console.error("⚠️ Erro na autenticação:", error.message);

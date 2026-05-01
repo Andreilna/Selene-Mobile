@@ -43,9 +43,6 @@ class ConfiguracaoAlertaController {
 
   // Listar configurações do usuário
   static async listar(req, res) {
-    console.log('🔥🔥🔥 Método listar foi chamado! 🔥🔥🔥');
-  console.log('   Usuário:', req.userId);
-  console.log('   Headers:', req.headers.authorization ? 'Com token' : 'Sem token');
     try {
       const { dispositivo, tipo, ativo } = req.query;
       

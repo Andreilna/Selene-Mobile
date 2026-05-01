@@ -144,8 +144,6 @@ class LeituraController {
         await dispositivo.save();
       }
 
-      console.log("🟡 VAI SALVAR LEITURA NO MONGO");
-
       // Criar leitura da câmera
       const leitura = await Leitura.create({
         dispositivo: dispositivo._id,
@@ -507,16 +505,10 @@ class LeituraController {
   // Receber foto da câmera sem autenticação (pública)
   static async receberCameraPublico(req, res) {
     try {
-      console.log("📸 RECEBEU REQUEST CAMERA");
-      console.log("📩 BODY COMPLETO:", req.body);
-      console.log("📦 KEYS:", Object.keys(req.body));
-
       const { equipamento, foto, tamanho, timestamp, client_ip } = req.body;
 
       // 🔥 CORREÇÃO PRINCIPAL (NORMALIZAÇÃO DO MAC)
       const mac = req.body.mac?.toLowerCase().trim();
-
-      console.log("🔑 MAC NORMALIZADO:", mac);
 
       if (!equipamento || !foto || !mac) {
         return res.status(400).json({
@@ -529,8 +521,6 @@ class LeituraController {
       const dispositivo = await Dispositivo.findOne({
         mac_address: mac,
       });
-
-      console.log("🔎 DISPOSITIVO ENCONTRADO:", dispositivo);
 
       if (!dispositivo) {
         return res.status(404).json({
