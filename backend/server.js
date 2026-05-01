@@ -45,8 +45,8 @@ app.use('/fotos_perfil', cors(), express.static(path.join(__dirname, '..', 'foto
 app.use('/fotos_cogumelos', cors(), express.static(path.join(__dirname, '..', 'fotos_cogumelos')));
 
 // Parser JSON com limite aumentado para fotos
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Logging de requisições
 app.use((req, res, next) => {

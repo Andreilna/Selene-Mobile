@@ -15,7 +15,7 @@ async function criarDispositivo() {
     console.log("📦 Conectado ao MongoDB...");
 
     const jaExiste = await Dispositivo.findOne({
-      mac_address: "a4:f0:0f:75:75:68"
+      mac_address: "88:57:21:c1:61:5c"
     });
 
     if (jaExiste) {
@@ -24,9 +24,9 @@ async function criarDispositivo() {
     }
 
     const dispositivo = await Dispositivo.create({
-      mac_address: "a4:f0:0f:75:75:68",
-      nome: "ESP32",
-      tipo: "ESP32_SENSORES",
+      mac_address: "88:57:21:c1:61:5c",
+      nome: "ESP32-CAMERA",
+      tipo: "ESP32_CAM",
       localizacao: "Estufa de Cogumelos",
       usuario: "69ea4c05def22a316d8c201b",
       online: true,
