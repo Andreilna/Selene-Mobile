@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const Dispositivo = require('./models-mongodb/Dispositivo');
 
 // Coloque sua string de conexão do MongoDB aqui ou use process.env.MONGO_URI
-const MONGO_URI = "mongodb://admin:1234567890qwerty@ac-x12nzmn-shard-00-00.8lnociv.mongodb.net:27017,ac-x12nzmn-shard-00-01.8lnociv.mongodb.net:27017,ac-x12nzmn-shard-00-02.8lnociv.mongodb.net:27017/?ssl=true&replicaSet=atlas-q1sjx4-shard-0&authSource=admin&appName=Selene";
+//const MONGO_URI = "SUA_STRING_DE_CONEXAO_AQUI";
 
 async function criarDispositivo() {
   try {
@@ -15,7 +15,7 @@ async function criarDispositivo() {
     console.log("📦 Conectado ao MongoDB...");
 
     const jaExiste = await Dispositivo.findOne({
-      mac_address: "a4:f0:0f:75:75:68"
+      mac_address: "a4:f0:0f:75:75:61"
     });
 
     if (jaExiste) {
@@ -24,7 +24,7 @@ async function criarDispositivo() {
     }
 
     const dispositivo = await Dispositivo.create({
-      mac_address: "a4:f0:0f:75:75:68",
+      mac_address: "a4:f0:0f:75:75:61",
       nome: "ESP32",
       tipo: "ESP32_SENSORES",
       localizacao: "Estufa de Cogumelos",

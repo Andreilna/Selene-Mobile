@@ -23,8 +23,10 @@ export default function AdminHome() {
 
   // ✅ ADICIONADO
   const [stats, setStats] = useState({
-    produtores_online: 0,
+    usuarios_total: 0,
     sensores_operantes: 0,
+    sensores_online: 0,
+    plantas_ativas: 0,
   });
 
   // ==========================================
@@ -132,20 +134,28 @@ export default function AdminHome() {
           </View>
         </View>
 
-        {/* 🔥 ALTERADO AQUI (DINÂMICO) */}
         <View style={styles.statsRow}>
+          {/* PRODUTORES ONLINE */}
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Produtores Online</Text>
-            <Text style={styles.statValue}>{stats.produtores_online}</Text>
+            <View style={styles.statHeader}>
+              <Feather name="external-link" size={14} color="#2A3A56" />
+              <Text style={styles.statLabel}>Produtores Online</Text>
+            </View>
+
+            <Text style={styles.statValue}>{stats.usuarios_total}</Text>
           </View>
 
+          {/* DIVISOR */}
           <View style={styles.divider} />
 
+          {/* SENSORES */}
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Sensores Operantes</Text>
-            <Text style={[styles.statValue, { color: "#2A3A56" }]}>
-              {stats.sensores_operantes}
-            </Text>
+            <View style={styles.statHeader}>
+              <Feather name="cpu" size={14} color="#2A3A56" />
+              <Text style={styles.statLabel}>Sensores Operantes</Text>
+            </View>
+
+            <Text style={styles.statValueSensor}>{stats.sensores_online}</Text>
           </View>
         </View>
 
@@ -298,15 +308,27 @@ const styles = StyleSheet.create({
     alignItems: "center", // 👈 CENTRALIZA TUDO
   },
 
+  statHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 5,
+  },
+
   statLabel: {
     color: "#2A3A56",
     fontSize: 13,
-    marginBottom: 5,
   },
 
   statValue: {
     color: "#FFF",
-    fontSize: 28,
+    fontSize: 32,
+    fontWeight: "bold",
+  },
+
+  statValueSensor: {
+    color: "#0068FF",
+    fontSize: 32,
     fontWeight: "bold",
   },
 
