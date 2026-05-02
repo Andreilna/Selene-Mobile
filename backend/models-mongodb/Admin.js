@@ -1,79 +1,82 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-const adminSchema = new mongoose.Schema({
-  usuario: {
-    type: String,
-    required: [true, 'Usuário admin é obrigatório'],
-    unique: true,
-    trim: true,
-    minlength: 3,
-    maxlength: 50
+const adminSchema = new mongoose.Schema(
+  {
+    usuario: {
+      type: String,
+      required: [true, "Usuário admin é obrigatório"],
+      unique: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 50,
+    },
+
+    senha: {
+      type: String,
+      required: [true, "Senha admin é obrigatória"],
+      minlength: 6,
+      select: false,
+    },
+
+    nome_completo: {
+      type: String,
+      required: [true, "Nome completo é obrigatório"],
+      trim: true,
+      maxlength: 100,
+    },
+
+    email: {
+      type: String,
+      required: [true, "Email é obrigatório"],
+      unique: true,
+      lowercase: true,
+      match: [/^\S+@\S+\.\S+$/, "Por favor, use um email válido"],
+    },
+
+    // 🔥 ADICIONADO (compatível com frontend)
+    telefone: {
+      type: String,
+      default: "",
+    },
+
+    ativo: {
+      type: Boolean,
+      default: true,
+    },
+
+    nivel_acesso: {
+      type: String,
+      enum: ["admin", "superadmin"],
+      default: "admin",
+      index: true, // 🔥 melhora consultas futuras
+    },
+
+    ultimo_login: {
+      type: Date,
+    },
   },
-
-  senha: {
-    type: String,
-    required: [true, 'Senha admin é obrigatória'],
-    minlength: 6,
-    select: false
+  {
+    timestamps: {
+      createdAt: "criado_em",
+      updatedAt: "atualizado_em",
+    },
   },
-
-  nome_completo: {
-    type: String,
-    required: [true, 'Nome completo é obrigatório'],
-    trim: true,
-    maxlength: 100
-  },
-
-  email: {
-    type: String,
-    required: [true, 'Email é obrigatório'],
-    unique: true,
-    lowercase: true,
-    match: [/^\S+@\S+\.\S+$/, 'Por favor, use um email válido']
-  },
-
-  // 🔥 ADICIONADO (compatível com frontend)
-  telefone: {
-    type: String,
-    default: ''
-  },
-
-  ativo: {
-    type: Boolean,
-    default: true
-  },
-
-  nivel_acesso: {
-    type: String,
-    enum: ['admin', 'superadmin'],
-    default: 'admin',
-    index: true // 🔥 melhora consultas futuras
-  },
-
-  ultimo_login: {
-    type: Date
-  }
-
-}, {
-  timestamps: {
-    createdAt: 'criado_em',
-    updatedAt: 'atualizado_em'
-  }
-});
+);
 
 // ==========================================
 // HASH DA SENHA
 // ==========================================
-adminSchema.pre('save', async function (next) {
-  if (!this.isModified('senha')) return next();
+adminSchema.pre("save", function (next) {
+  if (!this.isModified("senha")) return next();
 
-  try {
-    this.senha = await bcrypt.hash(this.senha, 12);
-    next();
-  } catch (error) {
-    next(error);
-  }
+  bcrypt
+    .hash(this.senha, 12)
+    .then((hash) => {
+      this.senha = hash;
+      next();
+    })
+    .catch(next);
 });
 
 // ==========================================
@@ -92,4 +95,4 @@ adminSchema.methods.toJSON = function () {
   return admin;
 };
 
-module.exports = mongoose.model('Admin', adminSchema);
+module.exports = mongoose.model("Admin", adminSchema);
