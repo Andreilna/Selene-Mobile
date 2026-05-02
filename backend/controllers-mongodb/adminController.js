@@ -78,53 +78,6 @@ class AdminController {
 
       const admin = await Admin.findOne({
         $or: [{ email: login }, { usuario: login }],
-      });
-
-      // 🔒 não revela se existe ou não
-      if (!admin) {
-        return res.json({
-          success: true,
-          message: "Se o usuário existir, você receberá instruções",
-        });
-      }
-
-      const resetToken = crypto.randomBytes(20).toString("hex");
-
-      admin.resetPasswordToken = crypto
-        .createHash("sha256")
-        .update(resetToken)
-        .digest("hex");
-
-      admin.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 min
-
-      await admin.save();
-
-      // ⚠️ em produção: enviar email
-      res.json({
-        success: true,
-        message: "Token gerado",
-        token: resetToken,
-      });
-    } catch (error) {
-      console.error("Erro ao recuperar senha admin:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor",
-      });
-    }
-  }
-
-  // ==========================================
-  // RECUPERAR SENHA
-  // ==========================================
-  static async recuperarSenha(req, res) {
-    try {
-      const { email, usuario } = req.body;
-
-      const login = (email || usuario || "").toLowerCase();
-
-      const admin = await Admin.findOne({
-        $or: [{ email: login }, { usuario: login }],
       }).select("+senha");
 
       // 🔒 não revela se existe ou não
@@ -150,6 +103,49 @@ class AdminController {
       });
     } catch (error) {
       console.error("Erro ao recuperar senha admin:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // ==========================================
+  // RESETAR SENHA
+  // ==========================================
+  static async resetarSenha(req, res) {
+    try {
+      const { token, novaSenha } = req.body;
+
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+      const admin = await Admin.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() },
+      }).select("+senha");
+
+      if (!admin) {
+        return res.status(400).json({
+          success: false,
+          message: "Token inválido ou expirado",
+        });
+      }
+
+      admin.senha = novaSenha;
+      admin.resetPasswordToken = undefined;
+      admin.resetPasswordExpire = undefined;
+
+      await admin.save();
+
+      res.json({
+        success: true,
+        message: "Senha redefinida com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro ao resetar senha admin:", error);
       res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
