@@ -78,38 +78,72 @@ export default function PasswordScreen() {
           "Erro de Sessão",
           "Acesso não encontrado. Faça login novamente.",
         );
-        setLoading(false);
         return;
       }
 
-      const response = await fetch(
-        "https://selene-mobile.onrender.com/api/v1/auth/alterar-senha",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+      const body = JSON.stringify({
+        senhaAtual,
+        novaSenha,
+      });
+
+      // 🔹 1ª tentativa: USER
+      try {
+        const response = await fetch(
+          "https://selene-mobile.onrender.com/api/v1/auth/alterar-senha",
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body,
           },
-          body: JSON.stringify({
-            senhaAtual: senhaAtual,
-            novaSenha: novaSenha,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        Alert.alert("Sucesso!", "Sua senha foi atualizada com segurança.");
-        router.back();
-      } else {
-        Alert.alert(
-          "Ops!",
-          data.message || "Algo deu errado ao trocar a senha.",
         );
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          Alert.alert("Sucesso!", "Sua senha foi atualizada com segurança.");
+          router.back();
+          return;
+        }
+
+        throw new Error(data.message);
+      } catch (errorUser: any) {
+        // 🔹 2ª tentativa: ADMIN
+        try {
+          const responseAdmin = await fetch(
+            "https://selene-mobile.onrender.com/api/v1/admin/alterar-senha",
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body,
+            },
+          );
+
+          const dataAdmin = await responseAdmin.json();
+
+          if (responseAdmin.ok && dataAdmin.success) {
+            Alert.alert("Sucesso!", "Senha de administrador atualizada.");
+            router.back();
+            return;
+          }
+
+          throw new Error(dataAdmin.message);
+        } catch (errorAdmin: any) {
+          Alert.alert(
+            "Ops!",
+            errorAdmin.message ||
+              errorUser.message ||
+              "Algo deu errado ao trocar a senha.",
+          );
+        }
       }
     } catch (error) {
-      console.error("Erro na requisição:", error);
+      console.error("Erro geral:", error);
       Alert.alert("Erro de Conexão", "Não foi possível conectar ao servidor.");
     } finally {
       setLoading(false);
