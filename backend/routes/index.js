@@ -15,7 +15,7 @@ const configuracaoAlertaRoutes = require("./configuracaoAlertaRoutes");
 const estufaRoutes = require("./estufaRoutes");
 const chatRoutes = require("./chatRoutes");
 const adminChatRoutes = require("./adminChatRoutes");
-const adminDashboardRoutes = require("./adminDashboardRoutes");]
+const adminDashboardRoutes = require("./adminDashboardRoutes");
 
 // ==========================
 // USER ROUTES
