@@ -115,41 +115,41 @@ class AdminController {
   }
 
   // ==========================================
-  // RESETAR SENHA
+  // RECUPERAR SENHA
   // ==========================================
-  static async resetarSenha(req, res) {
+  static async recuperarSenha(req, res) {
     try {
-      const { token, novaSenha } = req.body;
+      const { email, usuario } = req.body;
 
-      const hashedToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
+      const login = (email || usuario || "").toLowerCase();
 
       const admin = await Admin.findOne({
-        resetPasswordToken: hashedToken,
-        resetPasswordExpire: { $gt: Date.now() },
+        $or: [{ email: login }, { usuario: login }],
       }).select("+senha");
 
+      // 🔒 não revela se existe ou não
       if (!admin) {
-        return res.status(400).json({
-          success: false,
-          message: "Token inválido ou expirado",
+        return res.json({
+          success: true,
+          message: "Se o usuário existir, você receberá instruções",
         });
       }
 
-      admin.senha = novaSenha;
-      admin.resetPasswordToken = undefined;
-      admin.resetPasswordExpire = undefined;
+      // 🔥 gera senha temporária
+      const novaSenha = Math.random().toString(36).slice(-8);
 
-      await admin.save();
+      admin.senha = novaSenha; // NÃO precisa hash manual
+      await admin.save(); // 🔥 aqui aplica o bcrypt automaticamente
 
       res.json({
         success: true,
-        message: "Senha redefinida com sucesso",
+        message: "Senha redefinida",
+        data: {
+          nova_senha: novaSenha, // 🔥 mesmo padrão do USER
+        },
       });
     } catch (error) {
-      console.error("Erro ao resetar senha admin:", error);
+      console.error("Erro ao recuperar senha admin:", error);
       res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
