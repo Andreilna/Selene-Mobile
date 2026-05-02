@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const AuthMiddleware = require("../middlewares/authMiddleware");
+const AuthMiddleware = require("../middlewares/auth-mongodb");
 const userController = require("../controllers-mongodb/userController");
 
 // 👇 ping

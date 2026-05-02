@@ -10,6 +10,8 @@ import {
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 /* =======================
    TYPES
@@ -29,7 +31,7 @@ export default function AdminSensors() {
   const [usuarioId, setUsuarioId] = useState("");
 
   const [tipo, setTipo] = useState<"ESP32_SENSORES" | "ESP32_CAM">(
-    "ESP32_SENSORES"
+    "ESP32_SENSORES",
   );
 
   const [loading, setLoading] = useState(false);
@@ -37,26 +39,23 @@ export default function AdminSensors() {
 
   const token = "SEU_TOKEN_AQUI";
 
-  /* =======================
-     BUSCAR USUÁRIOS
-  ======================= */
+  const [iniciais, setIniciais] = useState("US");
+
+  const handleGoProfile = () => {
+    router.push("/profile");
+  };
+
   const fetchUsuarios = async () => {
     try {
       setLoadingUsers(true);
 
-      const res = await fetch(
-        "https://SEU_BACKEND.onrender.com/api/v1/users",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await fetch("https://SEU_BACKEND.onrender.com/api/v1/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await res.json();
-
-      console.log("USERS:", data);
-
       const lista = data?.data || data || [];
 
       setUsuarios(Array.isArray(lista) ? lista : []);
@@ -71,9 +70,6 @@ export default function AdminSensors() {
     fetchUsuarios();
   }, []);
 
-  /* =======================
-     CRIAR DISPOSITIVO
-  ======================= */
   const criarDispositivo = async () => {
     if (!nome || !mac || !usuarioId) {
       Alert.alert("Erro", "Preencha todos os campos");
@@ -98,11 +94,10 @@ export default function AdminSensors() {
             localizacao: localizacao.trim() || null,
             usuario_id: usuarioId,
           }),
-        }
+        },
       );
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message);
 
       Alert.alert("Sucesso", "Dispositivo criado!");
@@ -121,6 +116,35 @@ export default function AdminSensors() {
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
+      <View style={styles.topContainer}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.welcomeText}>Relatórios</Text>
+            <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
+          </View>
+
+          <View style={styles.headerIcons}>
+            <TouchableOpacity
+              style={styles.avatarCircle}
+              onPress={handleGoProfile}
+            >
+              <Text style={styles.avatarText}>{iniciais}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push("/alert")}>
+              <Feather
+                name="bell"
+                size={24}
+                color="#2A3A56"
+                style={{ marginLeft: 12 }}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
+      {/* CARD */}
       <View style={styles.card}>
         <Text style={styles.label}>Nome</Text>
         <TextInput style={styles.input} value={nome} onChangeText={setNome} />
@@ -135,7 +159,6 @@ export default function AdminSensors() {
           onChangeText={setLocalizacao}
         />
 
-        {/* USERS */}
         <Text style={styles.label}>Usuário</Text>
 
         {loadingUsers ? (
@@ -147,7 +170,6 @@ export default function AdminSensors() {
               onValueChange={(value: string) => setUsuarioId(value)}
             >
               <Picker.Item label="Selecione um usuário" value="" />
-
               {usuarios.map((u) => (
                 <Picker.Item
                   key={u._id}
@@ -159,7 +181,6 @@ export default function AdminSensors() {
           </View>
         )}
 
-        {/* TIPO */}
         <Text style={styles.label}>Tipo</Text>
 
         <View style={styles.row}>
@@ -184,7 +205,6 @@ export default function AdminSensors() {
           </TouchableOpacity>
         </View>
 
-        {/* BOTÃO */}
         <TouchableOpacity
           style={styles.button}
           onPress={criarDispositivo}
@@ -205,7 +225,48 @@ export default function AdminSensors() {
    STYLE
 ======================= */
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: "center" },
+  // Estrutura Principal
+  container: { flex: 1, backgroundColor: "#95C159" },
+
+  // Header Superior
+  topContainer: {
+    backgroundColor: "#95C159",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 1,
+  },
+
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
   card: { backgroundColor: "#fff", padding: 20, borderRadius: 15 },
 
   label: { fontWeight: "bold", marginBottom: 5 },
