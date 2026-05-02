@@ -12,6 +12,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 
 /* =======================
@@ -103,11 +104,9 @@ export default function AdminSensors() {
         };
       });
 
-      console.log("USUARIOS FORMATADOS:", usuariosFormatados);
-
       setUsuarios(usuariosFormatados);
     } catch (err: any) {
-      console.log("ERRO USERS:", err);
+      Alert.alert("Erro", "Não foi possível carregar os usuários");
     } finally {
       setLoadingUsers(false);
     }
@@ -171,110 +170,123 @@ export default function AdminSensors() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.topContainer}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.welcomeText}>Relatórios</Text>
-            <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
-          </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        {/* HEADER */}
+        <View style={styles.topContainer}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.welcomeText}>Relatórios</Text>
+              <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
+            </View>
 
-          <View style={styles.headerIcons}>
-            <TouchableOpacity
-              style={styles.avatarCircle}
-              onPress={handleGoProfile}
-            >
-              <Text style={styles.avatarText}>{iniciais}</Text>
-            </TouchableOpacity>
+            <View style={styles.headerIcons}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={handleGoProfile}
+              >
+                <Text style={styles.avatarText}>{iniciais}</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.push("/alert")}>
-              <Feather
-                name="bell"
-                size={24}
-                color="#2A3A56"
-                style={{ marginLeft: 12 }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      {/* CARD */}
-      <View style={styles.card}>
-        <Text style={styles.label}>Nome</Text>
-        <TextInput style={styles.input} value={nome} onChangeText={setNome} />
-
-        <Text style={styles.label}>MAC</Text>
-        <TextInput style={styles.input} value={mac} onChangeText={setMac} />
-
-        <Text style={styles.label}>Localização</Text>
-        <TextInput
-          style={styles.input}
-          value={localizacao}
-          onChangeText={setLocalizacao}
-        />
-
-        <Text style={styles.label}>Usuário</Text>
-
-        {loadingUsers ? (
-          <ActivityIndicator />
-        ) : (
-          <View style={styles.pickerBox}>
-            <Picker
-              selectedValue={usuarioId}
-              onValueChange={(value: string) => setUsuarioId(value)}
-            >
-              <Picker.Item label="Selecione um usuário" value="" />
-
-              {usuarios.map((u, index) => (
-                <Picker.Item
-                  key={u._id || index.toString()}
-                  label={`${u.nome} (${u.email})`}
-                  value={u._id || ""}
+              <TouchableOpacity onPress={() => router.push("/alert")}>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
                 />
-              ))}
-            </Picker>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-
-        <Text style={styles.label}>Tipo</Text>
-
-        <View style={styles.row}>
-          <TouchableOpacity
-            style={[
-              styles.typeButton,
-              tipo === "ESP32_SENSORES" && styles.typeButtonActive,
-            ]}
-            onPress={() => setTipo("ESP32_SENSORES")}
-          >
-            <Text>Sensor</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.typeButton,
-              tipo === "ESP32_CAM" && styles.typeButtonActive,
-            ]}
-            onPress={() => setTipo("ESP32_CAM")}
-          >
-            <Text>Cam</Text>
-          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={criarDispositivo}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
+        {/* CARD */}
+        <View style={styles.card}>
+          <Text style={styles.label}>Nome</Text>
+          <TextInput
+            style={styles.input}
+            value={nome}
+            onChangeText={setNome}
+            placeholder="Ex: Sensor Cogumelo"
+          />
+
+          <Text style={styles.label}>MAC</Text>
+          <TextInput
+            style={styles.input}
+            value={mac}
+            onChangeText={setMac}
+            placeholder="Ex: 58:37:11:v1:51:5f"
+          />
+
+          <Text style={styles.label}>Localização</Text>
+          <TextInput
+            style={styles.input}
+            value={localizacao}
+            onChangeText={setLocalizacao}
+            placeholder="Ex: Sala de Cultivo"
+          />
+
+          <Text style={styles.label}>Usuário</Text>
+
+          {loadingUsers ? (
+            <ActivityIndicator />
           ) : (
-            <Text style={styles.buttonText}>Criar</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={usuarioId}
+                onValueChange={(value: string) => setUsuarioId(value)}
+              >
+                <Picker.Item label="Selecione um usuário" value="" />
+
+                {usuarios.map((u, index) => (
+                  <Picker.Item
+                    key={u._id || index.toString()}
+                    label={`${u.nome} (${u.email})`}
+                    value={u._id || ""}
+                  />
+                ))}
+              </Picker>
+            </View>
           )}
-        </TouchableOpacity>
-      </View>
-    </View>
+
+          <Text style={styles.label}>Tipo</Text>
+
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={[
+                styles.typeButton,
+                tipo === "ESP32_SENSORES" && styles.typeButtonActive,
+              ]}
+              onPress={() => setTipo("ESP32_SENSORES")}
+            >
+              <Text>Sensor</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.typeButton,
+                tipo === "ESP32_CAM" && styles.typeButtonActive,
+              ]}
+              onPress={() => setTipo("ESP32_CAM")}
+            >
+              <Text>Câmera</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={criarDispositivo}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Criar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -283,32 +295,29 @@ export default function AdminSensors() {
 ======================= */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#95C159" },
-
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
-    paddingBottom: 30,
+    paddingBottom: 60,
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
+    marginBottom: 1,
   },
-
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+    textAlign: "left",
+  },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-
+  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarCircle: {
     width: 45,
     height: 45,
@@ -316,9 +325,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
-
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+    justifyContent: "center",
+  },
 
   card: {
     backgroundColor: "#fff",
@@ -367,4 +382,13 @@ const styles = StyleSheet.create({
   },
 
   buttonText: { color: "#fff", fontWeight: "bold" },
+
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 80,
+  },
 });
