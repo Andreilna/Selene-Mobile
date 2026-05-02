@@ -1,19 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
-const AuthMiddleware = require("../middlewares/auth-mongodb");
+const AuthMiddleware = require("../middleware/auth-mongodb");
 const userController = require("../controllers-mongodb/userController");
 
 // 👇 ping
-router.post("/ping", AuthMiddleware, UserController.ping);
+router.post("/ping", AuthMiddleware, userController.ping);
 
 // 👇 perfil
-router.get("/me", AuthMiddleware, UserController.perfil);
+router.get("/me", AuthMiddleware, userController.perfil);
 
 // 👇 atualizar perfil
-router.put("/me", AuthMiddleware, UserController.atualizarPerfil);
+router.put("/me", AuthMiddleware, userController.atualizarPerfil);
 
 // 🔥 LISTAR USUÁRIOS (ADMIN)
-router.get("/", AuthMiddleware, UserController.listar);
+router.get("/", AuthMiddleware, userController.listar);
 
 module.exports = router;

@@ -49,7 +49,7 @@ export default function AdminSensors() {
     try {
       setLoadingUsers(true);
 
-      const res = await fetch("https://SEU_BACKEND.onrender.com/api/v1/users", {
+      const res = await fetch("https://selene-mobile.onrender.com/api/v1/users", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -80,7 +80,7 @@ export default function AdminSensors() {
       setLoading(true);
 
       const res = await fetch(
-        "https://SEU_BACKEND.onrender.com/api/v1/dispositivos",
+        "https://selene-mobile.onrender.com/api/v1/dispositivos",
         {
           method: "POST",
           headers: {
