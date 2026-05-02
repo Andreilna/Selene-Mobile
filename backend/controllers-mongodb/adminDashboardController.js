@@ -2,7 +2,7 @@ const Dispositivo = require("../models-mongodb/Dispositivo");
 const Planta = require("../models-mongodb/Planta");
 const User = require("../models-mongodb/User");
 
-class AdminDashboardController {
+class adminDashboardController {
 
   // ==============================
   // 📊 STATS GERAIS
@@ -85,4 +85,4 @@ class AdminDashboardController {
   }
 }
 
-module.exports = AdminDashboardController;
+module.exports = adminDashboardController;
