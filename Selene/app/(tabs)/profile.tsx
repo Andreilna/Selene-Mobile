@@ -113,7 +113,7 @@ export default function ProfileScreen() {
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
+              <TouchableOpacity onPress={() => router.push("/alert")}>
                 <Feather
                   name="bell"
                   size={24}
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
-    paddingBottom: 30,
+    paddingBottom: 60,
     paddingTop: 10,
     paddingHorizontal: 20,
   },

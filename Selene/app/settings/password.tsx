@@ -31,6 +31,13 @@ export default function PasswordScreen() {
   const [showNovaSenha, setShowNovaSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
+  const handleGoProfile = async () => {
+    const role = await SecureStore.getItemAsync("userRole");
+    const isAdmin = role === "admin" || role === "superadmin";
+
+    router.push(isAdmin ? "/(admin)/profile-admin" : "/(tabs)/profile");
+  };
+
   // ==========================================
   // LOGICA DE INICIAIS
   // ==========================================
@@ -169,12 +176,12 @@ export default function PasswordScreen() {
             <View style={styles.headerIcons}>
               <TouchableOpacity
                 style={styles.avatarCircle}
-                onPress={() => router.push("/profile")}
+                onPress={handleGoProfile}
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
+              <TouchableOpacity onPress={() => router.push("/alert")}>
                 <Feather
                   name="bell"
                   size={24}

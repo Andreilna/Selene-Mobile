@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,37 +8,82 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { Feather, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 
 export default function AlertasScreen() {
   const router = useRouter();
+  const [iniciais, setIniciais] = useState("US");
+
+  const handleGoProfile = async () => {
+    const role = await SecureStore.getItemAsync("userRole");
+
+    const isAdmin = role === "admin" || role === "superadmin";
+
+    router.push(isAdmin ? "/(admin)/profile-admin" : "/(tabs)/profile");
+  };
+
+  // ================= USER =================
+  useEffect(() => {
+    const carregarDadosUsuario = async () => {
+      try {
+        const nomeSalvo = await SecureStore.getItemAsync("userName");
+        if (nomeSalvo) {
+          const partes = nomeSalvo.trim().split(" ");
+
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
+
+          setIniciais(init);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    carregarDadosUsuario();
+  }, []);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
         {/* ---------------------------------------------------------
-            HEADER (VOLTAR + TÍTULO + PERFIL)
-        ---------------------------------------------------------- */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Feather name="arrow-left" size={28} color="#2A3A56" />
-          </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Alertas</Text>
-
-          <View style={styles.headerIcons}>
-            <View style={styles.profileCircle}>
-              <Text style={styles.profileText}>LB</Text>
+                       INÍCIO DO HEADER (VERDE SELENE)
+                   ---------------------------------------------------------- */}
+        <View style={styles.topContainer}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
+            <View style={styles.textContainer}>
+              <Text style={styles.welcomeText}>Alertas</Text>
             </View>
-            <Feather
-              name="bell"
-              size={24}
-              color="#2A3A56"
-              style={{ marginLeft: 12 }}
-            />
+
+            <View style={styles.headerIcons}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={handleGoProfile}
+              >
+                <Text style={styles.avatarText}>{iniciais}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
+        {/* ---------------------------------------------------------
+                       FIM DO HEADER
+                   ---------------------------------------------------------- */}
 
         {/* ---------------------------------------------------------
             CONTEÚDO PRINCIPAL (BRANCO)
@@ -160,9 +205,18 @@ function AnaliseCard({ img, data, local }: any) {
 // ESTILIZAÇÃO (STYLES)
 // ==========================================================
 const styles = StyleSheet.create({
+  // ==========================================
+  // ESTRUTURA PRINCIPAL
+  // ==========================================
   container: { flex: 1, backgroundColor: "#95C159" },
-
-  // Header
+  topContainer: {
+    backgroundColor: "#95C159",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -170,17 +224,35 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 1,
   },
-  headerTitle: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  headerIcons: { flexDirection: "row", alignItems: "center" },
-  profileCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "#FFF",
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+    textAlign: "left",
+  },
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
-  profileText: { color: "#2A3A56", fontWeight: "bold", fontSize: 13 },
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+    justifyContent: "center",
+  },
 
   // Content (Fundo Branco Arredondado)
   content: {
@@ -188,8 +260,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    paddingHorizontal: 20,
-    paddingTop: 25,
+    paddingHorizontal: 25,
+    paddingTop: 30,
   },
 
   // Filtros / Tabs

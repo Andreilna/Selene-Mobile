@@ -31,6 +31,13 @@ export default function ListaChats() {
 
   const [role, setRole] = useState<string | null>(null);
 
+  const handleGoProfile = async () => {
+    const role = await SecureStore.getItemAsync("userRole");
+    const isAdmin = role === "admin" || role === "superadmin";
+
+    router.push(isAdmin ? "/(admin)/profile-admin" : "/(tabs)/profile");
+  };
+
   // =========================
   // CARREGAR USUÁRIO
   // =========================
@@ -152,7 +159,7 @@ export default function ListaChats() {
       }
 
       router.push({
-        pathname: "/(tabs)/settings/suporte/chat",
+        pathname: "/support/chat",
         params: { chatId },
       });
     } catch (err) {
@@ -183,12 +190,12 @@ export default function ListaChats() {
             <View style={styles.headerIcons}>
               <TouchableOpacity
                 style={styles.avatarCircle}
-                onPress={() => router.push("/profile")}
+                onPress={handleGoProfile}
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
+              <TouchableOpacity onPress={() => router.push("/alert")}>
                 <Feather
                   name="bell"
                   size={24}

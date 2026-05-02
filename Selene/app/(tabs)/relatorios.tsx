@@ -44,6 +44,13 @@ export default function RelatoriosScreen() {
   const [iniciais, setIniciais] = useState("US");
   const [loading, setLoading] = useState(true);
 
+  const handleGoProfile = async () => {
+    const role = await SecureStore.getItemAsync("userRole");
+    const isAdmin = role === "admin" || role === "superadmin";
+
+    router.push(isAdmin ? "/(admin)/profile-admin" : "/(tabs)/profile");
+  };
+
   // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
@@ -112,12 +119,12 @@ export default function RelatoriosScreen() {
             <View style={styles.headerIcons}>
               <TouchableOpacity
                 style={styles.avatarCircle}
-                onPress={() => router.push("/profile")}
+                onPress={handleGoProfile}
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
+              <TouchableOpacity onPress={() => router.push("/alert")}>
                 <Feather
                   name="bell"
                   size={24}

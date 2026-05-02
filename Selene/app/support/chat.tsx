@@ -38,6 +38,13 @@ export default function ChatScreen() {
   const [role, setRole] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
 
+  const handleGoProfile = async () => {
+    const role = await SecureStore.getItemAsync("userRole");
+    const isAdmin = role === "admin" || role === "superadmin";
+
+    router.push(isAdmin ? "/(admin)/profile-admin" : "/(tabs)/profile");
+  };
+
   // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
@@ -164,18 +171,27 @@ export default function ChatScreen() {
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
-
             <View>
               <Text style={styles.welcomeText}>Suporte Online</Text>
               <Text style={styles.subwelcomeText}>Chat</Text>
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.avatarCircle}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={handleGoProfile}
+              >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <Feather name="bell" size={24} color="#2A3A56" />
+              <TouchableOpacity onPress={() => router.push("/alert")}>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>

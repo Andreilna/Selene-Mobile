@@ -89,7 +89,7 @@ export default function DeleteAccountScreen() {
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
+              <TouchableOpacity onPress={() => router.push("/alert")}>
                 <Feather
                   name="bell"
                   size={24}

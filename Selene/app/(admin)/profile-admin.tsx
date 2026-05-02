@@ -108,19 +108,16 @@ export default function ProfileScreen() {
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
-            <View>
+            <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>Perfil</Text>
-              <Text style={styles.subwelcomeText}></Text>
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity
-                style={styles.avatarCircle}
-              >
+              <TouchableOpacity style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => router.push("/alertas")}>
+              <TouchableOpacity onPress={() => router.push("/alert")}>
                 <Feather
                   name="bell"
                   size={24}
@@ -164,7 +161,6 @@ export default function ProfileScreen() {
             style={styles.menuList}
             showsVerticalScrollIndicator={false}
           >
-
             {/* EDITAR PERFIL */}
             <TouchableOpacity
               style={styles.menuItem}
@@ -253,7 +249,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
-    paddingBottom: 30,
+    paddingBottom: 60,
     paddingTop: 10,
     paddingHorizontal: 20,
   },
@@ -264,7 +260,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 1,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56", textAlign: "left" },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+    textAlign: "left",
+  },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
   headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarCircle: {
@@ -278,6 +279,11 @@ const styles = StyleSheet.create({
     borderColor: "#E0E0E0",
   },
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+    justifyContent: "center",
+  },
 
   // ==========================================
   // CARD DE PERFIL (BRANCO FLUTUANTE)
