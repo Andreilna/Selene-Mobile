@@ -158,7 +158,6 @@ export default function AdminHome() {
               title="Notas de Atualização"
               subtitle="Acompanhe as atualizações recentes da aplicação."
               icon={<Feather name="gift" size={24} color="#FFF" />}
-              onPress={() => router.push("/#")}
             />
           </ScrollView>
         </View>

@@ -1,39 +1,29 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const chatController =
-  require('../controllers-mongodb/chatController');
+const chatController = require("../controllers-mongodb/chatController");
 
-const adminAuthMiddleware =
-  require('../middleware/admin-auth-mongodb');
-
+const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
 // ==============================
 // ADMIN - CHATS
 // ==============================
 
 // ADMIN lista todos
-router.get(
-  '/chats',
-  adminAuthMiddleware,
-  chatController.listarChatsAdmin
-);
-
+router.get("/chats", adminAuthMiddleware, chatController.listarChatsAdmin);
 
 // ADMIN ver mensagens
 router.get(
-  '/chats/:chatId/mensagens',
+  "/chats/:chatId/mensagens",
   adminAuthMiddleware,
-  chatController.listarMensagens
+  chatController.listarMensagens,
 );
-
 
 // ADMIN responder
 router.post(
-  '/chats/:chatId/mensagens',
+  "/chats/:chatId/mensagens",
   adminAuthMiddleware,
-  chatController.responderMensagemAdmin
+  chatController.responderMensagemAdmin,
 );
-
 
 module.exports = router;
