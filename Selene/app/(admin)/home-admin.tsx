@@ -12,6 +12,7 @@ import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import axios from "axios";
 
 export default function AdminHome() {
   const router = useRouter();
@@ -19,6 +20,12 @@ export default function AdminHome() {
   const [iniciais, setIniciais] = useState("US");
   const [loading, setLoading] = useState(true);
   const [nomeUsuario, setNomeUsuario] = useState("Usuário");
+
+  // ✅ ADICIONADO
+  const [stats, setStats] = useState({
+    produtores_online: 0,
+    sensores_operantes: 0,
+  });
 
   // ==========================================
   // LÓGICA DE CARREGAMENTO (STORAGE/API)
@@ -45,7 +52,41 @@ export default function AdminHome() {
         setLoading(false);
       }
     };
+
     carregarDadosUsuario();
+  }, []);
+
+  // ✅ ADICIONADO (BUSCA STATS)
+  useEffect(() => {
+    const carregarStats = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("userToken");
+
+        // 🔥 ADICIONADO: evita request com token vazio
+        if (!token) {
+          console.log("❌ Token não encontrado no SecureStore");
+          return;
+        }
+
+        const response = await axios.get(
+          "https://selene-mobile.onrender.com/api/v1/admin/dashboard/stats",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        setStats(response.data.data);
+      } catch (error: any) {
+        console.log(
+          "Erro ao carregar stats:",
+          error.response?.data || error.message,
+        );
+      }
+    };
+
+    carregarStats();
   }, []);
 
   const MenuButton = ({ title, subtitle, icon, onPress }: any) => (
@@ -61,11 +102,7 @@ export default function AdminHome() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* ---------------------------------------------------------
-                INÍCIO DO HEADER (VERDE SELENE)
-            ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
-          {/* SAUDAÇÃO E PERFIL */}
           <View style={styles.header}>
             <View>
               {loading ? (
@@ -89,33 +126,29 @@ export default function AdminHome() {
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => router.push("/alert")}>
-                <Feather
-                  name="bell"
-                  size={24}
-                  color="#2A3A56"
-                  style={{ marginLeft: 12 }}
-                />
+                <Feather name="bell" size={24} color="#2A3A56" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
-        {/* ---------------------------------------------------------
-                FIM DO HEADER
-            ---------------------------------------------------------- */}
 
+        {/* 🔥 ALTERADO AQUI (DINÂMICO) */}
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Produtores Online</Text>
-            <Text style={styles.statValue}>120</Text>
+            <Text style={styles.statValue}>{stats.produtores_online}</Text>
           </View>
+
           <View style={styles.divider} />
+
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Sensores Operantes</Text>
-            <Text style={[styles.statValue, { color: "#2A3A56" }]}>23</Text>
+            <Text style={[styles.statValue, { color: "#2A3A56" }]}>
+              {stats.sensores_operantes}
+            </Text>
           </View>
         </View>
 
-        {/* Lista de Opções (Corpo Branco Arredondado) */}
         <View style={styles.content}>
           <ScrollView
             showsVerticalScrollIndicator={false}

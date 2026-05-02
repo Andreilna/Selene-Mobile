@@ -87,8 +87,7 @@ export default function Login() {
         if (!token || !userDetails) {
           throw new Error("Estrutura de resposta inválida.");
         }
-
-        // Salvando no SecureStore (Drey, isso garante a sessão após fechar o app)
+        
         await SecureStore.setItemAsync("userToken", token);
         await SecureStore.setItemAsync(
           "userName",

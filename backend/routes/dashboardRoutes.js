@@ -12,7 +12,4 @@ router.get('/dispositivo/:id', authMiddleware, DashboardController.dispositivo);
 // GET /api/v1/dashboard/plantas - Dashboard de plantas
 router.get('/plantas', authMiddleware, DashboardController.plantas);
 
-// GET /api/v1/dashboard/stats - estatísticas gerais
-router.get('/stats', authMiddleware, DashboardController.stats);
-
 module.exports = router;
