@@ -3,6 +3,7 @@ const router = express.Router();
 
 const AuthMiddleware = require("../middleware/auth-mongodb");
 const userController = require("../controllers-mongodb/userController");
+const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
 // 👇 ping
 router.post("/ping", AuthMiddleware, userController.ping);
@@ -14,6 +15,6 @@ router.get("/me", AuthMiddleware, userController.perfil);
 router.put("/me", AuthMiddleware, userController.atualizarPerfil);
 
 // 🔥 LISTAR USUÁRIOS (ADMIN)
-router.get("/", AuthMiddleware, userController.listar);
+router.get("/", adminAuthMiddleware, userController.listar);
 
 module.exports = router;

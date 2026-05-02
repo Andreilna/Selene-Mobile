@@ -12,6 +12,7 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 
 /* =======================
    TYPES
@@ -37,7 +38,7 @@ export default function AdminSensors() {
   const [loading, setLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  const token = "SEU_TOKEN_AQUI";
+  const [token, setToken] = useState<string | null>(null);
 
   const [iniciais, setIniciais] = useState("US");
 
@@ -45,17 +46,39 @@ export default function AdminSensors() {
     router.push("/profile");
   };
 
+  /* =======================
+     CARREGAR TOKEN
+  ======================= */
+  useEffect(() => {
+    const loadToken = async () => {
+      const t = await SecureStore.getItemAsync("userToken");
+      console.log("TOKEN:", t);
+      setToken(t);
+    };
+
+    loadToken();
+  }, []);
+
+  /* =======================
+     BUSCAR USUÁRIOS
+  ======================= */
   const fetchUsuarios = async () => {
     try {
       setLoadingUsers(true);
 
-      const res = await fetch("https://selene-mobile.onrender.com/api/v1/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        "https://selene-mobile.onrender.com/api/v1/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       const data = await res.json();
+
+      console.log("USERS:", data);
+
       const lista = data?.data || data || [];
 
       setUsuarios(Array.isArray(lista) ? lista : []);
@@ -66,10 +89,18 @@ export default function AdminSensors() {
     }
   };
 
+  /* =======================
+     CHAMAR QUANDO TIVER TOKEN
+  ======================= */
   useEffect(() => {
-    fetchUsuarios();
-  }, []);
+    if (token) {
+      fetchUsuarios();
+    }
+  }, [token]);
 
+  /* =======================
+     CRIAR DISPOSITIVO
+  ======================= */
   const criarDispositivo = async () => {
     if (!nome || !mac || !usuarioId) {
       Alert.alert("Erro", "Preencha todos os campos");
@@ -98,6 +129,7 @@ export default function AdminSensors() {
       );
 
       const data = await res.json();
+
       if (!res.ok) throw new Error(data.message);
 
       Alert.alert("Sucesso", "Dispositivo criado!");
@@ -170,6 +202,7 @@ export default function AdminSensors() {
               onValueChange={(value: string) => setUsuarioId(value)}
             >
               <Picker.Item label="Selecione um usuário" value="" />
+
               {usuarios.map((u) => (
                 <Picker.Item
                   key={u._id}
@@ -225,10 +258,8 @@ export default function AdminSensors() {
    STYLE
 ======================= */
 const styles = StyleSheet.create({
-  // Estrutura Principal
   container: { flex: 1, backgroundColor: "#95C159" },
 
-  // Header Superior
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -243,7 +274,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
   },
 
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
@@ -262,14 +292,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
   },
 
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  card: { backgroundColor: "#fff", padding: 20, borderRadius: 15 },
+
+  card: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 15,
+    margin: 20,
+  },
 
   label: { fontWeight: "bold", marginBottom: 5 },
+
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
