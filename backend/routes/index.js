@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-// Importar rotas
+// ==========================
+// IMPORT ROTAS
+// ==========================
 const dispositivoRoutes = require("./dispositivoRoutes");
 const leituraRoutes = require("./leituraRoutes");
 const plantaRoutes = require("./plantaRoutes");
@@ -13,34 +15,37 @@ const configuracaoAlertaRoutes = require("./configuracaoAlertaRoutes");
 const estufaRoutes = require("./estufaRoutes");
 const chatRoutes = require("./chatRoutes");
 const adminChatRoutes = require("./adminChatRoutes");
-const adminDashboardRoutes = require("./adminDashboardRoutes");
+const adminDashboardRoutes = require("./adminDashboardRoutes");]
 
 // ==========================
-// ROTAS USER
+// USER ROUTES
 // ==========================
-
+router.use("/auth", authRoutes);
 router.use("/dispositivos", dispositivoRoutes);
 router.use("/leituras", leituraRoutes);
 router.use("/plantas", plantaRoutes);
 router.use("/alertas", alertaRoutes);
 router.use("/dashboard", dashboardRoutes);
-router.use("/auth", authRoutes);
 router.use("/configuracoes-alerta", configuracaoAlertaRoutes);
 router.use("/estufas", estufaRoutes);
 router.use("/chats", chatRoutes);
-router.use("/admin/dashboard", adminDashboardRoutes);
 
 // ==========================
-// ROTAS ADMIN
+// ADMIN ROUTES
 // ==========================
 
+// 👇 admin base
 router.use("/admin", adminRoutes);
-router.use("/admin", adminChatRoutes);
+
+// 👇 chat admin separado
+router.use("/admin/chat", adminChatRoutes);
+
+// 👇 dashboard admin (CORRETO AQUI)
+router.use("/admin/dashboard", adminDashboardRoutes);
 
 // ==========================
 // HEALTH CHECK
 // ==========================
-
 router.get("/health", (req, res) => {
   res.json({
     success: true,
@@ -51,9 +56,8 @@ router.get("/health", (req, res) => {
 });
 
 // ==========================
-// TESTE DB
+// TEST DB
 // ==========================
-
 router.get("/test-db", async (req, res) => {
   try {
     const { mongoose } = require("../config/mongodb");
@@ -84,9 +88,8 @@ router.get("/test-db", async (req, res) => {
 });
 
 // ==========================
-// 404
+// 404 (SEMPRE POR ÚLTIMO)
 // ==========================
-
 router.use("*", (req, res) => {
   res.status(404).json({
     success: false,
