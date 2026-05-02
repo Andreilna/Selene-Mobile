@@ -67,16 +67,10 @@ const adminSchema = new mongoose.Schema(
 // ==========================================
 // HASH DA SENHA
 // ==========================================
-adminSchema.pre("save", function (next) {
-  if (!this.isModified("senha")) return next();
+adminSchema.pre("save", async function () {
+  if (!this.isModified("senha")) return;
 
-  bcrypt
-    .hash(this.senha, 12)
-    .then((hash) => {
-      this.senha = hash;
-      next();
-    })
-    .catch(next);
+  this.senha = await bcrypt.hash(this.senha, 12);
 });
 
 // ==========================================
