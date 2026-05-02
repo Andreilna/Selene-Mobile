@@ -2,15 +2,18 @@ const express = require("express");
 const router = express.Router();
 
 const AuthMiddleware = require("../middlewares/authMiddleware");
-const UserController = require("../controllers-mongodb/UserController");
+const userController = require("../controllers-mongodb/userController");
 
-// 👇 ping (ONLINE STATUS)
+// 👇 ping
 router.post("/ping", AuthMiddleware, UserController.ping);
 
 // 👇 perfil
 router.get("/me", AuthMiddleware, UserController.perfil);
 
-// 👇 update profile
+// 👇 atualizar perfil
 router.put("/me", AuthMiddleware, UserController.atualizarPerfil);
+
+// 🔥 LISTAR USUÁRIOS (ADMIN)
+router.get("/", AuthMiddleware, UserController.listar);
 
 module.exports = router;
