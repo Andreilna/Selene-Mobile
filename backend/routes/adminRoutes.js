@@ -21,4 +21,13 @@ router.get("/perfil", adminAuthMiddleware, AdminController.perfil);
 // PUT /api/v1/admin/perfil
 router.put("/perfil", adminAuthMiddleware, AdminController.atualizarPerfil);
 
+// POST /api/v1/admin/recuperar-senha - Iniciar processo de recuperação de senha
+router.post("/recuperar-senha", AdminController.recuperarSenha);
+
+// PUT /api/v1/admin/resetar-senha - Resetar senha usando token de recuperação
+router.put("/resetar-senha", AdminController.resetarSenha);
+
+// PUT /api/v1/admin/alterar-senha - Alterar senha (requer autenticação)
+router.put("/alterar-senha", adminAuthMiddleware, AdminController.alterarSenha);
+
 module.exports = router;

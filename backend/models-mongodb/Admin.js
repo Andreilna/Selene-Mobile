@@ -34,7 +34,6 @@ const adminSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Por favor, use um email válido"],
     },
 
-    // 🔥 ADICIONADO (compatível com frontend)
     telefone: {
       type: String,
       default: "",
@@ -49,11 +48,22 @@ const adminSchema = new mongoose.Schema(
       type: String,
       enum: ["admin", "superadmin"],
       default: "admin",
-      index: true, // 🔥 melhora consultas futuras
+      index: true,
     },
 
     ultimo_login: {
       type: Date,
+    },
+
+    // 🔥 NOVO (RESET DE SENHA)
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+
+    resetPasswordExpire: {
+      type: Date,
+      select: false,
     },
   },
   {

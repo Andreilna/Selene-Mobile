@@ -1,6 +1,6 @@
-const Admin = require('../models-mongodb/Admin');
-const jwt = require('jsonwebtoken');
-
+const Admin = require("../models-mongodb/Admin");
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 class AdminController {
   // ==========================================
@@ -13,30 +13,27 @@ class AdminController {
       if (!usuario || !senha) {
         return res.status(400).json({
           success: false,
-          message: 'Usuário e senha são obrigatórios'
+          message: "Usuário e senha são obrigatórios",
         });
       }
 
       const login = usuario.trim().toLowerCase();
 
       const admin = await Admin.findOne({
-        $or: [
-          { usuario: login },
-          { email: login }
-        ]
-      }).select('+senha');
+        $or: [{ usuario: login }, { email: login }],
+      }).select("+senha");
 
       if (!admin || !(await admin.verificarSenha(senha))) {
         return res.status(401).json({
           success: false,
-          message: 'Usuário ou senha inválidos'
+          message: "Usuário ou senha inválidos",
         });
       }
 
       if (!admin.ativo) {
         return res.status(401).json({
           success: false,
-          message: 'Administrador desativado'
+          message: "Administrador desativado",
         });
       }
 
@@ -47,26 +44,149 @@ class AdminController {
         {
           adminId: admin._id,
           usuario: admin.usuario,
-          nivel: admin.nivel_acesso
+          nivel: admin.nivel_acesso,
         },
-        process.env.JWT_SECRET || 'secret_fallback',
-        { expiresIn: '24h' }
+        process.env.JWT_SECRET || "secret_fallback",
+        { expiresIn: "24h" },
       );
 
       res.json({
         success: true,
-        message: 'Login de administrador realizado com sucesso',
+        message: "Login de administrador realizado com sucesso",
         data: {
           token,
-          admin: admin.toJSON()
-        }
+          admin: admin.toJSON(),
+        },
       });
-
     } catch (error) {
-      console.error('Erro no login admin:', error);
+      console.error("Erro no login admin:", error);
       res.status(500).json({
         success: false,
-        message: 'Erro interno do servidor'
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // ==========================================
+  // RECUPERAR SENHA
+  // ==========================================
+  static async recuperarSenha(req, res) {
+    try {
+      const { email, usuario } = req.body;
+
+      const login = (email || usuario || "").toLowerCase();
+
+      const admin = await Admin.findOne({
+        $or: [{ email: login }, { usuario: login }],
+      });
+
+      // 🔒 não revela se existe ou não
+      if (!admin) {
+        return res.json({
+          success: true,
+          message: "Se o usuário existir, você receberá instruções",
+        });
+      }
+
+      const resetToken = crypto.randomBytes(20).toString("hex");
+
+      admin.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+      admin.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 min
+
+      await admin.save();
+
+      // ⚠️ em produção: enviar email
+      res.json({
+        success: true,
+        message: "Token gerado",
+        token: resetToken,
+      });
+    } catch (error) {
+      console.error("Erro ao recuperar senha admin:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // ==========================================
+  // RESETAR SENHA
+  // ==========================================
+  static async resetarSenha(req, res) {
+    try {
+      const { token, novaSenha } = req.body;
+
+      const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+      const admin = await Admin.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() },
+      }).select("+senha");
+
+      if (!admin) {
+        return res.status(400).json({
+          success: false,
+          message: "Token inválido ou expirado",
+        });
+      }
+
+      admin.senha = novaSenha;
+      admin.resetPasswordToken = undefined;
+      admin.resetPasswordExpire = undefined;
+
+      await admin.save();
+
+      res.json({
+        success: true,
+        message: "Senha redefinida com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro ao resetar senha admin:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // ==========================================
+  // ALTERAR SENHA (LOGADO)
+  // ==========================================
+  static async alterarSenha(req, res) {
+    try {
+      const { senhaAtual, novaSenha } = req.body;
+
+      const admin = await Admin.findById(req.admin._id).select("+senha");
+
+      const senhaValida = await admin.verificarSenha(senhaAtual);
+
+      if (!senhaValida) {
+        return res.status(400).json({
+          success: false,
+          message: "Senha atual incorreta",
+        });
+      }
+
+      admin.senha = novaSenha;
+      await admin.save();
+
+      res.json({
+        success: true,
+        message: "Senha alterada com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro ao alterar senha admin:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
       });
     }
   }
@@ -79,16 +199,13 @@ class AdminController {
       const { usuario, senha, nome_completo, email, nivel_acesso } = req.body;
 
       const adminExistente = await Admin.findOne({
-        $or: [
-          { usuario },
-          { email: email.toLowerCase() }
-        ]
+        $or: [{ usuario }, { email: email.toLowerCase() }],
       });
 
       if (adminExistente) {
         return res.status(400).json({
           success: false,
-          message: 'Usuário ou email já cadastrado'
+          message: "Usuário ou email já cadastrado",
         });
       }
 
@@ -97,20 +214,19 @@ class AdminController {
         senha,
         nome_completo,
         email: email.toLowerCase(),
-        nivel_acesso: nivel_acesso || 'admin'
+        nivel_acesso: nivel_acesso || "admin",
       });
 
       res.status(201).json({
         success: true,
-        message: 'Administrador criado com sucesso',
-        data: admin.toJSON()
+        message: "Administrador criado com sucesso",
+        data: admin.toJSON(),
       });
-
     } catch (error) {
-      console.error('Erro ao criar admin:', error);
+      console.error("Erro ao criar admin:", error);
       res.status(500).json({
         success: false,
-        message: 'Erro interno do servidor'
+        message: "Erro interno do servidor",
       });
     }
   }
@@ -120,18 +236,17 @@ class AdminController {
   // ==========================================
   static async listarAdmins(req, res) {
     try {
-      const admins = await Admin.find().select('-senha');
+      const admins = await Admin.find().select("-senha");
 
       res.json({
         success: true,
-        data: admins
+        data: admins,
       });
-
     } catch (error) {
-      console.error('Erro ao listar admins:', error);
+      console.error("Erro ao listar admins:", error);
       res.status(500).json({
         success: false,
-        message: 'Erro interno do servidor'
+        message: "Erro interno do servidor",
       });
     }
   }
@@ -140,13 +255,9 @@ class AdminController {
   // PERFIL
   // ==========================================
   static async perfil(req, res) {
-    try {
-      res.json({
-        data: req.admin
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao buscar perfil" });
-    }
+    res.json({
+      data: req.admin,
+    });
   }
 
   // ==========================================
@@ -166,14 +277,13 @@ class AdminController {
       const adminAtualizado = await Admin.findByIdAndUpdate(
         adminId,
         updateData,
-        { new: true }
+        { new: true },
       );
 
       res.json({
         message: "Perfil atualizado",
         data: adminAtualizado,
       });
-
     } catch (error) {
       res.status(500).json({ message: "Erro ao atualizar perfil" });
     }
@@ -183,19 +293,10 @@ class AdminController {
   // VERIFICAR TOKEN
   // ==========================================
   static async verificarToken(req, res) {
-    try {
-      res.json({
-        success: true,
-        data: req.admin
-      });
-
-    } catch (error) {
-      console.error('Erro ao verificar token admin:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor'
-      });
-    }
+    res.json({
+      success: true,
+      data: req.admin,
+    });
   }
 }
 
