@@ -29,7 +29,7 @@ export default function AdminSensors() {
   const [usuarioId, setUsuarioId] = useState("");
 
   const [tipo, setTipo] = useState<"ESP32_SENSORES" | "ESP32_CAM">(
-    "ESP32_SENSORES",
+    "ESP32_SENSORES"
   );
 
   const [loading, setLoading] = useState(false);
@@ -44,17 +44,22 @@ export default function AdminSensors() {
     try {
       setLoadingUsers(true);
 
-      const res = await fetch("https://SEU_BACKEND.onrender.com/api/v1/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        "https://SEU_BACKEND.onrender.com/api/v1/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await res.json();
 
-      if (res.ok) {
-        setUsuarios(data.data);
-      }
+      console.log("USERS:", data);
+
+      const lista = data?.data || data || [];
+
+      setUsuarios(Array.isArray(lista) ? lista : []);
     } catch (err: any) {
       console.log("Erro usuários:", err.message);
     } finally {
@@ -78,7 +83,7 @@ export default function AdminSensors() {
     try {
       setLoading(true);
 
-      const response = await fetch(
+      const res = await fetch(
         "https://SEU_BACKEND.onrender.com/api/v1/dispositivos",
         {
           method: "POST",
@@ -93,16 +98,14 @@ export default function AdminSensors() {
             localizacao: localizacao.trim() || null,
             usuario_id: usuarioId,
           }),
-        },
+        }
       );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao criar dispositivo");
-      }
+      if (!res.ok) throw new Error(data.message);
 
-      Alert.alert("Sucesso", "Dispositivo criado com sucesso!");
+      Alert.alert("Sucesso", "Dispositivo criado!");
 
       setNome("");
       setMac("");
@@ -119,35 +122,21 @@ export default function AdminSensors() {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.label}>Nome do Dispositivo</Text>
-        <TextInput
-          style={styles.input}
-          value={nome}
-          onChangeText={setNome}
-          placeholder="Ex: Sensor Cogumelo"
-        />
+        <Text style={styles.label}>Nome</Text>
+        <TextInput style={styles.input} value={nome} onChangeText={setNome} />
 
-        <Text style={styles.label}>MAC Address</Text>
-        <TextInput
-          style={styles.input}
-          value={mac}
-          onChangeText={setMac}
-          placeholder="Ex: 88:57:21:c1:61:5c"
-          autoCapitalize="none"
-        />
+        <Text style={styles.label}>MAC</Text>
+        <TextInput style={styles.input} value={mac} onChangeText={setMac} />
 
         <Text style={styles.label}>Localização</Text>
         <TextInput
           style={styles.input}
           value={localizacao}
           onChangeText={setLocalizacao}
-          placeholder="Ex: Sala de Cultivo"
         />
 
-        {/* =======================
-           USUÁRIOS
-        ======================= */}
-        <Text style={styles.label}>Usuário dono</Text>
+        {/* USERS */}
+        <Text style={styles.label}>Usuário</Text>
 
         {loadingUsers ? (
           <ActivityIndicator />
@@ -159,21 +148,19 @@ export default function AdminSensors() {
             >
               <Picker.Item label="Selecione um usuário" value="" />
 
-              {usuarios.map((user) => (
+              {usuarios.map((u) => (
                 <Picker.Item
-                  key={user._id}
-                  label={`${user.nome} (${user.email})`}
-                  value={user._id}
+                  key={u._id}
+                  label={`${u.nome} (${u.email})`}
+                  value={u._id}
                 />
               ))}
             </Picker>
           </View>
         )}
 
-        {/* =======================
-           TIPO
-        ======================= */}
-        <Text style={styles.label}>Tipo de Dispositivo</Text>
+        {/* TIPO */}
+        <Text style={styles.label}>Tipo</Text>
 
         <View style={styles.row}>
           <TouchableOpacity
@@ -197,9 +184,7 @@ export default function AdminSensors() {
           </TouchableOpacity>
         </View>
 
-        {/* =======================
-           BOTÃO
-        ======================= */}
+        {/* BOTÃO */}
         <TouchableOpacity
           style={styles.button}
           onPress={criarDispositivo}
@@ -208,7 +193,7 @@ export default function AdminSensors() {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Criar Dispositivo</Text>
+            <Text style={styles.buttonText}>Criar</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -217,62 +202,37 @@ export default function AdminSensors() {
 }
 
 /* =======================
-   STYLES
+   STYLE
 ======================= */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-    padding: 20,
-    justifyContent: "center",
-  },
+  container: { flex: 1, padding: 20, justifyContent: "center" },
+  card: { backgroundColor: "#fff", padding: 20, borderRadius: 15 },
 
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 20,
-    padding: 25,
-    elevation: 4,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#2A3A56",
-    marginBottom: 8,
-  },
-
+  label: { fontWeight: "bold", marginBottom: 5 },
   input: {
-    backgroundColor: "#F8FBF8",
     borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 15,
   },
 
   pickerBox: {
     borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 12,
-    marginBottom: 20,
-    overflow: "hidden",
-    backgroundColor: "#F8FBF8",
+    borderColor: "#ddd",
+    borderRadius: 10,
+    marginBottom: 15,
   },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 25,
-  },
+  row: { flexDirection: "row", gap: 10, marginBottom: 15 },
 
   typeButton: {
     flex: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
     borderWidth: 1,
     borderColor: "#95C159",
+    borderRadius: 10,
     alignItems: "center",
-    marginHorizontal: 5,
   },
 
   typeButtonActive: {
@@ -281,15 +241,10 @@ const styles = StyleSheet.create({
 
   button: {
     backgroundColor: "#2A3A56",
-    height: 55,
-    borderRadius: 15,
-    justifyContent: "center",
+    padding: 15,
+    borderRadius: 10,
     alignItems: "center",
   },
 
-  buttonText: {
-    color: "#FFF",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  buttonText: { color: "#fff", fontWeight: "bold" },
 });

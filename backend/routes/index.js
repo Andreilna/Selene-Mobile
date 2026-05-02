@@ -16,6 +16,7 @@ const estufaRoutes = require("./estufaRoutes");
 const chatRoutes = require("./chatRoutes");
 const adminChatRoutes = require("./adminChatRoutes");
 const adminDashboardRoutes = require("./adminDashboardRoutes");
+const userController = require("../controllers-mongodb/userController");
 
 // ==========================
 // USER ROUTES
@@ -29,6 +30,7 @@ router.use("/dashboard", dashboardRoutes);
 router.use("/configuracoes-alerta", configuracaoAlertaRoutes);
 router.use("/estufas", estufaRoutes);
 router.use("/chats", chatRoutes);
+router.use("/users", require("./userRoutes"));
 
 // ==========================
 // ADMIN ROUTES
