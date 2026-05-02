@@ -43,7 +43,7 @@ export default function AdminSensors() {
   const [iniciais, setIniciais] = useState("US");
 
   const handleGoProfile = () => {
-    router.push("/profile");
+    router.push("/(admin)/profile-admin");
   };
 
   /* =======================
@@ -52,7 +52,6 @@ export default function AdminSensors() {
   useEffect(() => {
     const loadToken = async () => {
       const t = await SecureStore.getItemAsync("userToken");
-      console.log("TOKEN:", t);
       setToken(t);
     };
 
@@ -60,7 +59,7 @@ export default function AdminSensors() {
   }, []);
 
   /* =======================
-     BUSCAR USUÁRIOS
+     BUSCAR USUÁRIOS (BLINDADO)
   ======================= */
   const fetchUsuarios = async () => {
     try {
@@ -77,13 +76,38 @@ export default function AdminSensors() {
 
       const data = await res.json();
 
-      console.log("USERS:", data);
+      // 🔥 pega qualquer formato possível
+      let lista =
+        data?.data?.usuarios || data?.data || data?.usuarios || data || [];
 
-      const lista = data?.data || data || [];
+      if (!Array.isArray(lista)) {
+        lista = [];
+      }
 
-      setUsuarios(Array.isArray(lista) ? lista : []);
+      // 🔥 normaliza os dados
+      const usuariosFormatados = lista.map((u: any) => {
+        let nomeBase = u.nome_completo || u.nome || u.name || u.usuario;
+
+        // 🔥 fallback melhorado
+        if (!nomeBase && u.email) {
+          const beforeAt = u.email.split("@")[0];
+
+          // remove números do final (andreialda7 → andreialda)
+          nomeBase = beforeAt.replace(/\d+$/, "");
+        }
+
+        return {
+          _id: u._id || u.id || u.usuario_id || "",
+          nome: nomeBase || "Usuário",
+          email: u.email || u.mail || "sem email",
+        };
+      });
+
+      console.log("USUARIOS FORMATADOS:", usuariosFormatados);
+
+      setUsuarios(usuariosFormatados);
     } catch (err: any) {
-      console.log("Erro usuários:", err.message);
+      console.log("ERRO USERS:", err);
     } finally {
       setLoadingUsers(false);
     }
@@ -203,11 +227,11 @@ export default function AdminSensors() {
             >
               <Picker.Item label="Selecione um usuário" value="" />
 
-              {usuarios.map((u) => (
+              {usuarios.map((u, index) => (
                 <Picker.Item
-                  key={u._id}
+                  key={u._id || index.toString()}
                   label={`${u.nome} (${u.email})`}
-                  value={u._id}
+                  value={u._id || ""}
                 />
               ))}
             </Picker>

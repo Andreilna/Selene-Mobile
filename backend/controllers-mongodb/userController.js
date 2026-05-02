@@ -28,7 +28,7 @@ class userController {
   // 🔥 LISTAR USUÁRIOS (ADMIN)
   static async listar(req, res) {
     try {
-      const usuarios = await User.find().select("_id nome email role");
+      const usuarios = await User.find().select("_id nome_completo email");
 
       return res.json({
         success: true,
@@ -50,7 +50,7 @@ class userController {
       const user = await User.findByIdAndUpdate(
         req.userId,
         { nome, email },
-        { new: true }
+        { new: true },
       ).select("-senha");
 
       return res.json({
