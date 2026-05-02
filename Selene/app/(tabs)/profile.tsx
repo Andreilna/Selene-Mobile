@@ -100,12 +100,16 @@ export default function ProfileScreen() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER */}
+        {/* ---------------------------------------------------------
+                       INÍCIO DO HEADER (VERDE SELENE)
+                   ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
-            <View>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
+            <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>Perfil</Text>
-              <Text style={styles.subwelcomeText}></Text>
             </View>
 
             <View style={styles.headerIcons}>
@@ -124,6 +128,9 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+        {/* ---------------------------------------------------------
+                       FIM DO HEADER
+                   ---------------------------------------------------------- */}
 
         {/* CONTEÚDO */}
         <View style={styles.content}>
@@ -310,6 +317,12 @@ const styles = StyleSheet.create({
     borderColor: "#E0E0E0",
   },
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+    justifyContent: "center",
+  },
 
   // ==========================================
   // CARD DE PERFIL (BRANCO FLUTUANTE)

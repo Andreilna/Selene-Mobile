@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
+    marginBottom: 40,
   },
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },

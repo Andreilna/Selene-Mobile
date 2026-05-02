@@ -113,7 +113,7 @@ export default function RelatoriosScreen() {
           <View style={styles.header}>
             <View>
               <Text style={styles.welcomeText}>Relatórios</Text>
-              <Text style={styles.subwelcomeText}></Text>
+              <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
             </View>
 
             <View style={styles.headerIcons}>
