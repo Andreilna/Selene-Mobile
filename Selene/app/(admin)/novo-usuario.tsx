@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Image,
   ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -18,43 +17,49 @@ export default function NovoUsuario() {
   const [nome, setNome] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [endereco, setEndereco] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nivel, setNivel] = useState("user");
   const [iniciais, setIniciais] = useState("US");
+  const [loading, setLoading] = useState(false);
+
+  // ================= USER =================
+  useEffect(() => {
+    const carregarDadosUsuario = async () => {
+      try {
+        const nomeSalvo = await SecureStore.getItemAsync("userName");
+
+        if (nomeSalvo) {
+          const partes = nomeSalvo.trim().split(" ");
+
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
+
+          setIniciais(init);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    carregarDadosUsuario();
+  }, []);
 
   const handleGoProfile = () => {
     router.push("/(admin)/profile-admin");
   };
 
-  // ================= USER =================
-    useEffect(() => {
-      const carregarDadosUsuario = async () => {
-        try {
-          const nomeSalvo = await SecureStore.getItemAsync("userName");
-  
-          if (nomeSalvo) {
-            const partes = nomeSalvo.trim().split(" ");
-  
-            const init =
-              partes.length > 1
-                ? (partes[0][0] + partes[1][0]).toUpperCase()
-                : partes[0][0].toUpperCase();
-  
-            setIniciais(init);
-          }
-        } catch (e) {}
-      };
-  
-      carregarDadosUsuario();
-    }, []);
-
-  const [loading, setLoading] = useState(false);
-
+  // ================= CREATE USER =================
   const handleSubmit = async () => {
     if (!nome || !email || !senha) {
       Alert.alert("Erro", "Preencha os campos obrigatórios");
+      return;
+    }
+
+    if (senha.length < 6) {
+      Alert.alert("Erro", "Senha precisa ter no mínimo 6 caracteres");
       return;
     }
 
@@ -63,31 +68,52 @@ export default function NovoUsuario() {
 
       const token = await SecureStore.getItemAsync("userToken");
 
-      const res = await fetch(
-        "https://selene-mobile.onrender.com/api/v1/users",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            nome_completo: nome,
-            email,
-            senha,
-            telefone,
-            endereco,
-            data_nascimento: dataNascimento || null,
-            tipo: nivel,
-          }),
+      // 🔥 DECIDE O ENDPOINT AQUI
+      const endpoint =
+        nivel === "admin"
+          ? "https://selene-mobile.onrender.com/api/v1/admin/criar"
+          : "https://selene-mobile.onrender.com/api/v1/users";
+
+      const body =
+        nivel === "admin"
+          ? {
+              usuario: email.split("@")[0], // ou cria um campo usuário separado se quiser
+              nome_completo: nome.trim(),
+              email: email.toLowerCase().trim(),
+              senha,
+              telefone: telefone || "",
+              nivel_acesso: "admin",
+            }
+          : {
+              nome_completo: nome.trim(),
+              email: email.toLowerCase().trim(),
+              senha,
+              telefone: telefone || null,
+              data_nascimento: dataNascimento || null,
+              tipo: "user",
+            };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify(body),
+      });
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message);
+      if (!res.ok) {
+        throw new Error(data.message || "Erro ao criar usuário");
+      }
 
-      Alert.alert("Sucesso", "Usuário criado!");
+      Alert.alert(
+        "Sucesso",
+        nivel === "admin"
+          ? "Administrador criado com sucesso!"
+          : "Usuário criado com sucesso!",
+      );
 
       router.back();
     } catch (err: any) {
@@ -100,6 +126,7 @@ export default function NovoUsuario() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
+        {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
@@ -125,8 +152,9 @@ export default function NovoUsuario() {
           </View>
         </View>
 
+        {/* FORM */}
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.label}>Nome Completo</Text>
+          <Text style={styles.label}>Nome Completo *</Text>
           <TextInput style={styles.input} value={nome} onChangeText={setNome} />
 
           <Text style={styles.label}>Data Nascimento</Text>
@@ -134,7 +162,7 @@ export default function NovoUsuario() {
             style={styles.input}
             value={dataNascimento}
             onChangeText={setDataNascimento}
-            placeholder="DD-MM-YYYY"
+            placeholder="DD/MM/AAAA"
           />
 
           <Text style={styles.label}>Telefone</Text>
@@ -145,23 +173,16 @@ export default function NovoUsuario() {
             placeholder="(13) 99999-9999"
           />
 
-          <Text style={styles.label}>Endereço</Text>
-          <TextInput
-            style={styles.input}
-            value={endereco}
-            onChangeText={setEndereco}
-            placeholder="Rua, Número, Bairro, Cidade"
-          />
-
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Email *</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
             placeholder="email@exemplo.com"
+            autoCapitalize="none"
           />
 
-          <Text style={styles.label}>Senha</Text>
+          <Text style={styles.label}>Senha *</Text>
           <TextInput
             style={styles.input}
             value={senha}
@@ -169,7 +190,7 @@ export default function NovoUsuario() {
             secureTextEntry
           />
 
-          {/* FOTO */}
+          {/* FOTO (placeholder visual) */}
           <View style={styles.photoBox}>
             <Feather name="user" size={40} color="#fff" />
             <View style={styles.cameraIcon}>
@@ -178,7 +199,7 @@ export default function NovoUsuario() {
           </View>
 
           {/* NIVEL */}
-          <Text style={styles.label}>Nível Acesso</Text>
+          <Text style={styles.label}>Nível de Acesso</Text>
 
           <View style={styles.row}>
             <TouchableOpacity
@@ -196,9 +217,14 @@ export default function NovoUsuario() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
+          {/* BOTÃO */}
+          <TouchableOpacity
+            style={[styles.btn, loading && { opacity: 0.6 }]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
             <Text style={styles.btnText}>
-              {loading ? "Carregando..." : "Cadastrar"}
+              {loading ? "Criando..." : "Cadastrar"}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -207,6 +233,7 @@ export default function NovoUsuario() {
   );
 }
 
+// ================= STYLES =================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#95C159" },
 
@@ -223,47 +250,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
   },
 
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
 
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
 
   avatarCircle: {
     width: 45,
     height: 45,
-    borderRadius: 22.5,
+    borderRadius: 22,
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
   },
 
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
 
   textContainer: { flex: 1, marginLeft: 20 },
-
-  statsContainer: { paddingHorizontal: 25, marginBottom: 25 },
-
-  top: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 20,
-    alignItems: "center",
-  },
-
-  title: { fontSize: 18, fontWeight: "bold", color: "#2A3A56" },
-
-  rightIcons: { flexDirection: "row", alignItems: "center", gap: 10 },
-
-  avatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
 
   content: {
     backgroundColor: "#FFF",
@@ -271,16 +287,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 60,
     paddingHorizontal: 25,
     paddingTop: 30,
+    paddingBottom: 50,
   },
 
-  search: {
-    backgroundColor: "#E9F9EA",
-    borderRadius: 20,
-    padding: 10,
-    marginBottom: 15,
+  label: {
+    fontWeight: "bold",
+    marginTop: 10,
+    color: "#2A3A56",
   },
-
-  label: { fontWeight: "bold", marginTop: 10 },
 
   input: {
     backgroundColor: "#E9F9EA",
@@ -309,7 +323,11 @@ const styles = StyleSheet.create({
     padding: 3,
   },
 
-  row: { flexDirection: "row", gap: 10, marginTop: 10 },
+  row: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
+  },
 
   radio: {
     flex: 1,
@@ -332,5 +350,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  btnText: { color: "#fff", fontWeight: "bold" },
+  btnText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });

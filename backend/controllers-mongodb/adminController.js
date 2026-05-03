@@ -50,17 +50,17 @@ class AdminController {
         { expiresIn: "24h" },
       );
 
-      res.json({
+      return res.json({
         success: true,
-        message: "Login de administrador realizado com sucesso",
+        message: "Login realizado com sucesso",
         data: {
           token,
           admin: admin.toJSON(),
         },
       });
     } catch (error) {
-      console.error("Erro no login admin:", error);
-      res.status(500).json({
+      console.error("Erro login admin:", error);
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
@@ -68,134 +68,24 @@ class AdminController {
   }
 
   // ==========================================
-  // RECUPERAR SENHA
-  // ==========================================
-  static async recuperarSenha(req, res) {
-    try {
-      const { email, usuario } = req.body;
-
-      const login = (email || usuario || "").toLowerCase();
-
-      const admin = await Admin.findOne({
-        $or: [{ email: login }, { usuario: login }],
-      }).select("+senha");
-
-      // 🔒 não revela se existe ou não
-      if (!admin) {
-        return res.json({
-          success: true,
-          message: "Se o usuário existir, você receberá instruções",
-        });
-      }
-
-      // 🔥 gera senha temporária
-      const novaSenha = Math.random().toString(36).slice(-8);
-
-      admin.senha = novaSenha; // NÃO precisa hash manual
-      await admin.save(); // 🔥 aqui aplica o bcrypt automaticamente
-
-      res.json({
-        success: true,
-        message: "Senha redefinida",
-        data: {
-          nova_senha: novaSenha, // 🔥 mesmo padrão do USER
-        },
-      });
-    } catch (error) {
-      console.error("Erro ao recuperar senha admin:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor",
-      });
-    }
-  }
-
-  // ==========================================
-  // RESETAR SENHA
-  // ==========================================
-  static async resetarSenha(req, res) {
-    try {
-      const { token, novaSenha } = req.body;
-
-      const hashedToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
-
-      const admin = await Admin.findOne({
-        resetPasswordToken: hashedToken,
-        resetPasswordExpire: { $gt: Date.now() },
-      }).select("+senha");
-
-      if (!admin) {
-        return res.status(400).json({
-          success: false,
-          message: "Token inválido ou expirado",
-        });
-      }
-
-      admin.senha = novaSenha;
-      admin.resetPasswordToken = undefined;
-      admin.resetPasswordExpire = undefined;
-
-      await admin.save();
-
-      res.json({
-        success: true,
-        message: "Senha redefinida com sucesso",
-      });
-    } catch (error) {
-      console.error("Erro ao resetar senha admin:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor",
-      });
-    }
-  }
-
-  // ==========================================
-  // ALTERAR SENHA (LOGADO)
-  // ==========================================
-  static async alterarSenha(req, res) {
-    try {
-      const { senhaAtual, novaSenha } = req.body;
-
-      const admin = await Admin.findById(req.admin._id).select("+senha");
-
-      const senhaValida = await admin.verificarSenha(senhaAtual);
-
-      if (!senhaValida) {
-        return res.status(400).json({
-          success: false,
-          message: "Senha atual incorreta",
-        });
-      }
-
-      admin.senha = novaSenha;
-      await admin.save();
-
-      res.json({
-        success: true,
-        message: "Senha alterada com sucesso",
-      });
-    } catch (error) {
-      console.error("Erro ao alterar senha admin:", error);
-      res.status(500).json({
-        success: false,
-        message: "Erro interno do servidor",
-      });
-    }
-  }
-
-  // ==========================================
-  // CRIAR ADMIN
+  // CRIAR ADMIN (PROTEGIDO)
   // ==========================================
   static async criarAdmin(req, res) {
     try {
       const { usuario, senha, nome_completo, email, nivel_acesso } = req.body;
 
+      if (!usuario || !senha || !nome_completo || !email) {
+        return res.status(400).json({
+          success: false,
+          message: "Preencha todos os campos obrigatórios",
+        });
+      }
+
+      const emailNormalizado = email.toLowerCase().trim();
+      const usuarioNormalizado = usuario.toLowerCase().trim();
+
       const adminExistente = await Admin.findOne({
-        $or: [{ usuario }, { email: email.toLowerCase() }],
+        $or: [{ usuario: usuarioNormalizado }, { email: emailNormalizado }],
       });
 
       if (adminExistente) {
@@ -205,22 +95,30 @@ class AdminController {
         });
       }
 
+      // 🔒 proteção: só superadmin pode criar outro superadmin
+      if (nivel_acesso === "superadmin" && req.admin?.nivel !== "superadmin") {
+        return res.status(403).json({
+          success: false,
+          message: "Sem permissão para criar superadmin",
+        });
+      }
+
       const admin = await Admin.create({
-        usuario,
+        usuario: usuarioNormalizado,
         senha,
         nome_completo,
-        email: email.toLowerCase(),
+        email: emailNormalizado,
         nivel_acesso: nivel_acesso || "admin",
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "Administrador criado com sucesso",
         data: admin.toJSON(),
       });
     } catch (error) {
-      console.error("Erro ao criar admin:", error);
-      res.status(500).json({
+      console.error("Erro criar admin:", error);
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
@@ -234,15 +132,14 @@ class AdminController {
     try {
       const admins = await Admin.find().select("-senha");
 
-      res.json({
+      return res.json({
         success: true,
         data: admins,
       });
     } catch (error) {
-      console.error("Erro ao listar admins:", error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
-        message: "Erro interno do servidor",
+        message: "Erro ao listar admins",
       });
     }
   }
@@ -251,7 +148,8 @@ class AdminController {
   // PERFIL
   // ==========================================
   static async perfil(req, res) {
-    res.json({
+    return res.json({
+      success: true,
       data: req.admin,
     });
   }
@@ -266,22 +164,26 @@ class AdminController {
 
       const updateData = {};
 
-      if (nome_completo) updateData.nome_completo = nome_completo;
-      if (email) updateData.email = email.toLowerCase();
+      if (nome_completo) updateData.nome_completo = nome_completo.trim();
+      if (email) updateData.email = email.toLowerCase().trim();
       if (telefone) updateData.telefone = telefone;
 
       const adminAtualizado = await Admin.findByIdAndUpdate(
         adminId,
         updateData,
         { new: true },
-      );
+      ).select("-senha");
 
-      res.json({
+      return res.json({
+        success: true,
         message: "Perfil atualizado",
         data: adminAtualizado,
       });
     } catch (error) {
-      res.status(500).json({ message: "Erro ao atualizar perfil" });
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao atualizar perfil",
+      });
     }
   }
 
@@ -289,7 +191,7 @@ class AdminController {
   // VERIFICAR TOKEN
   // ==========================================
   static async verificarToken(req, res) {
-    res.json({
+    return res.json({
       success: true,
       data: req.admin,
     });
