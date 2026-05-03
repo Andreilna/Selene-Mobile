@@ -40,7 +40,7 @@ router.use("/users", require("./userRoutes"));
 router.use("/admin", adminRoutes);
 
 // 👇 chat admin separado
-router.use("/admin/chat", adminChatRoutes);
+router.use("/admin", adminChatRoutes);
 
 // 👇 dashboard admin (CORRETO AQUI)
 router.use("/admin/dashboard", adminDashboardRoutes);

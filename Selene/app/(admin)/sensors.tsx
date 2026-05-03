@@ -62,9 +62,7 @@ export default function AdminSensors() {
 
           setIniciais(init);
         }
-      } catch (e) {
-        console.log("❌ ERRO USER INIT:", e);
-      }
+      } catch (e) {}
     };
 
     carregarDadosUsuario();
@@ -76,7 +74,6 @@ export default function AdminSensors() {
   useEffect(() => {
     const loadToken = async () => {
       const t = await SecureStore.getItemAsync("userToken");
-      console.log("🔑 TOKEN:", t);
       setToken(t);
     };
 
@@ -90,8 +87,6 @@ export default function AdminSensors() {
     try {
       setLoadingUsers(true);
 
-      console.log("📡 Buscando usuários...");
-
       const res = await fetch(
         "https://selene-mobile.onrender.com/api/v1/users",
         {
@@ -101,19 +96,12 @@ export default function AdminSensors() {
         },
       );
 
-      console.log("📥 STATUS:", res.status);
-
       const data = await res.json();
-
-      console.log("📦 RAW DATA:", data);
 
       let lista =
         data?.data?.usuarios || data?.data || data?.usuarios || data || [];
 
-      console.log("📋 LISTA BRUTA:", lista);
-
       if (!Array.isArray(lista)) {
-        console.log("⚠️ NÃO É ARRAY!");
         lista = [];
       }
 
@@ -132,11 +120,8 @@ export default function AdminSensors() {
         };
       });
 
-      console.log("✅ USUARIOS FORMATADOS:", usuariosFormatados);
-
       setUsuarios(usuariosFormatados);
     } catch (err: any) {
-      console.log("❌ ERRO FETCH:", err);
       Alert.alert("Erro", "Não foi possível carregar os usuários");
     } finally {
       setLoadingUsers(false);
@@ -172,8 +157,6 @@ export default function AdminSensors() {
         usuario_id: usuarioId,
       };
 
-      console.log("📤 PAYLOAD:", payload);
-
       const res = await fetch(
         "https://selene-mobile.onrender.com/api/v1/dispositivos",
         {
@@ -186,11 +169,7 @@ export default function AdminSensors() {
         },
       );
 
-      console.log("📥 STATUS CREATE:", res.status);
-
       const data = await res.json();
-
-      console.log("📦 RESPONSE CREATE:", data);
 
       if (!res.ok) throw new Error(data.message);
 
@@ -202,7 +181,6 @@ export default function AdminSensors() {
       setUsuarioId("");
       setTipo("ESP32_SENSORES");
     } catch (err: any) {
-      console.log("❌ ERRO CREATE:", err.message);
       Alert.alert("Erro", err.message);
     } finally {
       setLoading(false);
@@ -219,8 +197,8 @@ export default function AdminSensors() {
             </TouchableOpacity>
 
             <View style={styles.textContainer}>
-              <Text style={styles.welcomeText}>Relatórios</Text>
-              <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
+              <Text style={styles.welcomeText}>Criar Sensores</Text>
+              <Text style={styles.subwelcomeText}>Sensor</Text>
             </View>
 
             <View style={styles.headerIcons}>
@@ -277,10 +255,7 @@ export default function AdminSensors() {
               <Picker
                 selectedValue={usuarioId}
                 onValueChange={(value: string) => {
-                  console.log("👤 ID SELECIONADO:", value);
-
                   const user = usuarios.find((u) => u._id === value);
-                  console.log("👤 OBJ SELECIONADO:", user);
 
                   setUsuarioId(value);
                 }}
@@ -412,7 +387,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   label: {
-  fontWeight: "bold",
-  marginBottom: 5,
-},
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
 });

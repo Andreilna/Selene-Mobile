@@ -26,11 +26,12 @@ export default function ListaChats() {
   const router = useRouter();
 
   const [iniciais, setIniciais] = useState("US");
-
   const [chats, setChats] = useState<Chat[]>([]);
-
   const [role, setRole] = useState<string | null>(null);
 
+  // =========================
+  // PERFIL
+  // =========================
   const handleGoProfile = async () => {
     const role = await SecureStore.getItemAsync("userRole");
     const isAdmin = role === "admin" || role === "superadmin";
@@ -39,44 +40,51 @@ export default function ListaChats() {
   };
 
   // =========================
-  // CARREGAR USUÁRIO
+  // CARREGAR USER + ROLE
   // =========================
-
   useEffect(() => {
-    const carregarDadosUsuario = async () => {
-      const nomeSalvo = await SecureStore.getItemAsync("userName");
+    const init = async () => {
+      try {
+        const nomeSalvo = await SecureStore.getItemAsync("userName");
+        const userRole = await SecureStore.getItemAsync("userRole");
 
-      const userRole = await SecureStore.getItemAsync("userRole");
+        console.log("👤 ROLE:", userRole);
 
-      setRole(userRole);
+        setRole(userRole);
 
-      if (nomeSalvo) {
-        const partes = nomeSalvo.trim().split(" ");
+        if (nomeSalvo) {
+          const partes = nomeSalvo.trim().split(" ");
 
-        const init =
-          partes.length > 1
-            ? (partes[0][0] + partes[1][0]).toUpperCase()
-            : partes[0][0].toUpperCase();
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
 
-        setIniciais(init);
+          setIniciais(init);
+        }
+      } catch (err) {
+        console.log("❌ ERRO INIT:", err);
       }
     };
 
-    carregarDadosUsuario();
+    init();
   }, []);
 
   // =========================
-  // BUSCAR CHATS
+  // FETCH CHATS
   // =========================
-
   const fetchChats = async () => {
     try {
+      console.log("🚀 FETCH CHATS START");
+
       const token = await SecureStore.getItemAsync("userToken");
 
       if (!token) {
-        console.log("SEM TOKEN");
+        console.log("❌ SEM TOKEN");
         return;
       }
+
+      console.log("🔑 TOKEN OK");
 
       let url = "";
 
@@ -86,13 +94,19 @@ export default function ListaChats() {
         url = "https://selene-mobile.onrender.com/api/v1/chats";
       }
 
+      console.log("🌐 URL:", url);
+
       const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      console.log("📥 STATUS:", res.status);
+
       const data = await res.json();
+
+      console.log("📦 RAW DATA:", data);
 
       let lista: Chat[] = [];
 
@@ -102,30 +116,31 @@ export default function ListaChats() {
         lista = data.data;
       }
 
+      console.log("📋 LISTA FINAL:", lista);
+
       setChats(lista);
     } catch (err) {
-      console.log("ERRO CHATS:", err);
+      console.log("❌ ERRO CHATS:", err);
     }
   };
 
   // =========================
-  // ATUALIZA AO VOLTAR
+  // DISPARA SEMPRE QUE ENTRA NA TELA
   // =========================
-
   useFocusEffect(
     useCallback(() => {
-      if (role) fetchChats();
+      console.log("👀 TELA FOCADA");
+
+      fetchChats();
     }, [role]),
   );
 
   // =========================
   // NOVO CHAT
   // =========================
-
   const iniciarNovoChat = async () => {
-    // ADMIN não cria chat
-    if (role === "admin") {
-      console.log("ADMIN não cria chat");
+    if (role === "admin" || role === "superadmin") {
+      console.log("⛔ ADMIN não cria chat");
       return;
     }
 
@@ -134,7 +149,7 @@ export default function ListaChats() {
 
       if (!token) return;
 
-      console.log("CRIANDO NOVO CHAT...");
+      console.log("🆕 CRIANDO CHAT...");
 
       const res = await fetch(
         "https://selene-mobile.onrender.com/api/v1/chats",
@@ -149,12 +164,12 @@ export default function ListaChats() {
 
       const data = await res.json();
 
-      console.log("NOVO CHAT:", data);
+      console.log("📦 NOVO CHAT:", data);
 
       const chatId = data.data?._id || data._id;
 
       if (!chatId) {
-        console.log("CHAT ID inválido");
+        console.log("❌ CHAT ID inválido");
         return;
       }
 
@@ -163,25 +178,22 @@ export default function ListaChats() {
         params: { chatId },
       });
     } catch (err) {
-      console.log("ERRO NOVO CHAT:", err);
+      console.log("❌ ERRO NOVO CHAT:", err);
     }
   };
 
   // =========================
   // RENDER
   // =========================
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* ---------------------------------------------------------
-                    INÍCIO DO HEADER (VERDE SELENE)
-                ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
+
             <View>
               <Text style={styles.welcomeText}>Suporte Online</Text>
               <Text style={styles.subwelcomeText}>Suporte</Text>
@@ -196,37 +208,20 @@ export default function ListaChats() {
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => router.push("/alert")}>
-                <Feather
-                  name="bell"
-                  size={24}
-                  color="#2A3A56"
-                  style={{ marginLeft: 12 }}
-                />
+                <Feather name="bell" size={24} color="#2A3A56" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
-        {/* ---------------------------------------------------------
-                    FIM DO HEADER
-                ---------------------------------------------------------- */}
-
-        {/* LISTA */}
 
         <View style={styles.content}>
           <Text style={styles.sectionTitle}>Conversas</Text>
-
-          {/* LISTA CHATS */}
 
           <FlatList
             data={chats}
             keyExtractor={(item) => item._id}
             ListEmptyComponent={() => (
-              <Text
-                style={{
-                  textAlign: "center",
-                  marginTop: 20,
-                }}
-              >
+              <Text style={{ textAlign: "center", marginTop: 20 }}>
                 Nenhum chat ativo
               </Text>
             )}
@@ -236,9 +231,7 @@ export default function ListaChats() {
                 onPress={() =>
                   router.push({
                     pathname: "/support/chat",
-                    params: {
-                      chatId: item._id,
-                    },
+                    params: { chatId: item._id },
                   })
                 }
               >
@@ -248,7 +241,6 @@ export default function ListaChats() {
 
                 <View style={styles.chatInfo}>
                   <Text style={styles.chatName}>{item.nome || "Suporte"}</Text>
-
                   <Text style={styles.chatStatus}>
                     {item.status || "ativo"}
                   </Text>
@@ -266,15 +258,12 @@ export default function ListaChats() {
             )}
           />
 
-          {/* BOTÃO NOVO CHAT */}
-
-          {role !== "admin" && (
+          {role !== "admin" && role !== "superadmin" && (
             <TouchableOpacity
               style={styles.newChatButton}
               onPress={iniciarNovoChat}
             >
               <Feather name="plus" size={18} color="#FFF" />
-
               <Text style={styles.newChatText}>Nova Conversa</Text>
             </TouchableOpacity>
           )}

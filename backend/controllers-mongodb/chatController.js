@@ -16,7 +16,6 @@ class ChatController {
 
       res.json(chats);
     } catch (err) {
-
       res.status(500).json({
         error: err.message,
       });
@@ -48,7 +47,6 @@ class ChatController {
 
       res.status(201).json(chat);
     } catch (err) {
-
       res.status(500).json({
         error: err.message,
       });
@@ -59,17 +57,22 @@ class ChatController {
   // ADMIN - LISTAR TODOS
   // =========================
 
+  
   static async listarChatsAdmin(req, res) {
     try {
       const chats = await Chat.find().sort({ updatedAt: -1 });
 
-      res.json(chats);
+      res.json({
+        success: true,
+        data: chats,
+      });
     } catch (err) {
       res.status(500).json({
         error: err.message,
       });
     }
   }
+  
 
   // =========================
   // ADMIN - RESPONDER
@@ -118,7 +121,6 @@ class ChatController {
 
       res.status(201).json(mensagem);
     } catch (err) {
-
       res.status(500).json({
         error: err.message,
       });
@@ -153,7 +155,6 @@ class ChatController {
 
       res.json(chat);
     } catch (err) {
-
       res.status(500).json({
         error: err.message,
       });
@@ -180,7 +181,6 @@ class ChatController {
 
       res.json(mensagens);
     } catch (err) {
-
       res.status(500).json({
         error: err.message,
       });
@@ -222,7 +222,6 @@ class ChatController {
 
       res.status(201).json(mensagem);
     } catch (err) {
-
       res.status(500).json({
         error: err.message,
       });
