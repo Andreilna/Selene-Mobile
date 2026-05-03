@@ -63,7 +63,7 @@ export default function AdminSensors() {
           setIniciais(init);
         }
       } catch (e) {
-        console.log(e);
+        console.log("❌ ERRO USER INIT:", e);
       }
     };
 
@@ -76,6 +76,7 @@ export default function AdminSensors() {
   useEffect(() => {
     const loadToken = async () => {
       const t = await SecureStore.getItemAsync("userToken");
+      console.log("🔑 TOKEN:", t);
       setToken(t);
     };
 
@@ -83,11 +84,13 @@ export default function AdminSensors() {
   }, []);
 
   /* =======================
-     BUSCAR USUÁRIOS (BLINDADO)
+     BUSCAR USUÁRIOS
   ======================= */
   const fetchUsuarios = async () => {
     try {
       setLoadingUsers(true);
+
+      console.log("📡 Buscando usuários...");
 
       const res = await fetch(
         "https://selene-mobile.onrender.com/api/v1/users",
@@ -98,25 +101,27 @@ export default function AdminSensors() {
         },
       );
 
+      console.log("📥 STATUS:", res.status);
+
       const data = await res.json();
 
-      // 🔥 pega qualquer formato possível
+      console.log("📦 RAW DATA:", data);
+
       let lista =
         data?.data?.usuarios || data?.data || data?.usuarios || data || [];
 
+      console.log("📋 LISTA BRUTA:", lista);
+
       if (!Array.isArray(lista)) {
+        console.log("⚠️ NÃO É ARRAY!");
         lista = [];
       }
 
-      // 🔥 normaliza os dados
       const usuariosFormatados = lista.map((u: any) => {
         let nomeBase = u.nome_completo || u.nome || u.name || u.usuario;
 
-        // 🔥 fallback melhorado
         if (!nomeBase && u.email) {
           const beforeAt = u.email.split("@")[0];
-
-          // remove números do final (andreialda7 → andreialda)
           nomeBase = beforeAt.replace(/\d+$/, "");
         }
 
@@ -127,8 +132,11 @@ export default function AdminSensors() {
         };
       });
 
+      console.log("✅ USUARIOS FORMATADOS:", usuariosFormatados);
+
       setUsuarios(usuariosFormatados);
     } catch (err: any) {
+      console.log("❌ ERRO FETCH:", err);
       Alert.alert("Erro", "Não foi possível carregar os usuários");
     } finally {
       setLoadingUsers(false);
@@ -156,6 +164,16 @@ export default function AdminSensors() {
     try {
       setLoading(true);
 
+      const payload = {
+        mac_address: mac.trim(),
+        nome: nome.trim(),
+        tipo,
+        localizacao: localizacao.trim() || null,
+        usuario_id: usuarioId,
+      };
+
+      console.log("📤 PAYLOAD:", payload);
+
       const res = await fetch(
         "https://selene-mobile.onrender.com/api/v1/dispositivos",
         {
@@ -164,17 +182,15 @@ export default function AdminSensors() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            mac_address: mac.trim(),
-            nome: nome.trim(),
-            tipo,
-            localizacao: localizacao.trim() || null,
-            usuario_id: usuarioId,
-          }),
+          body: JSON.stringify(payload),
         },
       );
 
+      console.log("📥 STATUS CREATE:", res.status);
+
       const data = await res.json();
+
+      console.log("📦 RESPONSE CREATE:", data);
 
       if (!res.ok) throw new Error(data.message);
 
@@ -186,6 +202,7 @@ export default function AdminSensors() {
       setUsuarioId("");
       setTipo("ESP32_SENSORES");
     } catch (err: any) {
+      console.log("❌ ERRO CREATE:", err.message);
       Alert.alert("Erro", err.message);
     } finally {
       setLoading(false);
@@ -195,14 +212,12 @@ export default function AdminSensors() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* ---------------------------------------------------------
-                   INÍCIO DO HEADER (VERDE SELENE)
-               ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
+
             <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>Relatórios</Text>
               <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
@@ -227,10 +242,7 @@ export default function AdminSensors() {
             </View>
           </View>
         </View>
-        {/* ---------------------------------------------------------
-                   FIM DO HEADER
-               ---------------------------------------------------------- */}
-        {/* CARD */}
+
         <View style={styles.content}>
           <Text style={styles.label}>Nome</Text>
           <TextInput
@@ -264,7 +276,14 @@ export default function AdminSensors() {
             <View style={styles.pickerBox}>
               <Picker
                 selectedValue={usuarioId}
-                onValueChange={(value: string) => setUsuarioId(value)}
+                onValueChange={(value: string) => {
+                  console.log("👤 ID SELECIONADO:", value);
+
+                  const user = usuarios.find((u) => u._id === value);
+                  console.log("👤 OBJ SELECIONADO:", user);
+
+                  setUsuarioId(value);
+                }}
               >
                 <Picker.Item label="Selecione um usuário" value="" />
 
@@ -333,20 +352,13 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
   },
-  welcomeText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2A3A56",
-    textAlign: "left",
-  },
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
   subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
   headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarCircle: {
@@ -356,25 +368,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
   },
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: {
-    flex: 1,
-    marginLeft: 20,
-    justifyContent: "center",
-  },
-
-  card: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 15,
-    margin: 20,
-  },
-
-  label: { fontWeight: "bold", marginBottom: 5 },
-
+  textContainer: { flex: 1, marginLeft: 20 },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
@@ -382,16 +378,13 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
   },
-
   pickerBox: {
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,
     marginBottom: 15,
   },
-
   row: { flexDirection: "row", gap: 10, marginBottom: 15 },
-
   typeButton: {
     flex: 1,
     padding: 10,
@@ -400,20 +393,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-
   typeButtonActive: {
     backgroundColor: "#95C159",
   },
-
   button: {
     backgroundColor: "#2A3A56",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
   },
-
   buttonText: { color: "#fff", fontWeight: "bold" },
-
   content: {
     flex: 1,
     backgroundColor: "#FFF",
@@ -422,4 +411,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 40,
   },
+  label: {
+  fontWeight: "bold",
+  marginBottom: 5,
+},
 });

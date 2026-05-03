@@ -1,5 +1,6 @@
 const Dispositivo = require("../models-mongodb/Dispositivo");
 const Planta = require("../models-mongodb/Planta");
+const User = require("../models-mongodb/User");
 
 class DispositivoController {
   static async listar(req, res) {
@@ -65,9 +66,14 @@ class DispositivoController {
 
   static async criar(req, res) {
     try {
-      const adminId = req.userId;
+      const adminId = req.adminId || req.userId; // 🔥 suporta admin e user
+
       const { mac_address, nome, tipo, localizacao, planta_id, usuario_id } =
         req.body;
+
+      console.log("📥 BODY:", req.body);
+      console.log("🔑 ADMIN ID:", adminId);
+      console.log("👤 USUARIO_ID:", usuario_id);
 
       if (!mac_address) {
         return res.status(400).json({
@@ -76,7 +82,20 @@ class DispositivoController {
         });
       }
 
+      // 🔥 VERIFICA SE O USUÁRIO EXISTE
+      const userExiste = await User.findById(usuario_id);
+
+      console.log("🔍 USER EXISTE:", userExiste);
+
+      if (!userExiste) {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado no banco",
+        });
+      }
+
       const dispositivoExistente = await Dispositivo.findOne({ mac_address });
+
       if (dispositivoExistente) {
         return res.status(400).json({
           success: false,
@@ -84,19 +103,18 @@ class DispositivoController {
         });
       }
 
-      // 🔥 AGORA O ADMIN DEFINE O DONO
-      const donoUsuario = usuario_id || adminId;
-
       const dispositivo = await Dispositivo.create({
         mac_address,
         nome: nome || `ESP32_${mac_address.slice(-6)}`,
         tipo: tipo || "ESP32_SENSORES",
         localizacao,
         planta: planta_id || null,
-        usuario: donoUsuario,
+        usuario: usuario_id, // 🔥 SEMPRE usa o selecionado
         online: true,
         ultima_comunicacao: new Date(),
       });
+
+      console.log("✅ DISPOSITIVO CRIADO:", dispositivo);
 
       res.status(201).json({
         success: true,
@@ -104,7 +122,8 @@ class DispositivoController {
         data: dispositivo,
       });
     } catch (error) {
-      console.error("Erro ao criar dispositivo:", error);
+      console.error("💥 ERRO AO CRIAR:", error);
+
       res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
