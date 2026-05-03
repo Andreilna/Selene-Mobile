@@ -2,7 +2,7 @@ const Admin = require("../models-mongodb/Admin");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 
-class AdminController {
+class adminController {
   // ==========================================
   // LOGIN
   // ==========================================

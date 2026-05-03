@@ -1,60 +1,33 @@
 const express = require("express");
 const router = express.Router();
-
 const AdminController = require("../controllers-mongodb/adminController");
 const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
-// ==========================================
-// LOGIN (público)
-// ==========================================
+// POST /api/v1/admin/login - Login de administrador
 router.post("/login", AdminController.login);
 
-// ==========================================
-// CRIAR ADMIN (somente SUPERADMIN)
-// ==========================================
-router.post(
-  "/criar",
-  adminAuthMiddleware,
-  (req, res, next) => {
-    if (req.admin?.nivel !== "superadmin") {
-      return res.status(403).json({
-        success: false,
-        message: "Apenas superadmin pode criar administradores",
-      });
-    }
-    next();
-  },
-  AdminController.criarAdmin,
-);
+// POST /api/v1/admin/criar - Criar novo administrador (requer autenticação)
+router.post("/criar", adminAuthMiddleware, AdminController.criarAdmin);
 
-// ==========================================
-// LISTAR ADMINS (autenticado)
-// ==========================================
+// GET /api/v1/admin/listar - Listar administradores (requer autenticação)
 router.get("/listar", adminAuthMiddleware, AdminController.listarAdmins);
 
-// ==========================================
-// PERFIL ADMIN
-// ==========================================
-router.get("/perfil", adminAuthMiddleware, AdminController.perfil);
-
-router.put("/perfil", adminAuthMiddleware, AdminController.atualizarPerfil);
-
-// ==========================================
-// VERIFICAR TOKEN
-// ==========================================
+// GET /api/v1/admin/verificar - Verificar token admin (requer autenticação)
 router.get("/verificar", adminAuthMiddleware, AdminController.verificarToken);
 
-// ==========================================
-// SENHA
-// ==========================================
+// GET /api/v1/admin/perfil
+router.get("/perfil", adminAuthMiddleware, AdminController.perfil);
 
-// recuperação (público)
+// PUT /api/v1/admin/perfil
+router.put("/perfil", adminAuthMiddleware, AdminController.atualizarPerfil);
+
+// POST /api/v1/admin/recuperar-senha - Iniciar processo de recuperação de senha
 router.post("/recuperar-senha", AdminController.recuperarSenha);
 
-// reset via token (público controlado por token)
+// PUT /api/v1/admin/resetar-senha - Resetar senha usando token de recuperação
 router.put("/resetar-senha", AdminController.resetarSenha);
 
-// alteração (logado)
+// PUT /api/v1/admin/alterar-senha - Alterar senha (requer autenticação)
 router.put("/alterar-senha", adminAuthMiddleware, AdminController.alterarSenha);
 
 module.exports = router;

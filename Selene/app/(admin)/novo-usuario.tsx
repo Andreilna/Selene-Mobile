@@ -153,7 +153,7 @@ export default function NovoUsuario() {
         </View>
 
         {/* FORM */}
-        <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.content}>
           <Text style={styles.label}>Nome Completo *</Text>
           <TextInput style={styles.input} value={nome} onChangeText={setNome} />
 
@@ -227,7 +227,7 @@ export default function NovoUsuario() {
               {loading ? "Criando..." : "Cadastrar"}
             </Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
