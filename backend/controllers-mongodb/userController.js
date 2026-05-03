@@ -71,10 +71,11 @@ class userController {
   // ➕ CRIAR USUÁRIO (CADASTRO)
   static async criar(req, res) {
     try {
-      const { nome_completo, email, senha, tipo } = req.body;
+      const { nome_completo, email, senha, telefone, data_nascimento, tipo } =
+        req.body;
 
-      // valida se já existe
       const userExists = await User.findOne({ email });
+
       if (userExists) {
         return res.status(400).json({
           success: false,
@@ -82,24 +83,21 @@ class userController {
         });
       }
 
-      // hash da senha
       const senhaHash = await bcrypt.hash(senha, 10);
 
       const user = await User.create({
         nome_completo,
         email,
         senha: senhaHash,
+        telefone: telefone || null,
+        data_nascimento: data_nascimento || null,
         tipo: tipo || "user",
+        ativo: true,
       });
 
       return res.status(201).json({
         success: true,
-        data: {
-          _id: user._id,
-          nome_completo: user.nome_completo,
-          email: user.email,
-          tipo: user.tipo,
-        },
+        data: user,
       });
     } catch (error) {
       return res.status(500).json({

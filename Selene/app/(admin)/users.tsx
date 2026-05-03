@@ -81,7 +81,8 @@ export default function ControleAcessoScreen() {
 
       const data = await res.json();
 
-      let lista = data?.data || [];
+      let lista =
+        data?.data?.usuarios || data?.data || data?.usuarios || data || [];
 
       if (!Array.isArray(lista)) {
         lista = [];

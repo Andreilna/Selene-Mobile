@@ -29,26 +29,26 @@ export default function NovoUsuario() {
   };
 
   // ================= USER =================
-  useEffect(() => {
-    const carregarDadosUsuario = async () => {
-      try {
-        const nomeSalvo = await SecureStore.getItemAsync("userName");
-
-        if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(" ");
-
-          const init =
-            partes.length > 1
-              ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
-
-          setIniciais(init);
-        }
-      } catch (e) {}
-    };
-
-    carregarDadosUsuario();
-  }, []);
+    useEffect(() => {
+      const carregarDadosUsuario = async () => {
+        try {
+          const nomeSalvo = await SecureStore.getItemAsync("userName");
+  
+          if (nomeSalvo) {
+            const partes = nomeSalvo.trim().split(" ");
+  
+            const init =
+              partes.length > 1
+                ? (partes[0][0] + partes[1][0]).toUpperCase()
+                : partes[0][0].toUpperCase();
+  
+            setIniciais(init);
+          }
+        } catch (e) {}
+      };
+  
+      carregarDadosUsuario();
+    }, []);
 
   const [loading, setLoading] = useState(false);
 
@@ -266,7 +266,6 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    flex: 1,
     backgroundColor: "#FFF",
     borderTopLeftRadius: 60,
     borderTopRightRadius: 60,
