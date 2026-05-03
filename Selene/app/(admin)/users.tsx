@@ -26,33 +26,45 @@ interface Usuario {
 export default function ControleAcessoScreen() {
   const router = useRouter();
 
-  const [filterActive, setFilterActive] = useState("Dia");
-  const [iniciais, setIniciais] = useState("US");
-
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [admins, setAdmins] = useState<Usuario[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const [token, setToken] = useState<string | null>(null);
+  const [iniciais, setIniciais] = useState("US");
+  const [filterActive, setFilterActive] = useState("Dia");
 
-  // ================= USER =================
+  const formatDate = (dateString: any) => {
+    if (!dateString) return "Agora";
+
+    const date = new Date(dateString);
+
+    if (isNaN(date.getTime())) return "Data inválida";
+
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // ================= USER HEADER =================
   useEffect(() => {
-    const carregarDadosUsuario = async () => {
-      try {
-        const nomeSalvo = await SecureStore.getItemAsync("userName");
+    const loadUser = async () => {
+      const nome = await SecureStore.getItemAsync("userName");
 
-        if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(" ");
+      if (nome) {
+        const parts = nome.split(" ");
+        const init =
+          parts.length > 1
+            ? (parts[0][0] + parts[1][0]).toUpperCase()
+            : parts[0][0].toUpperCase();
 
-          const init =
-            partes.length > 1
-              ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
-
-          setIniciais(init);
-        }
-      } catch (e) {}
+        setIniciais(init);
+      }
     };
 
-    carregarDadosUsuario();
+    loadUser();
   }, []);
 
   // ================= TOKEN =================
@@ -65,62 +77,84 @@ export default function ControleAcessoScreen() {
     loadToken();
   }, []);
 
-  // ================= FETCH USERS =================
-  const fetchUsuarios = async () => {
-    try {
-      setLoadingUsers(true);
+  // ================= NORMALIZER =================
+  const normalizeList = (res: any) => {
+    const data = res?.data;
 
-      const res = await fetch(
-        "https://selene-mobile.onrender.com/api/v1/users",
-        {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.usuarios)) return data.usuarios;
+    if (Array.isArray(data?.admins)) return data.admins;
+
+    return [];
+  };
+
+  // ================= FETCH =================
+  const fetchDados = async () => {
+    try {
+      setLoading(true);
+
+      const [resUsers, resAdmins] = await Promise.all([
+        fetch("https://selene-mobile.onrender.com/api/v1/users", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
-      );
+        }),
 
-      const data = await res.json();
+        fetch("https://selene-mobile.onrender.com/api/v1/admin/listar", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
 
-      let lista =
-        data?.data?.usuarios || data?.data || data?.usuarios || data || [];
+      const usersData = await resUsers.json();
+      const adminsData = await resAdmins.json();
 
-      if (!Array.isArray(lista)) {
-        lista = [];
-      }
+      // ================= USERS =================
+      const usersList = normalizeList(usersData);
 
-      const formatados = lista.map((u: any, index: number) => {
-        let nomeBase = u.nome_completo || u.nome || u.name || u.usuario;
-
-        if (!nomeBase && u.email) {
-          nomeBase = u.email.split("@")[0];
-        }
+      const usersFormatted = usersList.map((u: any, index: number) => {
+        const nome =
+          u.nome_completo || u.nome || u.usuario || u.email?.split("@")[0];
 
         return {
-          id: u._id || u.id || index.toString(),
-          nome: nomeBase || "Usuário",
-          data: "Agora",
-          cargo: u.role || "Produtor",
+          id: u._id || index.toString(),
+          nome: nome || "Usuário",
+          data: formatDate(u.criado_em),
+          cargo: u.role || "user",
           codigo: (u._id || "").slice(-6),
         };
       });
 
-      setUsuarios(formatados);
+      // ================= ADMINS =================
+      const adminsList = normalizeList(adminsData);
+
+      const adminsFormatted = adminsList.map((u: any, index: number) => {
+        const nome = u.nome_completo || u.usuario || u.email?.split("@")[0];
+
+        return {
+          id: u._id || index.toString(),
+          nome: nome || "Admin",
+          data: formatDate(u.criado_em),
+          cargo: u.nivel_acesso || "superadmin",
+          codigo: (u._id || "").slice(-6),
+        };
+      });
+
+      setUsuarios(usersFormatted);
+      setAdmins(adminsFormatted);
     } catch (err) {
-      console.log("Erro ao buscar usuários", err);
     } finally {
-      setLoadingUsers(false);
+      setLoading(false);
     }
   };
 
+  // ================= LOAD =================
   useEffect(() => {
     if (token) {
-      fetchUsuarios();
+      fetchDados();
     }
   }, [token]);
-
-  const handleGoProfile = () => {
-    router.push("/(admin)/profile-admin");
-  };
 
   const timeFilters = ["Dia", "Semana", "Mês", "Ano"];
 
@@ -134,20 +168,11 @@ export default function ControleAcessoScreen() {
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
 
-            <View style={styles.textContainer}>
-              <Text style={styles.welcomeText}>Controle Acessos</Text>
-            </View>
+            <Text style={styles.welcomeText}>Controle Acessos</Text>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity
-                style={styles.avatarCircle}
-                onPress={handleGoProfile}
-              >
+              <TouchableOpacity style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{iniciais}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => router.push("/alert")}>
-                <Feather name="bell" size={24} color="#2A3A56" />
               </TouchableOpacity>
             </View>
           </View>
@@ -156,15 +181,17 @@ export default function ControleAcessoScreen() {
         {/* STATS */}
         <View style={styles.statsContainer}>
           <View style={styles.mainStatCard}>
-            <Text style={styles.statLabelLink}>Usuários Cadastrados</Text>
-            <Text style={styles.statValueBig}>{usuarios.length}</Text>
+            <Text style={styles.statLabelLink}>Total de Acessos</Text>
+            <Text style={styles.statValueBig}>
+              {usuarios.length + admins.length}
+            </Text>
           </View>
 
           <View style={styles.secondaryStatsRow}>
             <View style={styles.subStat}>
               <View style={styles.subStatLabelRow}>
                 <Feather name="external-link" size={14} color="#2A3A56" />
-                <Text style={styles.subStatLabel}>Online Atualmente</Text>
+                <Text style={styles.subStatLabel}>Usuários</Text>
               </View>
               <Text style={styles.subStatValue}>{usuarios.length}</Text>
             </View>
@@ -185,7 +212,7 @@ export default function ControleAcessoScreen() {
 
         {/* CONTENT */}
         <View style={styles.content}>
-          {/* FILTRO */}
+          {/* FILTER */}
           <View style={styles.timeFilterContainer}>
             {timeFilters.map((item) => (
               <TouchableOpacity
@@ -208,53 +235,55 @@ export default function ControleAcessoScreen() {
             ))}
           </View>
 
-          {/* HEADER LISTA */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Usuários</Text>
-            <TouchableOpacity style={styles.filterIconBtn}>
-              <MaterialIcons name="filter-list" size={24} color="#FFF" />
-            </TouchableOpacity>
-          </View>
+          {/* ADMINS */}
+          <Text style={styles.sectionTitle}>Admins</Text>
 
-          {/* LISTA */}
-          {loadingUsers ? (
+          {loading ? (
             <ActivityIndicator size="large" color="#00D2B1" />
           ) : (
             <FlatList
-              data={usuarios}
+              data={admins}
               keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 100 }}
               renderItem={({ item }) => (
-                <View style={styles.userCard}>
-                  <View style={styles.userIconContainer}>
-                    <Feather name="user" size={24} color="#FFF" />
-                  </View>
+                <TouchableOpacity onPress={() => router.push("/(admin)/edit-profile-register")}>
+                  <View style={styles.userCard}>
+                    <View style={styles.userIconContainer}>
+                      <Feather name="shield" size={24} color="#fff" />
+                    </View>
 
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{item.nome}</Text>
-                    <Text style={styles.userData}>{item.data}</Text>
-                  </View>
+                    <View style={styles.userInfo}>
+                      <Text style={styles.userName}>{item.nome}</Text>
+                      <Text style={styles.userData}>{item.data}</Text>
+                    </View>
 
-                  <View style={styles.roleContainer}>
-                    <View style={styles.verticalLine} />
-                    <Text style={styles.roleText}>{item.cargo}</Text>
-                    <View style={styles.verticalLine} />
+                    <Text style={styles.userCode}>{item.codigo}</Text>
                   </View>
-
-                  <Text style={styles.userCode}>{item.codigo}</Text>
-                </View>
+                </TouchableOpacity>
               )}
             />
           )}
 
-          {/* BOTÃO */}
-          <TouchableOpacity
-            style={styles.btnNewUser}
-            onPress={() => router.push("/(admin)/novo-usuario")}
-          >
-            <Text style={styles.btnNewUserText}>Novo Cadastro</Text>
-          </TouchableOpacity>
+          {/* USERS */}
+          <Text style={styles.sectionTitle}>Usuários</Text>
+
+          <FlatList
+            data={usuarios}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.userCard}>
+                <View style={styles.userIconContainer}>
+                  <Feather name="user" size={24} color="#fff" />
+                </View>
+
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{item.nome}</Text>
+                  <Text style={styles.userData}>{item.data}</Text>
+                </View>
+
+                <Text style={styles.userCode}>{item.codigo}</Text>
+              </View>
+            )}
+          />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>

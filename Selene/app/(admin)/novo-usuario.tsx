@@ -39,9 +39,7 @@ export default function NovoUsuario() {
 
           setIniciais(init);
         }
-      } catch (e) {
-        console.log(e);
-      }
+      } catch (e) {}
     };
 
     carregarDadosUsuario();
@@ -70,19 +68,19 @@ export default function NovoUsuario() {
 
       // 🔥 DECIDE O ENDPOINT AQUI
       const endpoint =
-        nivel === "admin"
+        nivel === "superadmin"
           ? "https://selene-mobile.onrender.com/api/v1/admin/criar"
-          : "https://selene-mobile.onrender.com/api/v1/users";
+          : "https://selene-mobile.onrender.com/api/v1/auth/registrar";
 
       const body =
-        nivel === "admin"
+        nivel === "superadmin"
           ? {
               usuario: email.split("@")[0], // ou cria um campo usuário separado se quiser
               nome_completo: nome.trim(),
               email: email.toLowerCase().trim(),
               senha,
               telefone: telefone || "",
-              nivel_acesso: "admin",
+              nivel_acesso: "superadmin",
             }
           : {
               nome_completo: nome.trim(),
@@ -110,7 +108,7 @@ export default function NovoUsuario() {
 
       Alert.alert(
         "Sucesso",
-        nivel === "admin"
+        nivel === "superadmin"
           ? "Administrador criado com sucesso!"
           : "Usuário criado com sucesso!",
       );
@@ -162,7 +160,7 @@ export default function NovoUsuario() {
             style={styles.input}
             value={dataNascimento}
             onChangeText={setDataNascimento}
-            placeholder="DD/MM/AAAA"
+            placeholder="AAAA-MM-DD"
           />
 
           <Text style={styles.label}>Telefone</Text>
@@ -210,8 +208,11 @@ export default function NovoUsuario() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.radio, nivel === "admin" && styles.radioActive]}
-              onPress={() => setNivel("admin")}
+              style={[
+                styles.radio,
+                nivel === "superadmin" && styles.radioActive,
+              ]}
+              onPress={() => setNivel("superadmin")}
             >
               <Text>Administrador</Text>
             </TouchableOpacity>
