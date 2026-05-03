@@ -48,8 +48,6 @@ export default function ListaChats() {
         const nomeSalvo = await SecureStore.getItemAsync("userName");
         const userRole = await SecureStore.getItemAsync("userRole");
 
-        console.log("👤 ROLE:", userRole);
-
         setRole(userRole);
 
         if (nomeSalvo) {
@@ -62,9 +60,7 @@ export default function ListaChats() {
 
           setIniciais(init);
         }
-      } catch (err) {
-        console.log("❌ ERRO INIT:", err);
-      }
+      } catch (err) {}
     };
 
     init();
@@ -75,16 +71,11 @@ export default function ListaChats() {
   // =========================
   const fetchChats = async () => {
     try {
-      console.log("🚀 FETCH CHATS START");
-
       const token = await SecureStore.getItemAsync("userToken");
 
       if (!token) {
-        console.log("❌ SEM TOKEN");
         return;
       }
-
-      console.log("🔑 TOKEN OK");
 
       let url = "";
 
@@ -94,19 +85,13 @@ export default function ListaChats() {
         url = "https://selene-mobile.onrender.com/api/v1/chats";
       }
 
-      console.log("🌐 URL:", url);
-
       const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("📥 STATUS:", res.status);
-
       const data = await res.json();
-
-      console.log("📦 RAW DATA:", data);
 
       let lista: Chat[] = [];
 
@@ -116,12 +101,8 @@ export default function ListaChats() {
         lista = data.data;
       }
 
-      console.log("📋 LISTA FINAL:", lista);
-
       setChats(lista);
-    } catch (err) {
-      console.log("❌ ERRO CHATS:", err);
-    }
+    } catch (err) {}
   };
 
   // =========================
@@ -129,8 +110,6 @@ export default function ListaChats() {
   // =========================
   useFocusEffect(
     useCallback(() => {
-      console.log("👀 TELA FOCADA");
-
       fetchChats();
     }, [role]),
   );
@@ -140,7 +119,6 @@ export default function ListaChats() {
   // =========================
   const iniciarNovoChat = async () => {
     if (role === "admin" || role === "superadmin") {
-      console.log("⛔ ADMIN não cria chat");
       return;
     }
 
@@ -148,8 +126,6 @@ export default function ListaChats() {
       const token = await SecureStore.getItemAsync("userToken");
 
       if (!token) return;
-
-      console.log("🆕 CRIANDO CHAT...");
 
       const res = await fetch(
         "https://selene-mobile.onrender.com/api/v1/chats",
@@ -164,12 +140,9 @@ export default function ListaChats() {
 
       const data = await res.json();
 
-      console.log("📦 NOVO CHAT:", data);
-
       const chatId = data.data?._id || data._id;
 
       if (!chatId) {
-        console.log("❌ CHAT ID inválido");
         return;
       }
 
@@ -177,9 +150,7 @@ export default function ListaChats() {
         pathname: "/support/chat",
         params: { chatId },
       });
-    } catch (err) {
-      console.log("❌ ERRO NOVO CHAT:", err);
-    }
+    } catch (err) {}
   };
 
   // =========================
