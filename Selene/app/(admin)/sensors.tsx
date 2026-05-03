@@ -47,6 +47,29 @@ export default function AdminSensors() {
     router.push("/(admin)/profile-admin");
   };
 
+  // ================= USER =================
+  useEffect(() => {
+    const carregarDadosUsuario = async () => {
+      try {
+        const nomeSalvo = await SecureStore.getItemAsync("userName");
+        if (nomeSalvo) {
+          const partes = nomeSalvo.trim().split(" ");
+
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
+
+          setIniciais(init);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    carregarDadosUsuario();
+  }, []);
+
   /* =======================
      CARREGAR TOKEN
   ======================= */
@@ -172,10 +195,15 @@ export default function AdminSensors() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER */}
+        {/* ---------------------------------------------------------
+                   INÍCIO DO HEADER (VERDE SELENE)
+               ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
-            <View>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
+            <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>Relatórios</Text>
               <Text style={styles.subwelcomeText}>Seus Relatórios</Text>
             </View>
@@ -199,9 +227,11 @@ export default function AdminSensors() {
             </View>
           </View>
         </View>
-
+        {/* ---------------------------------------------------------
+                   FIM DO HEADER
+               ---------------------------------------------------------- */}
         {/* CARD */}
-        <View style={styles.card}>
+        <View style={styles.content}>
           <Text style={styles.label}>Nome</Text>
           <TextInput
             style={styles.input}
@@ -299,10 +329,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
-    paddingBottom: 60,
+    paddingBottom: 30,
     paddingTop: 10,
     paddingHorizontal: 20,
   },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -389,6 +420,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
     paddingHorizontal: 25,
-    paddingTop: 80,
+    paddingTop: 40,
   },
 });

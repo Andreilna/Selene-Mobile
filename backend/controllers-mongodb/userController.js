@@ -25,10 +25,12 @@ class userController {
     }
   }
 
-  // 🔥 LISTAR USUÁRIOS (ADMIN)
+  // 🔥 LISTAR USUÁRIOS (SOMENTE USER)
   static async listar(req, res) {
     try {
-      const usuarios = await User.find().select("_id nome_completo email");
+      const usuarios = await User.find({ tipo: "user" }).select(
+        "_id nome_completo email",
+      );
 
       return res.json({
         success: true,
@@ -42,14 +44,14 @@ class userController {
     }
   }
 
-  // ✏️ atualizar perfil
+  // ✏️ atualizar perfil (CORRIGIDO)
   static async atualizarPerfil(req, res) {
     try {
-      const { nome, email } = req.body;
+      const { nome_completo, email } = req.body;
 
       const user = await User.findByIdAndUpdate(
         req.userId,
-        { nome, email },
+        { nome_completo, email },
         { new: true },
       ).select("-senha");
 
