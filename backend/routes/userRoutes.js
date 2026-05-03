@@ -5,6 +5,9 @@ const AuthMiddleware = require("../middleware/auth-mongodb");
 const userController = require("../controllers-mongodb/userController");
 const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
+// 👇 CRIAR USUÁRIO (CADASTRO)
+router.post("/", adminAuthMiddleware, userController.criar);
+
 // 👇 ping
 router.post("/ping", AuthMiddleware, userController.ping);
 

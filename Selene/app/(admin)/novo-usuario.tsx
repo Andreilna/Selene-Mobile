@@ -1,32 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Alert,
-  ActivityIndicator,
+  Image,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
+import { router } from "expo-router";
 
-export default function AdminUsers() {
+export default function NovoUsuario() {
   const [nome, setNome] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [endereco, setEndereco] = useState("");
   const [email, setEmail] = useState("");
-  const [cargo, setCargo] = useState("user"); // user ou admin
-  const [loading, setLoading] = useState(false);
+  const [senha, setSenha] = useState("");
+  const [nivel, setNivel] = useState("user");
   const [iniciais, setIniciais] = useState("US");
-  const router = useRouter();
+
+  const handleGoProfile = () => {
+    router.push("/(admin)/profile-admin");
+  };
 
   // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
         const nomeSalvo = await SecureStore.getItemAsync("userName");
+
         if (nomeSalvo) {
           const partes = nomeSalvo.trim().split(" ");
 
@@ -37,119 +44,162 @@ export default function AdminUsers() {
 
           setIniciais(init);
         }
-      } catch (e) {
-        console.log(e);
-      }
+      } catch (e) {}
     };
 
     carregarDadosUsuario();
   }, []);
 
-  const handleCreateUser = () => {
-    if (!nome || !email)
-      return Alert.alert("Erro", "Preencha os campos básicos.");
-    setLoading(true);
-    // Aqui vai seu fetch para a API
-    setTimeout(() => {
-      Alert.alert("Sucesso", "Usuário cadastrado!");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!nome || !email || !senha) {
+      Alert.alert("Erro", "Preencha os campos obrigatórios");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const token = await SecureStore.getItemAsync("userToken");
+
+      const res = await fetch(
+        "https://selene-mobile.onrender.com/api/v1/users",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nome_completo: nome,
+            email,
+            senha,
+            telefone,
+            endereco,
+            data_nascimento: dataNascimento || null,
+            tipo: nivel,
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message);
+
+      Alert.alert("Sucesso", "Usuário criado!");
+
+      router.back();
+    } catch (err: any) {
+      Alert.alert("Erro", err.message);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* ---------------------------------------------------------
-                      INÍCIO DO HEADER (VERDE SELENE)
-                  ---------------------------------------------------------- */}
+      <SafeAreaView style={styles.container}>
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
-            <View>
-              <Text style={styles.welcomeText}>Cadastrar</Text>
 
+            <View style={styles.textContainer}>
+              <Text style={styles.welcomeText}>Novo Cadastro</Text>
             </View>
 
             <View style={styles.headerIcons}>
               <TouchableOpacity
                 style={styles.avatarCircle}
-                onPress={() => router.push("/profile")}
+                onPress={handleGoProfile}
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity onPress={() => router.push("/alert")}>
-                <Feather
-                  name="bell"
-                  size={24}
-                  color="#2A3A56"
-                  style={{ marginLeft: 12 }}
-                />
+                <Feather name="bell" size={24} color="#2A3A56" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
-        {/* ---------------------------------------------------------
-                      FIM DO HEADER
-                  ---------------------------------------------------------- */}
-        <ScrollView style={styles.content}>
+
+        <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.label}>Nome Completo</Text>
+          <TextInput style={styles.input} value={nome} onChangeText={setNome} />
+
+          <Text style={styles.label}>Data Nascimento</Text>
           <TextInput
             style={styles.input}
-            value={nome}
-            onChangeText={setNome}
-            placeholder="Ex: João Silva"
+            value={dataNascimento}
+            onChangeText={setDataNascimento}
+            placeholder="DD-MM-YYYY"
           />
 
-          <Text style={styles.label}>E-mail</Text>
+          <Text style={styles.label}>Telefone</Text>
+          <TextInput
+            style={styles.input}
+            value={telefone}
+            onChangeText={setTelefone}
+            placeholder="(13) 99999-9999"
+          />
+
+          <Text style={styles.label}>Endereço</Text>
+          <TextInput
+            style={styles.input}
+            value={endereco}
+            onChangeText={setEndereco}
+            placeholder="Rua, Número, Bairro, Cidade"
+          />
+
+          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
             value={email}
-            onChangeText={(t) => setEmail(t.toLowerCase())}
-            autoCapitalize="none"
-            keyboardType="email-address"
+            onChangeText={setEmail}
+            placeholder="email@exemplo.com"
           />
 
-          <Text style={styles.label}>Nível de Acesso</Text>
+          <Text style={styles.label}>Senha</Text>
+          <TextInput
+            style={styles.input}
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry
+          />
+
+          {/* FOTO */}
+          <View style={styles.photoBox}>
+            <Feather name="user" size={40} color="#fff" />
+            <View style={styles.cameraIcon}>
+              <Feather name="camera" size={14} color="#fff" />
+            </View>
+          </View>
+
+          {/* NIVEL */}
+          <Text style={styles.label}>Nível Acesso</Text>
+
           <View style={styles.row}>
             <TouchableOpacity
-              style={[styles.chip, cargo === "user" && styles.chipActive]}
-              onPress={() => setCargo("user")}
+              style={[styles.radio, nivel === "user" && styles.radioActive]}
+              onPress={() => setNivel("user")}
             >
-              <Text
-                style={
-                  cargo === "user" ? styles.chipTextActive : styles.chipText
-                }
-              >
-                Usuário
-              </Text>
+              <Text>Produtor</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={[styles.chip, cargo === "admin" && styles.chipActive]}
-              onPress={() => setCargo("admin")}
+              style={[styles.radio, nivel === "admin" && styles.radioActive]}
+              onPress={() => setNivel("admin")}
             >
-              <Text
-                style={
-                  cargo === "admin" ? styles.chipTextActive : styles.chipText
-                }
-              >
-                Admin
-              </Text>
+              <Text>Administrador</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleCreateUser}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.buttonText}>Cadastrar Perfil</Text>
-            )}
+          <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
+            <Text style={styles.btnText}>
+              {loading ? "Carregando..." : "Cadastrar"}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -158,10 +208,8 @@ export default function AdminUsers() {
 }
 
 const styles = StyleSheet.create({
-  // Estrutura Principal
   container: { flex: 1, backgroundColor: "#95C159" },
 
-  // Header Superior
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -176,17 +224,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
   },
 
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
 
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
+  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
 
   avatarCircle: {
     width: 45,
@@ -195,59 +237,101 @@ const styles = StyleSheet.create({
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
   },
 
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
 
-  // Painel Branco Arredondado
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 30,
-  },
-  card: {
-    backgroundColor: "#FFF",
-    borderRadius: 20,
+  textContainer: { flex: 1, marginLeft: 20 },
+
+  statsContainer: { paddingHorizontal: 25, marginBottom: 25 },
+
+  top: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 20,
-    elevation: 4,
+    alignItems: "center",
   },
-  label: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#2A3A56",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#F8FBF8",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
-    fontSize: 16,
-  },
-  row: { flexDirection: "row", gap: 10, marginBottom: 30 },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#2A3A56",
-  },
-  chipActive: { backgroundColor: "#2A3A56" },
-  chipText: { color: "#2A3A56", fontWeight: "bold" },
-  chipTextActive: { color: "#FFF", fontWeight: "bold" },
-  button: {
-    backgroundColor: "#95C159",
-    height: 55,
+
+  title: { fontSize: 18, fontWeight: "bold", color: "#2A3A56" },
+
+  rightIcons: { flexDirection: "row", alignItems: "center", gap: 10 },
+
+  avatar: {
+    width: 30,
+    height: 30,
     borderRadius: 15,
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
   },
-  buttonText: { color: "#2A3A56", fontWeight: "bold", fontSize: 16 },
+
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 60,
+    borderTopRightRadius: 60,
+    paddingHorizontal: 25,
+    paddingTop: 30,
+  },
+
+  search: {
+    backgroundColor: "#E9F9EA",
+    borderRadius: 20,
+    padding: 10,
+    marginBottom: 15,
+  },
+
+  label: { fontWeight: "bold", marginTop: 10 },
+
+  input: {
+    backgroundColor: "#E9F9EA",
+    borderRadius: 15,
+    padding: 10,
+    marginTop: 5,
+  },
+
+  photoBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#00D2B1",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginVertical: 20,
+  },
+
+  cameraIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: "#2A3A56",
+    borderRadius: 10,
+    padding: 3,
+  },
+
+  row: { flexDirection: "row", gap: 10, marginTop: 10 },
+
+  radio: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#95C159",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  radioActive: {
+    backgroundColor: "#95C159",
+  },
+
+  btn: {
+    backgroundColor: "#00D2B1",
+    padding: 15,
+    borderRadius: 25,
+    marginTop: 20,
+    alignItems: "center",
+  },
+
+  btnText: { color: "#fff", fontWeight: "bold" },
 });

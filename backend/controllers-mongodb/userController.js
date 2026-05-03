@@ -1,4 +1,5 @@
 const User = require("../models-mongodb/User");
+const bcrypt = require("bcryptjs");
 
 class userController {
   // 👤 perfil do usuário logado
@@ -25,7 +26,7 @@ class userController {
     }
   }
 
-  // 🔥 LISTAR USUÁRIOS (SOMENTE USER)
+  // 👥 LISTAR USUÁRIOS (somente tipo user)
   static async listar(req, res) {
     try {
       const usuarios = await User.find({ tipo: "user" }).select(
@@ -44,7 +45,7 @@ class userController {
     }
   }
 
-  // ✏️ atualizar perfil (CORRIGIDO)
+  // ✏️ atualizar perfil
   static async atualizarPerfil(req, res) {
     try {
       const { nome_completo, email } = req.body;
@@ -63,6 +64,47 @@ class userController {
       return res.status(500).json({
         success: false,
         message: "Erro ao atualizar perfil",
+      });
+    }
+  }
+
+  // ➕ CRIAR USUÁRIO (CADASTRO)
+  static async criar(req, res) {
+    try {
+      const { nome_completo, email, senha, tipo } = req.body;
+
+      // valida se já existe
+      const userExists = await User.findOne({ email });
+      if (userExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email já está em uso",
+        });
+      }
+
+      // hash da senha
+      const senhaHash = await bcrypt.hash(senha, 10);
+
+      const user = await User.create({
+        nome_completo,
+        email,
+        senha: senhaHash,
+        tipo: tipo || "user",
+      });
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          _id: user._id,
+          nome_completo: user.nome_completo,
+          email: user.email,
+          tipo: user.tipo,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao criar usuário",
       });
     }
   }
