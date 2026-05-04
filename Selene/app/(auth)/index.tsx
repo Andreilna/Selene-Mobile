@@ -48,8 +48,6 @@ export default function Login() {
           usuario: email.trim().toLowerCase(),
           senha: password,
         };
-
-        console.log("Tentando login como Admin...");
         response = await axios.post(
           "https://selene-mobile.onrender.com/api/v1/admin/login",
           adminData,
@@ -60,7 +58,6 @@ export default function Login() {
 
         // Se o admin não existir ou senha errada, tenta como usuário comum
         if (status === 401 || status === 404 || status === 400) {
-          console.log("Admin não encontrado, tentando Usuário...");
 
           // --- 2ª TENTATIVA: Login como Usuário Comum ---
           const userData = {
@@ -101,8 +98,6 @@ export default function Login() {
           : "user";
         await SecureStore.setItemAsync("userRole", role);
 
-        console.log(`Logado com sucesso: ${role}`);
-
         // REDIRECIONAMENTO INTELIGENTE
         if (isLoggedAsAdmin) {
           // Se for admin, manda para a tela de admin (certifique-se de que o path existe)
@@ -113,7 +108,6 @@ export default function Login() {
         }
       }
     } catch (error: any) {
-      console.log("Erro no login:", error.response?.data || error.message);
       const errorMsg =
         error.response?.data?.message || "E-mail ou senha incorretos.";
       Alert.alert("Ops!", errorMsg);

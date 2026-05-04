@@ -35,16 +35,16 @@ export default function ControleAcessoScreen() {
   const [filterActive, setFilterActive] = useState("Dia");
 
   const formatDate = (dateString: any) => {
-    if (!dateString) return "Agora";
-
+    if (!dateString) return "Abril 30 - 14:40";
     const date = new Date(dateString);
-
     if (isNaN(date.getTime())) return "Data inválida";
 
     return date.toLocaleDateString("pt-BR", {
       day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
+      month: "long",
+    }) + " - " + date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -52,18 +52,14 @@ export default function ControleAcessoScreen() {
   useEffect(() => {
     const loadUser = async () => {
       const nome = await SecureStore.getItemAsync("userName");
-
       if (nome) {
         const parts = nome.split(" ");
-        const init =
-          parts.length > 1
-            ? (parts[0][0] + parts[1][0]).toUpperCase()
-            : parts[0][0].toUpperCase();
-
+        const init = parts.length > 1
+          ? (parts[0][0] + parts[1][0]).toUpperCase()
+          : parts[0][0].toUpperCase();
         setIniciais(init);
       }
     };
-
     loadUser();
   }, []);
 
@@ -73,18 +69,15 @@ export default function ControleAcessoScreen() {
       const t = await SecureStore.getItemAsync("userToken");
       setToken(t);
     };
-
     loadToken();
   }, []);
 
   // ================= NORMALIZER =================
   const normalizeList = (res: any) => {
     const data = res?.data;
-
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.usuarios)) return data.usuarios;
     if (Array.isArray(data?.admins)) return data.admins;
-
     return [];
   };
 
@@ -92,54 +85,33 @@ export default function ControleAcessoScreen() {
   const fetchDados = async () => {
     try {
       setLoading(true);
-
       const [resUsers, resAdmins] = await Promise.all([
         fetch("https://selene-mobile.onrender.com/api/v1/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }),
-
         fetch("https://selene-mobile.onrender.com/api/v1/admin/listar", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
       const usersData = await resUsers.json();
       const adminsData = await resAdmins.json();
 
-      // ================= USERS =================
-      const usersList = normalizeList(usersData);
+      const usersFormatted = normalizeList(usersData).map((u: any, index: number) => ({
+        id: u._id || index.toString(),
+        nome: u.nome_completo || u.nome || "Usuário",
+        data: formatDate(u.criado_em),
+        cargo: "Produtor",
+        codigo: (u._id || "000000").slice(-7),
+      }));
 
-      const usersFormatted = usersList.map((u: any, index: number) => {
-        const nome =
-          u.nome_completo || u.nome || u.usuario || u.email?.split("@")[0];
-
-        return {
-          id: u._id || index.toString(),
-          nome: nome || "Usuário",
-          data: formatDate(u.criado_em),
-          cargo: u.role || "user",
-          codigo: (u._id || "").slice(-6),
-        };
-      });
-
-      // ================= ADMINS =================
-      const adminsList = normalizeList(adminsData);
-
-      const adminsFormatted = adminsList.map((u: any, index: number) => {
-        const nome = u.nome_completo || u.usuario || u.email?.split("@")[0];
-
-        return {
-          id: u._id || index.toString(),
-          nome: nome || "Admin",
-          data: formatDate(u.criado_em),
-          cargo: u.nivel_acesso || "superadmin",
-          codigo: (u._id || "").slice(-6),
-        };
-      });
+      const adminsFormatted = normalizeList(adminsData).map((u: any, index: number) => ({
+        id: u._id || index.toString(),
+        nome: u.nome_completo || u.usuario || "Admin",
+        data: formatDate(u.criado_em),
+        cargo: "Admin",
+        codigo: (u._id || "000000").slice(-7),
+      }));
 
       setUsuarios(usersFormatted);
       setAdmins(adminsFormatted);
@@ -149,27 +121,52 @@ export default function ControleAcessoScreen() {
     }
   };
 
-  // ================= LOAD =================
   useEffect(() => {
-    if (token) {
-      fetchDados();
-    }
+    if (token) fetchDados();
   }, [token]);
 
   const timeFilters = ["Dia", "Semana", "Mês", "Ano"];
 
+  // CORREÇÃO: Função definida FORA do return
+  const renderUserItem = (item: Usuario) => (
+    <TouchableOpacity
+      onPress={() =>
+        router.push({
+          pathname: "/(admin)/edit-profile-register",
+          params: { id: item.id },
+        })
+      }
+    >
+      <View style={styles.userCard}>
+        <View style={styles.userIconContainer}>
+          <Feather name="user" size={24} color="#fff" />
+        </View>
+
+        <View style={styles.userInfo}>
+          <Text style={styles.userName}>{item.nome}</Text>
+          <Text style={styles.userData}>{item.data}</Text>
+        </View>
+
+        <View style={styles.roleContainer}>
+          <View style={styles.verticalLine} />
+          <Text style={styles.roleText}>{item.cargo}</Text>
+          <View style={styles.verticalLine} />
+        </View>
+
+        <Text style={styles.userCode}>{item.codigo}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Feather name="arrow-left" size={28} color="#2A3A56" />
+              <Feather name="arrow-left" size={28} color="#FFF" />
             </TouchableOpacity>
-
             <Text style={styles.welcomeText}>Controle Acessos</Text>
-
             <View style={styles.headerIcons}>
               <TouchableOpacity style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{iniciais}</Text>
@@ -178,10 +175,9 @@ export default function ControleAcessoScreen() {
           </View>
         </View>
 
-        {/* STATS */}
         <View style={styles.statsContainer}>
           <View style={styles.mainStatCard}>
-            <Text style={styles.statLabelLink}>Total de Acessos</Text>
+            <Text style={styles.statLabelLink}>Usuários Cadastrados</Text>
             <Text style={styles.statValueBig}>
               {usuarios.length + admins.length}
             </Text>
@@ -203,16 +199,12 @@ export default function ControleAcessoScreen() {
                 <Feather name="corner-right-down" size={14} color="#2A3A56" />
                 <Text style={styles.subStatLabel}>Pendente Validação</Text>
               </View>
-              <Text style={[styles.subStatValue, { color: "#2D9CDB" }]}>
-                --
-              </Text>
+              <Text style={[styles.subStatValue, { color: "#2D9CDB" }]}>--</Text>
             </View>
           </View>
         </View>
 
-        {/* CONTENT */}
         <View style={styles.content}>
-          {/* FILTER */}
           <View style={styles.timeFilterContainer}>
             {timeFilters.map((item) => (
               <TouchableOpacity
@@ -235,140 +227,89 @@ export default function ControleAcessoScreen() {
             ))}
           </View>
 
-          {/* ADMINS */}
-          <Text style={styles.sectionTitle}>Admins</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Produtores Cadastrados</Text>
+            <TouchableOpacity style={styles.filterIconBtn}>
+              <MaterialIcons name="filter-list" size={22} color="#FFF" />
+            </TouchableOpacity>
+          </View>
 
+          {/* CORREÇÃO: Lista reativada com ActivityIndicator */}
           {loading ? (
             <ActivityIndicator size="large" color="#00D2B1" />
           ) : (
             <FlatList
-              data={admins}
+              data={[...admins, ...usuarios]}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => router.push("/(admin)/edit-profile-register")}>
-                  <View style={styles.userCard}>
-                    <View style={styles.userIconContainer}>
-                      <Feather name="shield" size={24} color="#fff" />
-                    </View>
-
-                    <View style={styles.userInfo}>
-                      <Text style={styles.userName}>{item.nome}</Text>
-                      <Text style={styles.userData}>{item.data}</Text>
-                    </View>
-
-                    <Text style={styles.userCode}>{item.codigo}</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => renderUserItem(item)}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 100 }}
             />
           )}
 
-          {/* USERS */}
-          <Text style={styles.sectionTitle}>Usuários</Text>
-
-          <FlatList
-            data={usuarios}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.userCard}>
-                <View style={styles.userIconContainer}>
-                  <Feather name="user" size={24} color="#fff" />
-                </View>
-
-                <View style={styles.userInfo}>
-                  <Text style={styles.userName}>{item.nome}</Text>
-                  <Text style={styles.userData}>{item.data}</Text>
-                </View>
-
-                <Text style={styles.userCode}>{item.codigo}</Text>
-              </View>
-            )}
-          />
+          <TouchableOpacity
+            style={styles.btnNewUser}
+            onPress={() => router.push("/(admin)/novo-usuario")}
+          >
+            <Text style={styles.btnNewUserText}>Novo Cadastro</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
 
-// ==========================
-// STYLE (igual ao seu)
-// ==========================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#95C159" },
-
-  topContainer: {
-    backgroundColor: "#95C159",
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
-    paddingBottom: 30,
-    paddingTop: 10,
-    paddingHorizontal: 20,
-  },
-
+  topContainer: { paddingBottom: 20, paddingTop: 10, paddingHorizontal: 20 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
   },
-
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
-
+  headerIcons: { flexDirection: "row", alignItems: "center" },
   avatarCircle: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
   },
-
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-
-  textContainer: { flex: 1, marginLeft: 20 },
-
+  avatarText: { fontSize: 14, fontWeight: "bold", color: "#2A3A56" },
   statsContainer: { paddingHorizontal: 25, marginBottom: 25 },
-
   mainStatCard: {
     backgroundColor: "#FFF",
     borderRadius: 15,
     padding: 15,
     alignItems: "center",
   },
-
   statLabelLink: {
     color: "#2A3A56",
     textDecorationLine: "underline",
     fontWeight: "bold",
   },
-
   statValueBig: { fontSize: 32, fontWeight: "bold", color: "#2A3A56" },
-
   secondaryStatsRow: {
     flexDirection: "row",
     marginTop: 20,
     alignItems: "center",
   },
-
-  subStat: { flex: 1, alignItems: "center" },
-
+  subStat: { flex: 1, alignItems: "flex-start" },
   subStatLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 5,
   },
-
-  subStatLabel: { fontSize: 12, color: "#2A3A56", marginLeft: 5 },
-
-  subStatValue: { fontSize: 24, fontWeight: "bold", color: "#FFF" },
-
+  subStatLabel: { fontSize: 13, color: "#2A3A56", marginLeft: 5 },
+  subStatValue: { fontSize: 28, fontWeight: "bold", color: "#FFF" },
   verticalDivider: {
-    width: 1,
+    width: 1.5,
     height: 40,
     backgroundColor: "#FFF",
-    opacity: 0.5,
+    opacity: 0.6,
+    marginHorizontal: 15,
   },
 
   content: {
@@ -379,26 +320,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     paddingTop: 30,
   },
-
   timeFilterContainer: {
     flexDirection: "row",
     backgroundColor: "#F0F5F0",
-    borderRadius: 20,
+    borderRadius: 25,
     padding: 5,
     marginBottom: 25,
   },
-
-  timeBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 15,
-  },
-
+  timeBtn: { flex: 1, paddingVertical: 12, alignItems: "center", borderRadius: 20 },
   timeBtnActive: { backgroundColor: "#00D2B1" },
-
-  timeBtnText: { color: "#2A3A56", fontSize: 13 },
-
+  timeBtnText: { color: "#2A3A56", fontSize: 14 },
   timeBtnTextActive: { color: "#FFF", fontWeight: "bold" },
 
   sectionHeader: {
@@ -407,53 +338,44 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#2A3A56" },
-
-  filterIconBtn: { backgroundColor: "#00D2B1", padding: 6, borderRadius: 10 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#1A2E35" },
+  filterIconBtn: { backgroundColor: "#00D2B1", padding: 8, borderRadius: 12 },
 
   userCard: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    paddingVertical: 15,
   },
-
   userIconContainer: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: "#00D2B1",
     justifyContent: "center",
     alignItems: "center",
   },
-
-  userInfo: { flex: 2, marginLeft: 12 },
-
-  userName: { fontSize: 15, fontWeight: "bold", color: "#2A3A56" },
-
-  userData: { fontSize: 11, color: "#2D9CDB" },
+  userInfo: { flex: 1.5, marginLeft: 12 },
+  userName: { fontSize: 16, fontWeight: "bold", color: "#1A2E35" },
+  userData: { fontSize: 12, color: "#2D9CDB", fontWeight: "bold" },
 
   roleContainer: {
-    flex: 1.5,
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
   verticalLine: {
-    width: 1,
-    height: 30,
+    width: 1.5,
+    height: 35,
     backgroundColor: "#00D2B1",
-    marginHorizontal: 8,
+    opacity: 0.4,
+    marginHorizontal: 12,
   },
-
-  roleText: { fontSize: 11, color: "#666" },
+  roleText: { fontSize: 12, color: "#666" },
 
   userCode: {
-    flex: 1.5,
-    fontSize: 14,
+    flex: 1,
+    fontSize: 15,
     fontWeight: "bold",
     color: "#2D9CDB",
     textAlign: "right",
@@ -467,9 +389,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     bottom: 30,
-    left: 25,
-    right: 25,
+    left: 80,
+    right: 80,
   },
-
-  btnNewUserText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
+  btnNewUserText: { color: "#1A2E35", fontWeight: "bold", fontSize: 16 },
 });

@@ -118,7 +118,6 @@ export default function ForgotPassword() {
       }
 
       // 🔹 fallback
-      console.log("Resposta inesperada:", response.data);
       Alert.alert("Erro", "Formato de resposta desconhecido.");
     }
   };

@@ -66,7 +66,6 @@ export default function AdminHome() {
 
         // 🔥 ADICIONADO: evita request com token vazio
         if (!token) {
-          console.log("❌ Token não encontrado no SecureStore");
           return;
         }
 
@@ -81,10 +80,6 @@ export default function AdminHome() {
 
         setStats(response.data.data);
       } catch (error: any) {
-        console.log(
-          "Erro ao carregar stats:",
-          error.response?.data || error.message,
-        );
       }
     };
 

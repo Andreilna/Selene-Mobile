@@ -112,7 +112,6 @@ export default function EditProfileScreen() {
         if (emailSalvo) setEmail(emailSalvo);
         if (idSalvo) setIdExibicao(idSalvo.substring(0, 8));
       } catch (error) {
-        console.log("ERRO LOAD PERFIL:", error);
       } finally {
         setLoading(false);
       }
