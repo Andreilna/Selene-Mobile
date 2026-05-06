@@ -244,11 +244,7 @@ export default function HomeScreen() {
               "Luz",
               "20H",
             )}
-            {renderCardGeral(
-              <MaterialCommunityIcons name="cloud" size={16} color="#2A3A56" />,
-              "CO2",
-              "100",
-            )}
+            
           </View>
 
           {/* SEÇÃO: ALERTAS RECENTES */}
@@ -427,7 +423,7 @@ const styles = StyleSheet.create({
   // Estilos dos Cards de Visão Geral
   cardsGeralContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
     marginBottom: 35,
   },
   cardGeral: {

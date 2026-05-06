@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -27,6 +27,30 @@ export default function CadastroEstufa() {
   const [camera, setCamera] = useState("");
   const [obs, setObs] = useState("");
   const [data] = useState(new Date().toLocaleDateString("pt-BR"));
+  const [iniciais, setIniciais] = useState("US");
+
+  // ================= USER =================
+  useEffect(() => {
+    const carregarDadosUsuario = async () => {
+      try {
+        const nomeSalvo = await SecureStore.getItemAsync("userName");
+        if (nomeSalvo) {
+          const partes = nomeSalvo.trim().split(" ");
+
+          const init =
+            partes.length > 1
+              ? (partes[0][0] + partes[1][0]).toUpperCase()
+              : partes[0][0].toUpperCase();
+
+          setIniciais(init);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    carregarDadosUsuario();
+  }, []);
 
   // ==========================================
   // LÓGICA DE CADASTRO
@@ -77,26 +101,34 @@ export default function CadastroEstufa() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* ---------------------------------------------------------
-            HEADER (DARK THEME SOBRE VERDE)
-        ---------------------------------------------------------- */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Feather name="arrow-left" size={28} color="#2A3A56" />
-          </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Nova Estufa</Text>
-
-          <View style={styles.headerIcons}>
-            <View style={styles.profileCircle}>
-              <Text style={styles.profileText}>LB</Text>
+        {/* ================= HEADER ================= */}
+        <View style={styles.topContainer}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
+            </TouchableOpacity>
+            <View style={styles.textContainer}>
+              <Text style={styles.welcomeText}>Estufas</Text>
+              <Text style={styles.subwelcomeText}>Gerencie suas estufas</Text>
             </View>
-            <Feather
-              name="bell"
-              size={24}
-              color="#2A3A56"
-              style={{ marginLeft: 12 }}
-            />
+
+            <View style={styles.headerIcons}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={() => router.push("/profile")}
+              >
+                <Text style={styles.avatarText}>{iniciais}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => router.push("/alert")}>
+                <Feather
+                  name="bell"
+                  size={24}
+                  color="#2A3A56"
+                  style={{ marginLeft: 12 }}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -188,7 +220,18 @@ export default function CadastroEstufa() {
 // ESTILIZAÇÃO (STYLES)
 // ==========================================
 const styles = StyleSheet.create({
+  // Estrutura Principal
   container: { flex: 1, backgroundColor: "#95C159" },
+
+  // Header Superior
+  topContainer: {
+    backgroundColor: "#95C159",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
 
   header: {
     flexDirection: "row",
@@ -197,25 +240,37 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 1,
   },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#2A3A56" },
-  headerIcons: { flexDirection: "row", alignItems: "center" },
-  profileCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "#FFF",
+
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
-  profileText: { color: "#2A3A56", fontWeight: "bold", fontSize: 13 },
 
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+
+  // Painel Branco Arredondado
   content: {
     flex: 1,
     backgroundColor: "#FFF",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
-    paddingHorizontal: 30,
-    paddingTop: 40,
+    paddingHorizontal: 25,
+    paddingTop: 30,
   },
 
   label: {
@@ -256,4 +311,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   btnSalvarText: { color: "#FFF", fontWeight: "bold", fontSize: 18 },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+    justifyContent: "center",
+  },
 });
