@@ -26,6 +26,20 @@ router.get(
   LeituraController.historico,
 );
 
+// GET /api/v1/leituras/:dispositivo_id/contagem - Contar leituras
+router.get(
+  "/:dispositivo_id/contagem",
+  authMiddleware,
+  LeituraController.contarLeituras,
+);
+
+// GET /api/v1/leituras/:dispositivo_id/ultima-foto - Última foto da câmera
+router.get(
+  "/:dispositivo_id/ultima-foto",
+  authMiddleware,
+  LeituraController.ultimaFoto,
+);
+
 // GET /api/v1/leituras/:dispositivo_id/grafico - Dados para gráficos (agrupados)
 router.get(
   "/:dispositivo_id/grafico",
@@ -38,6 +52,13 @@ router.get(
   "/:dispositivo_id/metricas",
   authMiddleware,
   LeituraController.metricas,
+);
+
+// GET /api/v1/leituras/:dispositivo_id/ultima - Última leitura do sensor
+router.get(
+  "/:dispositivo_id/ultima",
+  authMiddleware,
+  LeituraController.ultimaLeitura,
 );
 
 module.exports = router;

@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema(
     ultimo_login: {
       type: Date,
     },
+    data_cadastro: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: {

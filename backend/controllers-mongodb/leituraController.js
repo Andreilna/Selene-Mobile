@@ -578,6 +578,190 @@ class LeituraController {
       });
     }
   }
+
+  // 📊 ÚLTIMA LEITURA DO SENSOR
+  static async ultimaLeitura(req, res) {
+    try {
+      const { dispositivo_id } = req.params;
+
+      // Buscar última leitura ordenada por timestamp descendente
+      const leitura = await Leitura.findOne({ dispositivo: dispositivo_id })
+        .sort({ timestamp: -1 })
+        .populate("dispositivo", "nome mac_address tipo");
+
+      if (!leitura) {
+        return res.status(404).json({
+          success: false,
+          message: "Nenhuma leitura encontrada para este dispositivo",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          id: leitura._id,
+          dispositivo: {
+            id: leitura.dispositivo._id,
+            nome: leitura.dispositivo.nome,
+            mac: leitura.dispositivo.mac_address,
+            tipo: leitura.dispositivo.tipo,
+          },
+          tipo_leitura: leitura.tipo_leitura,
+          dados: leitura.dados,
+          timestamp: leitura.timestamp,
+        },
+      });
+    } catch (error) {
+      console.error("Erro ao buscar última leitura:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // 📈 CONTAR LEITURAS DE UM SENSOR
+  static async contarLeituras(req, res) {
+    try {
+      const { dispositivo_id } = req.params;
+      const { periodo = "todos", tipo_leitura } = req.query;
+
+      // Validar período
+      const periodos = {
+        "1h": 1,
+        "6h": 6,
+        "24h": 24,
+        "7d": 168,
+        "30d": 720,
+        "todos": null,
+      };
+
+      if (!periodos.hasOwnProperty(periodo)) {
+        return res.status(400).json({
+          success: false,
+          message: "Período inválido. Opções: 1h, 6h, 24h, 7d, 30d, todos",
+        });
+      }
+
+      // Buscar dispositivo
+      const dispositivo = await Dispositivo.findById(dispositivo_id);
+
+      if (!dispositivo) {
+        return res.status(404).json({
+          success: false,
+          message: "Dispositivo não encontrado",
+        });
+      }
+
+      // Montar filtro de query
+      const query = { dispositivo: dispositivo_id };
+
+      // Filtrar por tipo de leitura se fornecido
+      if (tipo_leitura) {
+        if (!["SENSORES", "CAMERA"].includes(tipo_leitura)) {
+          return res.status(400).json({
+            success: false,
+            message: "Tipo de leitura inválido. Opções: SENSORES, CAMERA",
+          });
+        }
+        query.tipo_leitura = tipo_leitura;
+      }
+
+      // Filtrar por período se não for "todos"
+      if (periodos[periodo] !== null) {
+        const dataLimite = new Date();
+        dataLimite.setHours(dataLimite.getHours() - periodos[periodo]);
+        query.timestamp = { $gte: dataLimite };
+      }
+
+      // Contar leituras
+      const total = await Leitura.countDocuments(query);
+
+      // Buscar primeira e última leitura
+      const primeiraLeitura = await Leitura.findOne({ dispositivo: dispositivo_id })
+        .sort({ timestamp: 1 })
+        .select("timestamp");
+
+      const ultimaLeitura = await Leitura.findOne({ dispositivo: dispositivo_id })
+        .sort({ timestamp: -1 })
+        .select("timestamp");
+
+      res.json({
+        success: true,
+        data: {
+          dispositivo: {
+            id: dispositivo._id,
+            nome: dispositivo.nome,
+            mac: dispositivo.mac_address,
+            tipo: dispositivo.tipo,
+          },
+          contagem: {
+            total_leituras: total,
+            periodo: periodo === "todos" ? "Todos os períodos" : periodo,
+            tipo_leitura: tipo_leitura || "Todos",
+          },
+          intervalo: {
+            primeira_leitura: primeiraLeitura?.timestamp || null,
+            ultima_leitura: ultimaLeitura?.timestamp || null,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Erro ao contar leituras:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // 📸 ÚLTIMA FOTO DA CÂMERA
+  static async ultimaFoto(req, res) {
+    try {
+      const { dispositivo_id } = req.params;
+
+      // Buscar última leitura do tipo CAMERA ordenada por timestamp descendente
+      const leitura = await Leitura.findOne({
+        dispositivo: dispositivo_id,
+        tipo_leitura: "CAMERA"
+      })
+        .sort({ timestamp: -1 })
+        .populate("dispositivo", "nome mac_address tipo");
+
+      if (!leitura) {
+        return res.status(404).json({
+          success: false,
+          message: "Nenhuma foto encontrada para este dispositivo",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          id: leitura._id,
+          dispositivo: {
+            id: leitura.dispositivo._id,
+            nome: leitura.dispositivo.nome,
+            mac: leitura.dispositivo.mac_address,
+            tipo: leitura.dispositivo.tipo,
+          },
+          foto: {
+            foto_path: leitura.dados.foto_path,
+            tamanho_arquivo: leitura.dados.tamanho_arquivo,
+            altura: leitura.dados.altura,
+            client_ip: leitura.dados.client_ip,
+          },
+          timestamp: leitura.timestamp,
+        },
+      });
+    } catch (error) {
+      console.error("Erro ao buscar última foto:", error);
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
 }
 
 module.exports = LeituraController;

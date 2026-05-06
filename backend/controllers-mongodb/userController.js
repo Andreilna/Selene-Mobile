@@ -30,8 +30,8 @@ class userController {
   static async listar(req, res) {
     try {
       const usuarios = await User.find({ tipo: "user" }).select(
-        "_id nome_completo email",
-      );
+        "_id nome_completo email telefone data_cadastro ativo",
+      ).sort({ data_cadastro: -1 });
 
       return res.json({
         success: true,
@@ -41,6 +41,109 @@ class userController {
       return res.status(500).json({
         success: false,
         message: "Erro ao listar usuários",
+      });
+    }
+  }
+
+  // 👤 BUSCAR USUÁRIO POR ID (somente admin)
+  static async buscarPorId(req, res) {
+    try {
+      const { id } = req.params;
+
+      const usuario = await User.findById(id).select("-senha");
+
+      if (!usuario || usuario.tipo !== "user") {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: usuario,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao buscar usuário",
+      });
+    }
+  }
+
+  // ✏️ ATUALIZAR USUÁRIO (somente admin)
+  static async atualizar(req, res) {
+    try {
+      const { id } = req.params;
+      const { nome_completo, email, telefone, ativo } = req.body;
+
+      const usuario = await User.findById(id);
+
+      if (!usuario || usuario.tipo !== "user") {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      // Verificar se email já está em uso por outro usuário
+      if (email && email !== usuario.email) {
+        const emailExistente = await User.findOne({ email });
+        if (emailExistente) {
+          return res.status(400).json({
+            success: false,
+            message: "Email já está em uso",
+          });
+        }
+      }
+
+      const usuarioAtualizado = await User.findByIdAndUpdate(
+        id,
+        {
+          nome_completo: nome_completo || usuario.nome_completo,
+          email: email || usuario.email,
+          telefone: telefone !== undefined ? telefone : usuario.telefone,
+          ativo: ativo !== undefined ? ativo : usuario.ativo,
+        },
+        { new: true },
+      ).select("-senha");
+
+      return res.json({
+        success: true,
+        data: usuarioAtualizado,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao atualizar usuário",
+      });
+    }
+  }
+
+  // 🗑️ DELETAR USUÁRIO (somente admin)
+  static async deletar(req, res) {
+    try {
+      const { id } = req.params;
+
+      const usuario = await User.findById(id);
+
+      if (!usuario || usuario.tipo !== "user") {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      await User.findByIdAndDelete(id);
+
+      return res.json({
+        success: true,
+        message: "Usuário deletado com sucesso",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao deletar usuário",
       });
     }
   }
@@ -93,6 +196,7 @@ class userController {
         data_nascimento: data_nascimento || null,
         tipo: tipo || "user",
         ativo: true,
+        data_cadastro: new Date(),
       });
 
       return res.status(201).json({
