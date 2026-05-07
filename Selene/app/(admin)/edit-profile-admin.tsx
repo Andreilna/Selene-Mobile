@@ -182,7 +182,11 @@ export default function EditProfileScreen() {
             </View>
 
             <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.avatarCircle}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={() => router.push("/(admin)/profile-admin")}
+              >
+
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
 

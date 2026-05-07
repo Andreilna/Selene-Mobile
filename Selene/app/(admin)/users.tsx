@@ -1,3 +1,5 @@
+// Tela de Visualização dos Usuários
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -33,6 +35,10 @@ export default function ControleAcessoScreen() {
   const [token, setToken] = useState<string | null>(null);
   const [iniciais, setIniciais] = useState("US");
   const [filterActive, setFilterActive] = useState("Dia");
+
+  const handleGoProfile = () => {
+    router.push("/(admin)/profile-admin");
+  };
 
   const formatDate = (dateString: any) => {
     if (!dateString) return "Abril 30 - 14:40";
@@ -161,15 +167,27 @@ export default function ControleAcessoScreen() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
+        {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Feather name="arrow-left" size={28} color="#FFF" />
+              <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
-            <Text style={styles.welcomeText}>Controle Acessos</Text>
+
+            <View style={styles.textContainer}>
+              <Text style={styles.welcomeText}>Novo Cadastro</Text>
+            </View>
+
             <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.avatarCircle}>
+              <TouchableOpacity
+                style={styles.avatarCircle}
+                onPress={handleGoProfile}
+              >
                 <Text style={styles.avatarText}>{iniciais}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => router.push("/alert")}>
+                <Feather name="bell" size={24} color="#2A3A56" />
               </TouchableOpacity>
             </View>
           </View>
@@ -261,23 +279,33 @@ export default function ControleAcessoScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#95C159" },
-  topContainer: { paddingBottom: 20, paddingTop: 10, paddingHorizontal: 20 },
+  topContainer: {
+    backgroundColor: "#95C159",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingBottom: 30,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 10,
   },
   welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  headerIcons: { flexDirection: "row", alignItems: "center" },
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     backgroundColor: "#EDFCED",
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 14, fontWeight: "bold", color: "#2A3A56" },
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  textContainer: { flex: 1, marginLeft: 20 },
   statsContainer: { paddingHorizontal: 25, marginBottom: 25 },
   mainStatCard: {
     backgroundColor: "#FFF",

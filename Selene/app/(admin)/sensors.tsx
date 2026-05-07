@@ -1,3 +1,5 @@
+// Tela de criação dos Sensores
+
 import React, { useEffect, useState } from "react";
 import {
   View,
