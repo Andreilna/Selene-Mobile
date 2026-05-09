@@ -144,10 +144,6 @@ export default function NovoUsuario() {
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => router.push("/alert")}>
-                <Feather name="bell" size={24} color="#2A3A56" />
-              </TouchableOpacity>
             </View>
           </View>
         </View>

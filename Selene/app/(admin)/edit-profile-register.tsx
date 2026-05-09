@@ -124,9 +124,6 @@ export default function PerfilUsuarioScreen() {
                 <TouchableOpacity style={styles.avatarCircle} onPress={() => router.push("/(admin)/profile-admin")}>
                   <Text style={styles.avatarText}>{iniciaisLogado}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push("/alert")}>
-                  <Feather name="bell" size={24} color="#2A3A56" />
-                </TouchableOpacity>
               </View>
             </View>
           </View>

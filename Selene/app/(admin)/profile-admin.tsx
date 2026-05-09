@@ -117,15 +117,6 @@ export default function ProfileScreen() {
               <TouchableOpacity style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => router.push("/alert")}>
-                <Feather
-                  name="bell"
-                  size={24}
-                  color="#2A3A56"
-                  style={{ marginLeft: 12 }}
-                />
-              </TouchableOpacity>
             </View>
           </View>
         </View>

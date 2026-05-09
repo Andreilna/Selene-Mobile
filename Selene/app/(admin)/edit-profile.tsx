@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    TextInput,
-    ScrollView,
-    ActivityIndicator,
-    Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -17,201 +17,280 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 
 export default function EditProfileScreen() {
-    const router = useRouter();
-    const { id } = useLocalSearchParams();
+  const router = useRouter();
+  const { id } = useLocalSearchParams();
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-    const [nome, setNome] = useState("");
-    const [email, setEmail] = useState("");
-    const [telefone, setTelefone] = useState("");
-    const [endereco, setEndereco] = useState("");
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [endereco, setEndereco] = useState("");
 
-    // 1. Carregar dados (Varredura de endpoints conforme sua lógica original)
-    useEffect(() => {
-        const carregarDadosParaEdicao = async () => {
-            console.log("--- [DEBUG] Iniciando carga de dados para ID:", id);
+  // 1. Carregar dados (Varredura de endpoints conforme sua lógica original)
+  useEffect(() => {
+    const carregarDadosParaEdicao = async () => {
+      console.log("--- [DEBUG] Iniciando carga de dados para ID:", id);
 
-            if (!id) {
-                console.error("--- [DEBUG] ID não fornecido");
-                setLoading(false);
-                return;
-            }
+      if (!id) {
+        console.error("--- [DEBUG] ID não fornecido");
+        setLoading(false);
+        return;
+      }
 
-            try {
-                const token = await SecureStore.getItemAsync("userToken");
-                const buscaId = id.toString().trim().toLowerCase();
+      try {
+        const token = await SecureStore.getItemAsync("userToken");
+        const buscaId = id.toString().trim().toLowerCase();
 
-                // --- TENTATIVA 1: Busca Direta ---
-                console.log("--- [DEBUG] Tentativa 1: Busca direta");
-                let response = await fetch(`https://selene-mobile.onrender.com/api/v1/users/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                let json = await response.json();
+        // --- TENTATIVA 1: Busca Direta ---
+        console.log("--- [DEBUG] Tentativa 1: Busca direta");
+        let response = await fetch(
+          `https://selene-mobile.onrender.com/api/v1/users/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        let json = await response.json();
 
-                if (response.ok) {
-                    preencherCampos(json.data || json.usuario || json);
-                    return;
-                }
-
-                // --- TENTATIVA 2: Lista de Usuários/Produtores ---
-                console.log("--- [DEBUG] Tentativa 2: Listagem geral");
-                const resLista = await fetch(`https://selene-mobile.onrender.com/api/v1/users`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const jsonLista = await resLista.json();
-                const lista = jsonLista.data || jsonLista.usuarios || jsonLista || [];
-                const encontrado = lista.find((u: any) => (u._id || u.id)?.toString().toLowerCase() === buscaId);
-
-                if (encontrado) {
-                    preencherCampos(encontrado);
-                    return;
-                }
-
-                // --- TENTATIVA 3: Lista de Admins ---
-                console.log("--- [DEBUG] Tentativa 3: Listagem admins");
-                const resAdmins = await fetch(`https://selene-mobile.onrender.com/api/v1/admin/listar`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const jsonAdmins = await resAdmins.json();
-                const listaAdmins = jsonAdmins.data || jsonAdmins.usuarios || [];
-                const adminEncontrado = listaAdmins.find((a: any) => (a._id || a.id)?.toString().toLowerCase() === buscaId);
-
-                if (adminEncontrado) {
-                    preencherCampos(adminEncontrado);
-                    return;
-                }
-
-                Alert.alert("Erro", "Não foi possível localizar este usuário no servidor.");
-            } catch (error) {
-                console.error("--- [DEBUG] Erro de conexão:", error);
-                Alert.alert("Erro", "Falha de conexão com o servidor.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const preencherCampos = (user: any) => {
-            console.log("--- [DEBUG] Usuário encontrado. Preenchendo campos...");
-            setNome(user.nome_completo || user.usuario || "");
-            setEmail(user.email || "");
-            setTelefone(user.telefone || "");
-            setEndereco(user.endereco || "");
-        };
-
-        carregarDadosParaEdicao();
-    }, [id]);
-
-    // 2. Salvar Alterações
-    const handleSalvar = async () => {
-        try {
-            const token = await SecureStore.getItemAsync("userToken");
-            const currentRole = await SecureStore.getItemAsync("userRole"); // Pegando o mais recente
-
-            if (!token) {
-                Alert.alert("Erro", "Usuário não autenticado");
-                return;
-            }
-
-            // Define o endpoint baseado no cargo logado
-            const url =
-                currentRole === "admin" || currentRole === "superadmin"
-                    ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
-                    : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
-
-            const res = await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    nome_completo: nome,
-                    email: email,
-                    telefone: telefone,
-                }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || "Erro ao atualizar");
-            }
-
-            // 🔥 IMPORTANTE: Atualiza os dados locais para refletir no resto do app imediatamente
-            await SecureStore.setItemAsync("userName", nome);
-            await SecureStore.setItemAsync("userEmail", email);
-
-            Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
-            router.back();
-        } catch (error: any) {
-            Alert.alert("Erro", error.message || "Ocorreu um erro inesperado");
+        if (response.ok) {
+          preencherCampos(json.data || json.usuario || json);
+          return;
         }
+
+        // --- TENTATIVA 2: Lista de Usuários/Produtores ---
+        console.log("--- [DEBUG] Tentativa 2: Listagem geral");
+        const resLista = await fetch(
+          `https://selene-mobile.onrender.com/api/v1/users`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        const jsonLista = await resLista.json();
+        const lista = jsonLista.data || jsonLista.usuarios || jsonLista || [];
+        const encontrado = lista.find(
+          (u: any) => (u._id || u.id)?.toString().toLowerCase() === buscaId,
+        );
+
+        if (encontrado) {
+          preencherCampos(encontrado);
+          return;
+        }
+
+        // --- TENTATIVA 3: Lista de Admins ---
+        console.log("--- [DEBUG] Tentativa 3: Listagem admins");
+        const resAdmins = await fetch(
+          `https://selene-mobile.onrender.com/api/v1/admin/listar`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        const jsonAdmins = await resAdmins.json();
+        const listaAdmins = jsonAdmins.data || jsonAdmins.usuarios || [];
+        const adminEncontrado = listaAdmins.find(
+          (a: any) => (a._id || a.id)?.toString().toLowerCase() === buscaId,
+        );
+
+        if (adminEncontrado) {
+          preencherCampos(adminEncontrado);
+          return;
+        }
+
+        Alert.alert(
+          "Erro",
+          "Não foi possível localizar este usuário no servidor.",
+        );
+      } catch (error) {
+        console.error("--- [DEBUG] Erro de conexão:", error);
+        Alert.alert("Erro", "Falha de conexão com o servidor.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (loading) {
-        return (
-            <View style={[styles.container, { justifyContent: "center" }]}>
-                <ActivityIndicator size="large" color="#2A3A56" />
-            </View>
-        );
+    const preencherCampos = (user: any) => {
+      console.log("--- [DEBUG] Usuário encontrado. Preenchendo campos...");
+      setNome(user.nome_completo || user.usuario || "");
+      setEmail(user.email || "");
+      setTelefone(user.telefone || "");
+      setEndereco(user.endereco || "");
+    };
+
+    carregarDadosParaEdicao();
+  }, [id]);
+
+  // 2. Salvar Alterações
+  const handleSalvar = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("userToken");
+      const currentRole = await SecureStore.getItemAsync("userRole"); // Pegando o mais recente
+
+      if (!token) {
+        Alert.alert("Erro", "Usuário não autenticado");
+        return;
+      }
+
+      // Define o endpoint baseado no cargo logado
+      const url =
+        currentRole === "admin" || currentRole === "superadmin"
+          ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
+          : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
+
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nome_completo: nome,
+          email: email,
+          telefone: telefone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Erro ao atualizar");
+      }
+
+      // 🔥 IMPORTANTE: Atualiza os dados locais para refletir no resto do app imediatamente
+      await SecureStore.setItemAsync("userName", nome);
+      await SecureStore.setItemAsync("userEmail", email);
+
+      Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
+      router.back();
+    } catch (error: any) {
+      Alert.alert("Erro", error.message || "Ocorreu um erro inesperado");
     }
+  };
 
+  if (loading) {
     return (
-        <SafeAreaProvider>
-            <SafeAreaView style={styles.container} edges={["top"]}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                        <Feather name="arrow-left" size={26} color="#2A3A56" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Editar Cadastro</Text>
-                    <View style={{ width: 40 }} />
-                </View>
-
-                <ScrollView contentContainerStyle={styles.scrollContent}>
-                    <View style={styles.card}>
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Nome Completo</Text>
-                            <TextInput style={styles.input} value={nome} onChangeText={setNome} />
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>E-mail</Text>
-                            <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Telefone</Text>
-                            <TextInput style={styles.input} value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" />
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>Endereço</Text>
-                            <TextInput style={[styles.input, styles.textArea]} value={endereco} onChangeText={setEndereco} multiline />
-                        </View>
-
-                        <TouchableOpacity style={styles.btnSave} onPress={handleSalvar} disabled={saving}>
-                            {saving ? <ActivityIndicator color="#2A3A56" /> : <Text style={styles.btnSaveText}>Salvar Alterações</Text>}
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
-            </SafeAreaView>
-        </SafeAreaProvider>
+      <View style={[styles.container, { justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color="#2A3A56" />
+      </View>
     );
+  }
+
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Feather name="arrow-left" size={26} color="#2A3A56" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Editar Cadastro</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.card}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nome Completo</Text>
+              <TextInput
+                style={styles.input}
+                value={nome}
+                onChangeText={setNome}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>E-mail</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Telefone</Text>
+              <TextInput
+                style={styles.input}
+                value={telefone}
+                onChangeText={setTelefone}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Endereço</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={endereco}
+                onChangeText={setEndereco}
+                multiline
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.btnSave}
+              onPress={handleSalvar}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#2A3A56" />
+              ) : (
+                <Text style={styles.btnSaveText}>Salvar Alterações</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#95C159" },
-    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 15 },
-    backButton: { padding: 8, backgroundColor: "rgba(255,255,255,0.3)", borderRadius: 12 },
-    headerTitle: { fontSize: 20, fontWeight: "bold", color: "#2A3A56" },
-    scrollContent: { flexGrow: 1 },
-    card: { flex: 1, backgroundColor: "#FFF", borderTopLeftRadius: 50, borderTopRightRadius: 50, paddingHorizontal: 25, paddingTop: 40, marginTop: 10 },
-    inputGroup: { marginBottom: 18 },
-    label: { fontSize: 13, color: "#666", marginBottom: 6, fontWeight: "600" },
-    input: { backgroundColor: "#F5F5F5", borderRadius: 15, padding: 14, fontSize: 16, color: "#2A3A56", borderWidth: 1, borderColor: "#E0E0E0" },
-    textArea: { height: 90, textAlignVertical: "top" },
-    btnSave: { backgroundColor: "#F4C542", padding: 16, borderRadius: 25, alignItems: "center", marginTop: 30 },
-    btnSaveText: { fontWeight: "bold", color: "#2A3A56", fontSize: 16 },
+  container: { flex: 1, backgroundColor: "#95C159" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  backButton: {
+    padding: 8,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    borderRadius: 12,
+  },
+  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#2A3A56" },
+  scrollContent: { flexGrow: 1 },
+  card: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+    marginTop: 10,
+  },
+  inputGroup: { marginBottom: 18 },
+  label: { fontSize: 13, color: "#666", marginBottom: 6, fontWeight: "600" },
+  input: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 15,
+    padding: 14,
+    fontSize: 16,
+    color: "#2A3A56",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  textArea: { height: 90, textAlignVertical: "top" },
+  btnSave: {
+    backgroundColor: "#F4C542",
+    padding: 16,
+    borderRadius: 25,
+    alignItems: "center",
+    marginTop: 30,
+  },
+  btnSaveText: { fontWeight: "bold", color: "#2A3A56", fontSize: 16 },
 });

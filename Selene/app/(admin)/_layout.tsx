@@ -1,12 +1,12 @@
 import { Tabs } from "expo-router";
 import { View, StyleSheet } from "react-native";
 
-// Importando como componentes React
-import IconHome from "../../assets/images/icone_documento.svg";
-import IconSensors from "../../assets/images/icone_target.svg";
-import IconCentralPie from "../../assets/images/icone_central.svg";
-import IconChartBars from "../../assets/images/icone_grafico_barras.svg";
-import IconProfile from "../../assets/images/icone_usuario.svg";
+import {
+  Feather,
+  MaterialIcons,
+  Ionicons,
+  FontAwesome5,
+} from "@expo/vector-icons";
 
 export default function AdminLayout() {
   return (
@@ -14,90 +14,218 @@ export default function AdminLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+
+        tabBarActiveTintColor: "#8bc34a",
         tabBarInactiveTintColor: "#8E8E8E",
-        tabBarStyle: styles.tabBar,
+
+        // TABBAR TRANSPARENTE
+        tabBarStyle: {
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+
+          height: 90,
+
+          backgroundColor: "transparent",
+
+          borderTopWidth: 0,
+
+          elevation: 0,
+        },
+
+        // FUNDO CUSTOMIZADO COM RECORTE
+        tabBarBackground: () => (
+          <View style={styles.tabBackground}>
+            <View style={styles.notch} />
+          </View>
+        ),
       }}
     >
+      {/* RELATÓRIOS */}
       <Tabs.Screen
-        name="home-admin"
+        name="reports"
         options={{
+          title: "Relatórios",
           tabBarIcon: ({ focused, color }) => (
-            <IconHome 
-              width={26} 
-              height={26} 
-              fill={focused ? "#8bc34a" : color} 
+            <Feather
+              name="file-text"
+              size={26}
+              color={focused ? "#8bc34a" : color}
             />
           ),
         }}
       />
 
+      {/* SENSORS */}
       <Tabs.Screen
         name="sensors"
         options={{
+          title: "Sensors",
           tabBarIcon: ({ focused, color }) => (
-            <IconSensors 
-              width={26} 
-              height={26} 
-              fill={focused ? "#8bc34a" : color} 
+            <MaterialIcons
+              name="signal-cellular-alt"
+              size={26}
+              color={focused ? "#8bc34a" : color}
             />
           ),
         }}
       />
 
+      {/* BOTÃO CENTRAL */}
       <Tabs.Screen
-        name="users"
+        name="home-admin"
         options={{
+          title: "Home",
           tabBarIcon: () => (
             <View style={styles.fabContainer}>
               <View style={styles.fab}>
-                <IconCentralPie width={30} height={30} fill="#fff" />
+                <Ionicons name="pie-chart" size={30} color="#FFFFFF" />
               </View>
             </View>
           ),
         }}
       />
 
-      {/* Repita o padrão para as outras abas... */}
-      
-      <Tabs.Screen name="novo-usuario" options={{ /* ... */ }} />
-      <Tabs.Screen name="profile-admin" options={{ /* ... */ }} />
-      
-      {/* Rotas ocultas */}
-      <Tabs.Screen name="edit-profile" options={{ href: null }} />
+      {/* ESTATÍSTICAS */}
+      <Tabs.Screen
+        name="statistics"
+        options={{
+          title: "Estatísticas",
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name="bar-chart"
+              size={26}
+              color={focused ? "#8bc34a" : color}
+            />
+          ),
+        }}
+      />
+
+      {/* USUÁRIOS */}
+      <Tabs.Screen
+        name="users"
+        options={{
+          title: "Usuários",
+          tabBarIcon: ({ focused, color }) => (
+            <FontAwesome5
+              name="user-alt"
+              size={24}
+              color={focused ? "#8bc34a" : color}
+            />
+          ),
+        }}
+      />
+
+      {/* ROTAS OCULTAS */}
+      <Tabs.Screen
+        name="edit-profile"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="edit-profile-admin"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="edit-profile-register"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="novo-usuario"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="profile-admin"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    position: "absolute",
-    bottom: 0,
-    height: 90,
-    backgroundColor: "#fff",
+  // FUNDO DA TABBAR
+  tabBackground: {
+    flex: 1,
+
+    backgroundColor: "#FFFFFF",
+
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
-    borderTopWidth: 0,
-    elevation: 15,
+
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    paddingHorizontal: 10,
+
+    elevation: 15,
+
+    overflow: "visible",
   },
+
+  // RECORTE CENTRAL
+  notch: {
+    position: "absolute",
+
+    alignSelf: "center",
+
+    top: -38,
+
+    width: 90,
+    height: 90,
+
+    borderRadius: 45,
+
+    backgroundColor: "#FFFFFF",
+  },
+
+  // CONTAINER DO FAB
   fabContainer: {
-    top: -25,
+    top: -30,
+
     justifyContent: "center",
     alignItems: "center",
   },
+
+  // BOTÃO CENTRAL
   fab: {
-    width: 65,
-    height: 65,
-    borderRadius: 33,
-    backgroundColor: "#8bc34a",
+    width: 68,
+    height: 68,
+
+    borderRadius: 999,
+
+    backgroundColor: "#7D7D7D",
+
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 6,
-    borderColor: "#f2f2f7", // Deve ser a cor do background da página
+
+    borderWidth: 5,
+    borderColor: "#FFFFFF",
+
     elevation: 8,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
   },
 });
