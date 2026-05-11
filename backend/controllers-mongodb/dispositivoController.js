@@ -79,10 +79,6 @@ class DispositivoController {
       const { mac_address, nome, tipo, localizacao, planta_id, usuario_id } =
         req.body;
 
-      console.log("📥 BODY:", req.body);
-      console.log("🔑 ADMIN ID:", adminId);
-      console.log("👤 USUARIO_ID:", usuario_id);
-
       if (!mac_address) {
         return res.status(400).json({
           success: false,
@@ -92,8 +88,6 @@ class DispositivoController {
 
       // 🔥 VERIFICA SE O USUÁRIO EXISTE
       const userExiste = await User.findById(usuario_id);
-
-      console.log("🔍 USER EXISTE:", userExiste);
 
       if (!userExiste) {
         return res.status(404).json({
@@ -121,8 +115,6 @@ class DispositivoController {
         online: true,
         ultima_comunicacao: new Date(),
       });
-
-      console.log("✅ DISPOSITIVO CRIADO:", dispositivo);
 
       res.status(201).json({
         success: true,
@@ -293,23 +285,13 @@ class DispositivoController {
 
   static async listarTodos(req, res) {
     try {
-      console.log("==================================");
-      console.log("LISTAR TODOS ADMIN");
-      console.log("==================================");
-
-      console.log("ADMIN:", req.admin?._id);
-
       const dispositivos = await Dispositivo.find();
-
-      console.log("TOTAL DISPOSITIVOS:", dispositivos.length);
 
       res.json({
         success: true,
         data: dispositivos,
       });
     } catch (error) {
-      console.log("ERRO listarTodos:");
-      console.log(error);
 
       res.status(500).json({
         success: false,
