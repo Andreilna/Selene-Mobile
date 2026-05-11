@@ -2,31 +2,46 @@ const express = require("express");
 const router = express.Router();
 
 const DispositivoController = require("../controllers-mongodb/dispositivoController");
+
 const authMiddleware = require("../middleware/auth-mongodb");
+
 const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
-// 👤 USER
-router.get("/", authMiddleware, DispositivoController.listar);
+// ==========================================
+// USER
+// ==========================================
+
+// LISTA DISPOSITIVOS DO USUÁRIO
+router.get("/meus", authMiddleware, DispositivoController.listar);
+
+// BUSCA UM DISPOSITIVO
 router.get("/:id", authMiddleware, DispositivoController.buscar);
 
-// 🔥 ADMIN CRIA
-router.post("/", adminAuthMiddleware, DispositivoController.criar);
-
-// 👤 USER
+// ATUALIZA DISPOSITIVO
 router.put("/:id", authMiddleware, DispositivoController.atualizar);
 
+// ATUALIZA STATUS
 router.patch(
   "/:id/status",
   authMiddleware,
-  DispositivoController.atualizarStatus
+  DispositivoController.atualizarStatus,
 );
 
+// ALTERA ATIVO
 router.put(
   "/:id/ativo",
   authMiddleware,
-  DispositivoController.alterarStatusDispositivo
+  DispositivoController.alterarStatusDispositivo,
 );
 
-router.get("/", authMiddleware, DispositivoController.listar);
+// ==========================================
+// ADMIN
+// ==========================================
+
+// LISTA TODOS OS DISPOSITIVOS
+router.get("/", adminAuthMiddleware, DispositivoController.listarTodos);
+
+// CRIA DISPOSITIVO
+router.post("/", adminAuthMiddleware, DispositivoController.criar);
 
 module.exports = router;

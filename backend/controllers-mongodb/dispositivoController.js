@@ -287,6 +287,36 @@ class DispositivoController {
       });
     }
   }
+  // ==========================================
+  // LISTAR TODOS (ADMIN)
+  // ==========================================
+
+  static async listarTodos(req, res) {
+    try {
+      console.log("==================================");
+      console.log("LISTAR TODOS ADMIN");
+      console.log("==================================");
+
+      console.log("ADMIN:", req.admin?._id);
+
+      const dispositivos = await Dispositivo.find();
+
+      console.log("TOTAL DISPOSITIVOS:", dispositivos.length);
+
+      res.json({
+        success: true,
+        data: dispositivos,
+      });
+    } catch (error) {
+      console.log("ERRO listarTodos:");
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
 }
 
 module.exports = DispositivoController;
