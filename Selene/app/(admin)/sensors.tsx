@@ -194,7 +194,7 @@ export default function AdminSensors() {
       <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.topContainer}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.push("/(admin)/monitoring")}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
 

@@ -174,7 +174,7 @@ export default function AdminHome() {
               title="Controle Sensores"
               subtitle="Medir o controle dos sensores em campo."
               icon={<Feather name="cpu" size={24} color="#FFF" />}
-              onPress={() => router.push("/(admin)/sensors")}
+              onPress={() => router.push("/(admin)/monitoring")}
             />
 
             <MenuButton

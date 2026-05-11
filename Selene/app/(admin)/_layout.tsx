@@ -57,11 +57,11 @@ export default function AdminLayout() {
         }}
       />
 
-      {/* SENSORS */}
+      {/* MONITORAMENTO */}
       <Tabs.Screen
-        name="sensors"
+        name="monitoring"
         options={{
-          title: "Sensors",
+          title: "Monitoramento",
           tabBarIcon: ({ focused, color }) => (
             <MaterialIcons
               name="signal-cellular-alt"
@@ -148,6 +148,20 @@ export default function AdminLayout() {
 
       <Tabs.Screen
         name="profile-admin"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="sensors"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="detalhes-sensor"
         options={{
           href: null,
         }}
