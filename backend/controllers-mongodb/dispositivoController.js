@@ -6,24 +6,32 @@ class DispositivoController {
   static async listar(req, res) {
     try {
       const usuarioId = req.userId;
-      const { incluir_inativos } = req.query; // Parâmetro opcional para incluir dispositivos inativos
+      const { incluir_inativos } = req.query;
+      const isAdmin = req.userRole === "admin" || req.userRole === "master";
 
-      // Por padrão, mostra apenas ativos. Se incluir_inativos=true, mostra todos
-      const filtro = { usuario: usuarioId };
+      let filtro = {};
+
+      if (isAdmin) {
+        filtro = {};
+      } else {
+        filtro = { usuario: usuarioId };
+      }
+
+      // Mantém a lógica de inativos
       if (incluir_inativos !== "true") {
         filtro.ativo = true;
       }
 
       const dispositivos = await Dispositivo.find(filtro)
         .populate("planta", "especie status")
+        .populate("usuario", "nome email") // Opcional: ver quem é o dono
         .sort({ nome: 1 });
 
       res.json({
         success: true,
         data: dispositivos,
         total: dispositivos.length,
-        filtro_aplicado:
-          incluir_inativos === "true" ? "todos" : "apenas_ativos",
+        modo_visualizacao: isAdmin ? "visao_geral_admin" : "visao_usuario",
       });
     } catch (error) {
       console.error("Erro ao listar dispositivos:", error);
