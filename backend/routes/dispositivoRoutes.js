@@ -27,4 +27,6 @@ router.put(
   DispositivoController.alterarStatusDispositivo
 );
 
+router.get("/", authMiddleware, DispositivoController.listar);
+
 module.exports = router;
