@@ -292,10 +292,36 @@ class DispositivoController {
         data: dispositivos,
       });
     } catch (error) {
-
       res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // ==========================================
+  // DELETAR DISPOSITIVO (ADMIN)
+  // ==========================================
+  static async deletar(req, res) {
+    try {
+      const { id } = req.params;
+
+      const dispositivo = await Dispositivo.findByIdAndDelete(id);
+
+      if (!dispositivo) {
+        return res.status(404).json({
+          erro: "Dispositivo não encontrado",
+        });
+      }
+
+      return res.status(200).json({
+        mensagem: "Dispositivo removido com sucesso",
+      });
+    } catch (error) {
+      console.log(error);
+
+      return res.status(500).json({
+        erro: "Erro ao remover dispositivo",
       });
     }
   }

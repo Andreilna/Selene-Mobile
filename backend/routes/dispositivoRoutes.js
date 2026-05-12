@@ -44,4 +44,7 @@ router.get("/", adminAuthMiddleware, DispositivoController.listarTodos);
 // CRIA DISPOSITIVO
 router.post("/", adminAuthMiddleware, DispositivoController.criar);
 
-module.exports = router;
+// DELETA DISPOSITIVO
+router.delete("/:id", adminAuthMiddleware, DispositivoController.deletar);
+
+module.exports = router;  
