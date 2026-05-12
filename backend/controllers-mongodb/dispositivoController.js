@@ -1,6 +1,7 @@
 const Dispositivo = require("../models-mongodb/Dispositivo");
 const Planta = require("../models-mongodb/Planta");
 const User = require("../models-mongodb/User");
+const Leitura = require("../models-mongodb/Leitura");
 
 class DispositivoController {
   static async listar(req, res) {
@@ -325,6 +326,29 @@ class DispositivoController {
       });
     }
   }
+
+  // ==========================================
+  // BUSCAR LEITURAS DO DISPOSITIVO (ADMIN)
+  // ==========================================
+  static async buscarLeituras(req, res) {
+  try {
+    const { id } = req.params;
+
+    const leituras = await Leitura.find({
+      dispositivo: id,
+    })
+      .sort({ timestamp: -1 })
+      .limit(20);
+
+    return res.status(200).json(leituras);
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      erro: "Erro ao buscar leituras",
+    });
+  }
+}
 }
 
 module.exports = DispositivoController;

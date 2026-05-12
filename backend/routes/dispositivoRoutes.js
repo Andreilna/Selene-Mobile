@@ -44,6 +44,13 @@ router.get("/", adminAuthMiddleware, DispositivoController.listarTodos);
 // CRIA DISPOSITIVO
 router.post("/", adminAuthMiddleware, DispositivoController.criar);
 
+// BUSCA LEITURAS DO DISPOSITIVO
+router.get(
+  "/:id/leituras",
+  adminAuthMiddleware,
+  DispositivoController.buscarLeituras
+);
+
 // DELETA DISPOSITIVO
 router.delete("/:id", adminAuthMiddleware, DispositivoController.deletar);
 
