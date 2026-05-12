@@ -32,7 +32,7 @@ type Sensor = {
 };
 
 export default function MonitoramentoAdmin() {
-  const [iniciais, setIniciais] = useState("AD");
+  const [iniciais, setIniciais] = useState("US");
   const [sensores, setSensores] = useState<Sensor[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -49,9 +49,15 @@ export default function MonitoramentoAdmin() {
     const bootstrap = async () => {
       try {
         const [adminToken, adminName] = await Promise.all([
-          SecureStore.getItemAsync("adminToken"),
-          SecureStore.getItemAsync("adminName"),
+          SecureStore.getItemAsync("userToken"),
+          SecureStore.getItemAsync("userName"),
         ]);
+
+        // TOKEN INVÁLIDO OU AUSENTE
+        if (!adminToken) {
+          router.replace("/(auth)");
+          return;
+        }
 
         setToken(adminToken);
 
@@ -67,6 +73,8 @@ export default function MonitoramentoAdmin() {
         }
       } catch (e) {
         console.log(e);
+
+        Alert.alert("Erro", "Falha ao carregar dados do usuário.");
       }
     };
 
@@ -102,8 +110,20 @@ export default function MonitoramentoAdmin() {
 
       const json = await res.json();
 
+      // TOKEN EXPIRADO
+      if (res.status === 401) {
+        Alert.alert("Sessão expirada", "Faça login novamente.");
+
+        await SecureStore.deleteItemAsync("userToken");
+
+        router.replace("/(auth)");
+
+        return;
+      }
+
       if (!res.ok) {
         Alert.alert("Erro", json?.message || "Erro ao buscar sensores");
+
         return;
       }
 
@@ -123,6 +143,8 @@ export default function MonitoramentoAdmin() {
 
       setSensores(formatados);
     } catch (err) {
+      console.log(err);
+
       Alert.alert("Erro", "Não foi possível conectar ao servidor.");
     } finally {
       setLoading(false);
@@ -235,6 +257,7 @@ export default function MonitoramentoAdmin() {
               >
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
+
               <View
                 style={{
                   flexDirection: "row",
@@ -243,7 +266,6 @@ export default function MonitoramentoAdmin() {
                   padding: 8,
                 }}
               >
-                {/* BOTÃO REFRESH */}
                 <TouchableOpacity onPress={() => fetchSensores(true)}>
                   <Feather name="refresh-cw" size={22} color="#2A3A56" />
                 </TouchableOpacity>
@@ -263,8 +285,11 @@ export default function MonitoramentoAdmin() {
             }}
           >
             <Indicator icon="thermometer" value="24" unit="°C" />
+
             <Indicator icon="sun-wireless" value="16" unit="%" />
+
             <Indicator icon="cloud-outline" value="10" unit="%" />
+
             <Indicator icon="water-percent" value="60" unit="%" />
           </ScrollView>
 
@@ -277,7 +302,9 @@ export default function MonitoramentoAdmin() {
           ) : (
             <FlatList
               style={{ flex: 1 }}
-              contentContainerStyle={{ paddingBottom: 120 }}
+              contentContainerStyle={{
+                paddingBottom: 120,
+              }}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               data={sensores}
@@ -306,6 +333,7 @@ export default function MonitoramentoAdmin() {
                   onPress={() => router.push("/(admin)/sensors")}
                 >
                   <Feather name="plus" size={20} color="#2A3A56" />
+
                   <Text style={styles.addBtnText}>Novo Sensor</Text>
                 </TouchableOpacity>
               }
@@ -318,7 +346,11 @@ export default function MonitoramentoAdmin() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159",
+  },
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -327,15 +359,32 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 14,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
+
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8,
+  },
+
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -344,8 +393,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: { flex: 1, marginLeft: 20 },
+
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
+
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+  },
 
   headerTitle: {
     fontSize: 20,
@@ -460,6 +518,7 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
     fontWeight: "600",
   },
+
   list: {
     flex: 1,
   },
