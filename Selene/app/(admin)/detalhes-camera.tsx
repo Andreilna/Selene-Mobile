@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  RefreshControl,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -21,6 +22,7 @@ export default function DetalhesCamera() {
   const [token, setToken] = useState<string | null>(null);
   const [leituras, setLeituras] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const buscarLeituras = useCallback(
     async (deviceId: string, adminToken: string) => {
@@ -44,11 +46,25 @@ export default function DetalhesCamera() {
       } catch (error) {
         Alert.alert("Erro", "Falha ao carregar capturas");
       } finally {
-        setTimeout(() => setLoading(false), 500);
+        // Pequeno delay para evitar que o loading pisque rápido demais
+        setTimeout(() => {
+          setLoading(false);
+          setRefreshing(false);
+        }, 500);
       }
     },
     [],
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const deviceId = Array.isArray(id) ? id[0] : id;
+    if (deviceId && token) {
+      await buscarLeituras(deviceId, token);
+    } else {
+      setRefreshing(false);
+    }
+  }, [id, token, buscarLeituras]);
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -76,7 +92,7 @@ export default function DetalhesCamera() {
       }
     };
     bootstrap();
-  }, [id]);
+  }, [id, buscarLeituras]);
 
   const handleExcluir = () => {
     Alert.alert("Excluir Câmera", `Deseja realmente remover a ${nome}?`, [
@@ -167,6 +183,14 @@ export default function DetalhesCamera() {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 150 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#95C159"]}
+                tintColor="#95C159"
+              />
+            }
           >
             <Text style={styles.panelTitle}>HISTÓRICO DE CAPTURAS</Text>
 
@@ -191,7 +215,6 @@ export default function DetalhesCamera() {
                     <Image
                       source={{ uri: uriImagem }}
                       style={styles.capturedImage}
-                      onError={(error) => {}}
                     />
                     <View style={styles.imageFooter}>
                       <Feather name="calendar" size={14} color="#2A3A56" />
@@ -296,7 +319,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   deleteBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
-
   subwelcomeText: {
     fontSize: 14,
     color: "#2A3A56",

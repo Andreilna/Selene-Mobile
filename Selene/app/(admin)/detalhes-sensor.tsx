@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -20,7 +21,7 @@ export default function DetalhesSensor() {
   const [token, setToken] = useState<string | null>(null);
   const [leituras, setLeituras] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const buscarLeituras = useCallback(
     async (sensorId: string, adminToken: string) => {
@@ -39,11 +40,25 @@ export default function DetalhesSensor() {
       } catch (error) {
         Alert.alert("Erro", "Falha ao carregar leituras");
       } finally {
-        setTimeout(() => setLoading(false), 1000);
+        // Pequeno timeout para garantir que o usuário veja a transição
+        setTimeout(() => {
+          setLoading(false);
+          setRefreshing(false);
+        }, 800);
       }
     },
     [],
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const sensorId = Array.isArray(id) ? id[0] : id;
+    if (sensorId && token) {
+      await buscarLeituras(sensorId, token);
+    } else {
+      setRefreshing(false);
+    }
+  }, [id, token, buscarLeituras]);
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -75,7 +90,7 @@ export default function DetalhesSensor() {
       }
     };
     bootstrap();
-  }, [id]);
+  }, [id, buscarLeituras]);
 
   const handleExcluir = () => {
     Alert.alert("Excluir Sensor", `Deseja realmente remover o ${nome}?`, [
@@ -142,9 +157,7 @@ export default function DetalhesSensor() {
               <Text style={styles.subwelcomeText}>
                 {ultimaLeitura?.tipo_leitura === "SENSORES"
                   ? "ESP32-SENSOR"
-                  : ultimaLeitura?.tipo_leitura === "CAMERA"
-                    ? "ESP32-CAM"
-                    : "--"}
+                  : "ESP32-CAM"}
               </Text>
             </View>
             <TouchableOpacity
@@ -160,6 +173,14 @@ export default function DetalhesSensor() {
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 150 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#95C159"]}
+                tintColor="#95C159"
+              />
+            }
           >
             <Text style={styles.panelTitle}>PAINEL DE CONTROLE</Text>
 
@@ -232,11 +253,7 @@ export default function DetalhesSensor() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#95C159",
-  },
-
+  container: { flex: 1, backgroundColor: "#95C159" },
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -245,32 +262,14 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
   },
-
-  welcomeText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2A3A56",
-  },
-
-  subwelcomeText: {
-    fontSize: 14,
-    color: "#2A3A56",
-    opacity: 0.8,
-  },
-
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-
+  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
+  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
   avatarCircle: {
     width: 45,
     height: 45,
@@ -279,41 +278,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
-  avatarText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2A3A56",
-  },
-
-  textContainer: {
-    flex: 1,
-    marginLeft: 20,
-  },
-
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#2A3A56",
-  },
-
+  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  textContainer: { flex: 1, marginLeft: 20 },
   content: {
     flex: 1,
     backgroundColor: "#FFF",
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
     paddingHorizontal: 20,
-    paddingTop: 30,
-  },
-
-  scrollContent: { paddingBottom: 40 },
-  whitePanel: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    marginTop: 20,
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
     paddingTop: 30,
   },
   panelTitle: {
@@ -346,12 +318,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   alertText: { fontSize: 12, color: "#2A3A56", flex: 1 },
-  alertTime: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#2A3A56",
-    marginLeft: 10,
-  },
   progressBarBg: {
     height: 35,
     backgroundColor: "#F0F0F0",
@@ -376,8 +342,4 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   deleteBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
-  indicatorsList: {
-    maxHeight: 50,
-    marginBottom: 25,
-  },
 });
