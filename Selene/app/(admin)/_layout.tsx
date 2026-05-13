@@ -166,6 +166,13 @@ export default function AdminLayout() {
           href: null,
         }}
       />
+
+      <Tabs.Screen
+        name="detalhes-camera"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

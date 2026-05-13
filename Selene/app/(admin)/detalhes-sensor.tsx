@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,59 +7,43 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { LineChart } from "react-native-chart-kit"; // Instale: npx expo install react-native-chart-kit react-native-svg
 import * as SecureStore from "expo-secure-store";
 
 export default function DetalhesSensor() {
   const router = useRouter();
-  const { id, nome, local } = useLocalSearchParams();
+  const { id, nome } = useLocalSearchParams();
   const [iniciais, setIniciais] = useState("US");
   const [token, setToken] = useState<string | null>(null);
   const [leituras, setLeituras] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const handleGoProfile = () => {
-    router.push("/(admin)/profile-admin");
-  };
-
-  const buscarLeituras = async (sensorId: string, adminToken: string) => {
-    try {
-      console.log("BUSCANDO SENSOR:", sensorId);
-
-      const response = await fetch(
-        `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}/leituras`,
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-            "Content-Type": "application/json",
+  const buscarLeituras = useCallback(
+    async (sensorId: string, adminToken: string) => {
+      try {
+        const response = await fetch(
+          `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}/leituras`,
+          {
+            headers: {
+              Authorization: `Bearer ${adminToken}`,
+              "Content-Type": "application/json",
+            },
           },
-        },
-      );
-
-      console.log("STATUS:", response.status);
-
-      const data = await response.json();
-
-      console.log("DADOS SENSOR:", JSON.stringify(data, null, 2));
-
-      if (!response.ok) {
-        throw new Error(data.erro || "Erro ao buscar leituras");
+        );
+        const data = await response.json();
+        if (response.ok) setLeituras(data);
+      } catch (error) {
+        Alert.alert("Erro", "Falha ao carregar leituras");
+      } finally {
+        setTimeout(() => setLoading(false), 1000);
       }
-
-      setLeituras(data);
-    } catch (error) {
-      console.log("ERRO LEITURAS:", error);
-
-      Alert.alert("Erro", "Falha ao carregar leituras");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [],
+  );
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -69,66 +53,40 @@ export default function DetalhesSensor() {
           SecureStore.getItemAsync("userName"),
         ]);
 
-        // TOKEN INVÁLIDO
         if (!adminToken) {
           router.replace("/(auth)");
           return;
         }
 
         setToken(adminToken);
-
-        // PEGA ID
         const sensorId = Array.isArray(id) ? id[0] : id;
+        if (sensorId) await buscarLeituras(sensorId, adminToken);
 
-        // BUSCA LEITURAS
-        if (sensorId) {
-          await buscarLeituras(sensorId, adminToken);
-        }
-
-        // INICIAIS
         if (adminName) {
           const partes = adminName.trim().split(" ");
-
-          const init =
+          setIniciais(
             partes.length > 1
               ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
-
-          setIniciais(init);
+              : partes[0][0].toUpperCase(),
+          );
         }
       } catch (e) {
-        console.log(e);
-
-        Alert.alert("Erro", "Falha ao carregar dados do usuário.");
+        setLoading(false);
       }
     };
-
     bootstrap();
-  }, []);
+  }, [id]);
 
   const handleExcluir = () => {
     Alert.alert("Excluir Sensor", `Deseja realmente remover o ${nome}?`, [
-      {
-        text: "Cancelar",
-        style: "cancel",
-      },
+      { text: "Cancelar", style: "cancel" },
       {
         text: "Excluir",
         style: "destructive",
         onPress: async () => {
           try {
-            // PEGA O ID
             const sensorId = Array.isArray(id) ? id[0] : id;
-
-            // VALIDA TOKEN
-            if (!token) {
-              Alert.alert("Erro", "Sessão expirada. Faça login novamente.");
-
-              router.replace("/(auth)");
-              return;
-            }
-
-            // REQUISIÇÃO DELETE
+            if (!token) return;
             const response = await fetch(
               `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}`,
               {
@@ -139,44 +97,39 @@ export default function DetalhesSensor() {
                 },
               },
             );
-
-            // CONVERTE RESPOSTA
-            const data = await response.json();
-
-            // ERRO
-            if (!response.ok) {
-              throw new Error(data.erro || "Erro ao excluir dispositivo");
-            }
-
-            // SUCESSO
-            Alert.alert("Sucesso", "Sensor removido com sucesso");
-
-            // VOLTA PRA LISTA
+            if (!response.ok) throw new Error("Erro ao excluir");
+            Alert.alert("Sucesso", "Sensor removido");
             router.replace("/(admin)/monitoring");
           } catch (error: any) {
-            console.log("ERRO AO EXCLUIR:", error);
-
-            Alert.alert(
-              "Erro",
-              error.message || "Não foi possível excluir o sensor",
-            );
+            Alert.alert("Erro", error.message);
           }
         },
       },
     ]);
   };
 
-  const ultimaLeitura = leituras.find((l) => l.tipo_leitura === "SENSORES");
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#2A3A56" />
+      </View>
+    );
+  }
 
-  const leiturasTemperatura = leituras
-    .filter((l) => l.tipo_leitura === "SENSORES")
-    .slice(0, 6)
-    .reverse();
+  const ultimaLeitura = leituras
+    .filter((l) => l.tipo_leitura === "SENSORES" && l.timestamp)
+    .sort((a, b) => {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    })[0];
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity
@@ -186,138 +139,80 @@ export default function DetalhesSensor() {
             </TouchableOpacity>
             <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>{nome || "Sensor"}</Text>
+              <Text style={styles.subwelcomeText}>
+                {ultimaLeitura?.tipo_leitura === "SENSORES"
+                  ? "ESP32-SENSOR"
+                  : ultimaLeitura?.tipo_leitura === "CAMERA"
+                    ? "ESP32-CAM"
+                    : "--"}
+              </Text>
             </View>
-            <View style={styles.headerIcons}>
-              <TouchableOpacity
-                style={styles.avatarCircle}
-                onPress={handleGoProfile}
-              >
-                <Text style={styles.avatarText}>{iniciais}</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.avatarCircle}
+              onPress={() => router.push("/(admin)/profile-admin")}
+            >
+              <Text style={styles.avatarText}>{iniciais}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.content}>
           <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              paddingBottom: 150,
-            }}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
           >
-            {loading && (
-              <ActivityIndicator
-                size="large"
-                color="#2A3A56"
-                style={{ marginBottom: 20 }}
-              />
-            )}
             <Text style={styles.panelTitle}>PAINEL DE CONTROLE</Text>
 
-            {/* ALERTAS */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
                 <Feather name="activity" size={18} color="#2A3A56" />
-
                 <Text style={styles.sectionTitle}>Dados do Sensor</Text>
               </View>
 
               <View style={styles.alertRow}>
                 <Text style={styles.alertText}>
-                  Temperatura: {ultimaLeitura?.dados?.temperatura ?? "--"} °C
+                  🌡 Temperatura:{" "}
+                  {ultimaLeitura?.dados?.temperatura != null
+                    ? Number(ultimaLeitura.dados.temperatura).toFixed(0)
+                    : "--"}{" "}
+                  °C
                 </Text>
               </View>
 
               <View style={styles.alertRow}>
                 <Text style={styles.alertText}>
-                  Umidade: {ultimaLeitura?.dados?.umidade ?? "--"} %
+                  💧 Umidade:{" "}
+                  {ultimaLeitura?.dados?.umidade != null
+                    ? Number(ultimaLeitura.dados.umidade).toFixed(0)
+                    : "--"}{" "}
+                  %
                 </Text>
               </View>
 
               <View style={styles.alertRow}>
                 <Text style={styles.alertText}>
-                  Luminosidade: {ultimaLeitura?.dados?.luminosidade ?? "--"}
-                </Text>
-              </View>
-
-              <View style={styles.alertRow}>
-                <Text style={styles.alertText}>
-                  Nível Água: {ultimaLeitura?.dados?.nivel_agua ?? "--"}
+                  ☀️ Luminosidade:{" "}
+                  {ultimaLeitura?.dados?.luminosidade != null
+                    ? Number(ultimaLeitura.dados.luminosidade).toFixed(0)
+                    : "--"}
                 </Text>
               </View>
             </View>
 
-            {/* GRÁFICO (Histórico) */}
-            {/* LEITURAS DA CÂMERA */}
-            <View style={styles.sectionCard}>
-              <View style={styles.sectionHeader}>
-                <MaterialCommunityIcons
-                  name="camera"
-                  size={18}
-                  color="#2A3A56"
-                />
-
-                <Text style={styles.sectionTitle}>Capturas da Câmera</Text>
-              </View>
-
-              {loading ? (
-                <ActivityIndicator size="large" color="#2A3A56" />
-              ) : leituras.length === 0 ? (
-                <Text>Nenhuma captura encontrada</Text>
-              ) : (
-                leituras.slice(0, 5).map((item) => {
-                  const imagem = `https://selene-mobile.onrender.com${item.dados?.foto_path}`;
-
-                  return (
-                    <View
-                      key={item._id}
-                      style={{
-                        marginBottom: 15,
-                        backgroundColor: "#FFF",
-                        borderRadius: 15,
-                        padding: 10,
-                      }}
-                    >
-                      <Image
-                        source={{ uri: imagem }}
-                        style={{
-                          width: "100%",
-                          height: 220,
-                          borderRadius: 15,
-                        }}
-                        resizeMode="cover"
-                      />
-
-                      <Text
-                        style={{
-                          marginTop: 8,
-                          color: "#2A3A56",
-                          fontSize: 12,
-                        }}
-                      >
-                        {new Date(item.timestamp).toLocaleString("pt-BR")}
-                      </Text>
-                    </View>
-                  );
-                })
-              )}
-            </View>
-
-            {/* PROGRESSO */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
                 <Feather name="clock" size={18} color="#2A3A56" />
-
                 <Text style={styles.sectionTitle}>Última Atualização</Text>
               </View>
-
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: "100%" }]}>
                   <Text style={styles.progressText}>
                     {ultimaLeitura?.timestamp
                       ? new Date(ultimaLeitura.timestamp).toLocaleString(
                           "pt-BR",
+                          {
+                            timeZone: "America/Sao_Paulo",
+                          },
                         )
                       : "--"}
                   </Text>
@@ -325,7 +220,6 @@ export default function DetalhesSensor() {
               </View>
             </View>
 
-            {/* BOTÃO EXCLUIR */}
             <TouchableOpacity style={styles.deleteBtn} onPress={handleExcluir}>
               <Feather name="trash-2" size={20} color="#FFF" />
               <Text style={styles.deleteBtnText}>Excluir Sensor</Text>
@@ -356,7 +250,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 10,
   },
 
   welcomeText: {
@@ -428,6 +322,7 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
     marginBottom: 20,
     letterSpacing: 1,
+    textAlign: "center",
   },
   sectionCard: {
     backgroundColor: "#E8F9EE",
