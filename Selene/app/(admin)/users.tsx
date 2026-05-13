@@ -1,5 +1,3 @@
-// Tela de Visualização dos Usuários
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -20,9 +18,6 @@ import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 
-// ==========================
-// TYPES
-// ==========================
 interface Usuario {
   id: string;
   nome: string;
@@ -33,14 +28,10 @@ interface Usuario {
 
 export default function ControleAcessoScreen() {
   const router = useRouter();
-
-  // NOVO
   const insets = useSafeAreaInsets();
-
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [admins, setAdmins] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [token, setToken] = useState<string | null>(null);
   const [iniciais, setIniciais] = useState("US");
   const [filterActive, setFilterActive] = useState("Dia");
@@ -69,7 +60,6 @@ export default function ControleAcessoScreen() {
     );
   };
 
-  // ================= USER HEADER =================
   useEffect(() => {
     const loadUser = async () => {
       const nome = await SecureStore.getItemAsync("userName");
@@ -89,7 +79,6 @@ export default function ControleAcessoScreen() {
     loadUser();
   }, []);
 
-  // ================= TOKEN =================
   useEffect(() => {
     const loadToken = async () => {
       const t = await SecureStore.getItemAsync("userToken");
@@ -99,7 +88,6 @@ export default function ControleAcessoScreen() {
     loadToken();
   }, []);
 
-  // ================= NORMALIZER =================
   const normalizeList = (res: any) => {
     const data = res?.data;
 
@@ -110,7 +98,6 @@ export default function ControleAcessoScreen() {
     return [];
   };
 
-  // ================= FETCH =================
   const fetchDados = async () => {
     try {
       setLoading(true);
@@ -155,7 +142,6 @@ export default function ControleAcessoScreen() {
       setUsuarios(usersFormatted);
       setAdmins(adminsFormatted);
     } catch (err) {
-      console.log(err);
     } finally {
       setLoading(false);
     }

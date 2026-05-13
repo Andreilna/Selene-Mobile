@@ -18,10 +18,6 @@ import * as SecureStore from "expo-secure-store";
 export default function EditProfileScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-
-  // ==========================================
-  // STATES
-  // ==========================================
   const [role, setRole] = useState("user");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -30,12 +26,8 @@ export default function EditProfileScreen() {
   const [salvarLogin, setSalvarLogin] = useState(true);
   const [idExibicao, setIdExibicao] = useState("00000000");
   const [iniciais, setIniciais] = useState("US");
-
   const isAdmin = role === "admin" || role === "superadmin";
 
-  // ==========================================
-  // LOAD ROLE
-  // ==========================================
   useEffect(() => {
     const init = async () => {
       const roleStorage = await SecureStore.getItemAsync("userRole");
@@ -45,9 +37,6 @@ export default function EditProfileScreen() {
     init();
   }, []);
 
-  // ==========================================
-  // LOAD DADOS (LOCAL + BACKEND)
-  // ==========================================
   useEffect(() => {
     if (!role) return;
 
@@ -59,7 +48,6 @@ export default function EditProfileScreen() {
           ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
           : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
 
-        // 🔥 BACKEND
         if (token) {
           const res = await fetch(endpoint, {
             headers: {
@@ -94,7 +82,6 @@ export default function EditProfileScreen() {
           }
         }
 
-        // 🔁 fallback SecureStore
         const nomeSalvo = await SecureStore.getItemAsync("userName");
         const emailSalvo = await SecureStore.getItemAsync("userEmail");
         const idSalvo = await SecureStore.getItemAsync("userId");
@@ -120,9 +107,6 @@ export default function EditProfileScreen() {
     carregarDados();
   }, [role]);
 
-  // ==========================================
-  // SALVAR (BACKEND)
-  // ==========================================
   const handleSalvar = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
@@ -233,7 +217,7 @@ export default function EditProfileScreen() {
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
-              editable={isAdmin} // 🔥 só admin edita
+              editable={isAdmin}
             />
 
             <View style={styles.switchRow}>
@@ -256,7 +240,6 @@ export default function EditProfileScreen() {
   );
 }
 
-// ⚠️ SEU STYLE ORIGINAL (INTACTO)
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#95C159" },
   topContainer: {

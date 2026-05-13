@@ -18,7 +18,6 @@ export default function AdminLayout() {
         tabBarActiveTintColor: "#8bc34a",
         tabBarInactiveTintColor: "#8E8E8E",
 
-        // TABBAR TRANSPARENTE
         tabBarStyle: {
           position: "absolute",
           bottom: 0,
@@ -34,7 +33,6 @@ export default function AdminLayout() {
           elevation: 0,
         },
 
-        // FUNDO CUSTOMIZADO COM RECORTE
         tabBarBackground: () => (
           <View style={styles.tabBackground}>
             <View style={styles.notch} />
@@ -178,7 +176,6 @@ export default function AdminLayout() {
 }
 
 const styles = StyleSheet.create({
-  // FUNDO DA TABBAR
   tabBackground: {
     flex: 1,
 
@@ -200,7 +197,6 @@ const styles = StyleSheet.create({
     overflow: "visible",
   },
 
-  // RECORTE CENTRAL
   notch: {
     position: "absolute",
 
@@ -216,7 +212,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
-  // CONTAINER DO FAB
   fabContainer: {
     top: -30,
 
@@ -224,7 +219,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // BOTÃO CENTRAL
   fab: {
     width: 68,
     height: 68,

@@ -11,9 +11,6 @@ import { router } from "expo-router";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 
-/* =======================
-    TYPES & MOCK DATA
-======================= */
 type Atualizacao = {
   id: string;
   titulo: string;
@@ -222,7 +219,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   tabActive: {
-    backgroundColor: "#00D191", // Cor verde vibrante do botão selecionado
+    backgroundColor: "#00D191",
   },
   tabText: { color: "#2A3A56", fontWeight: "500" },
   tabTextActive: { color: "#FFF", fontWeight: "bold" },

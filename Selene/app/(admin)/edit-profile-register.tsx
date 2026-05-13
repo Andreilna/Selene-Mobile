@@ -50,19 +50,12 @@ export default function PerfilUsuarioScreen() {
         const token = await SecureStore.getItemAsync("userToken");
         const buscaId = id.toString().replace(/"/g, '').trim();
 
-        // --- TENTATIVA 1: Rota de Usuário Comum ---
         let response = await fetch(`https://selene-mobile.onrender.com/api/v1/users/${buscaId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         let json = await response.json();
 
-        // Se a rota de usuário falhar (404), tenta a rota de Admin
         if (!response.ok || json.message === "Rota não encontrada") {
-          console.log(`Tentando fallback para rota de admin para o ID: ${buscaId}`);
-          
-          // --- TENTATIVA 2: Rota de Admin (ou listagem de admin) ---
-          // Como a sua API parece não ter um GET direto de admin por ID, 
-          // vamos buscar na listagem e filtrar (conforme seu código original fazia)
           const resAdmin = await fetch(`https://selene-mobile.onrender.com/api/v1/admin/listar`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -77,7 +70,6 @@ export default function PerfilUsuarioScreen() {
              Alert.alert("Erro", "Perfil não encontrado em nenhuma das rotas.");
           }
         } else {
-          // Se a primeira tentativa funcionou
           setUserData(json.data || json.usuario || json);
         }
 
@@ -90,7 +82,6 @@ export default function PerfilUsuarioScreen() {
     buscarDadosUsuario();
   }, [id]);
 
-  // Mapeamento dos campos baseado no que costuma vir das APIs de vocês
   const nome = userData?.nome_completo || userData?.nome || userData?.usuario || "Não informado";
   const email = userData?.email || "Não informado";
   const telefone = userData?.telefone || "N/A";

@@ -46,7 +46,6 @@ export default function DetalhesCamera() {
       } catch (error) {
         Alert.alert("Erro", "Falha ao carregar capturas");
       } finally {
-        // Pequeno delay para evitar que o loading pisque rápido demais
         setTimeout(() => {
           setLoading(false);
           setRefreshing(false);

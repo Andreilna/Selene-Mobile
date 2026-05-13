@@ -40,7 +40,6 @@ export default function DetalhesSensor() {
       } catch (error) {
         Alert.alert("Erro", "Falha ao carregar leituras");
       } finally {
-        // Pequeno timeout para garantir que o usuário veja a transição
         setTimeout(() => {
           setLoading(false);
           setRefreshing(false);

@@ -1,5 +1,3 @@
-// Tela de criação dos Sensores
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -17,9 +15,6 @@ import { router } from "expo-router";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import * as SecureStore from "expo-secure-store";
 
-/* =======================
-   TYPES
-======================= */
 type Usuario = {
   _id: string;
   nome: string;
@@ -49,7 +44,6 @@ export default function AdminSensors() {
     router.push("/(admin)/profile-admin");
   };
 
-  // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
@@ -70,9 +64,6 @@ export default function AdminSensors() {
     carregarDadosUsuario();
   }, []);
 
-  /* =======================
-     CARREGAR TOKEN
-  ======================= */
   useEffect(() => {
     const loadToken = async () => {
       const t = await SecureStore.getItemAsync("userToken");
@@ -82,9 +73,6 @@ export default function AdminSensors() {
     loadToken();
   }, []);
 
-  /* =======================
-     BUSCAR USUÁRIOS
-  ======================= */
   const fetchUsuarios = async () => {
     try {
       setLoadingUsers(true);
@@ -130,18 +118,12 @@ export default function AdminSensors() {
     }
   };
 
-  /* =======================
-     CHAMAR QUANDO TIVER TOKEN
-  ======================= */
   useEffect(() => {
     if (token) {
       fetchUsuarios();
     }
   }, [token]);
 
-  /* =======================
-     CRIAR DISPOSITIVO
-  ======================= */
   const criarDispositivo = async () => {
     if (!nome || !mac || !usuarioId) {
       Alert.alert("Erro", "Preencha todos os campos");

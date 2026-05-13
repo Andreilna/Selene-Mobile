@@ -1,5 +1,3 @@
-// Página home do Admin
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -23,7 +21,6 @@ export default function AdminHome() {
   const [loading, setLoading] = useState(true);
   const [nomeUsuario, setNomeUsuario] = useState("Usuário");
 
-  // ✅ ADICIONADO
   const [stats, setStats] = useState({
     usuarios_total: 0,
     sensores_operantes: 0,
@@ -31,9 +28,6 @@ export default function AdminHome() {
     plantas_ativas: 0,
   });
 
-  // ==========================================
-  // LÓGICA DE CARREGAMENTO (STORAGE/API)
-  // ==========================================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
@@ -60,13 +54,11 @@ export default function AdminHome() {
     carregarDadosUsuario();
   }, []);
 
-  // ✅ ADICIONADO (BUSCA STATS)
   useEffect(() => {
     const carregarStats = async () => {
       try {
         const token = await SecureStore.getItemAsync("userToken");
 
-        // 🔥 ADICIONADO: evita request com token vazio
         if (!token) {
           return;
         }
@@ -203,10 +195,8 @@ export default function AdminHome() {
 }
 
 const styles = StyleSheet.create({
-  // ================= HEADER =================
   container: { flex: 1, backgroundColor: "#95C159" },
 
-  // Header Superior
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -246,7 +236,6 @@ const styles = StyleSheet.create({
 
   avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
 
-  // Painel Branco Arredondado
   content: {
     flex: 1,
     backgroundColor: "#fff",
@@ -290,7 +279,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
-  // ================= STATS =================
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -298,7 +286,7 @@ const styles = StyleSheet.create({
 
   statItem: {
     flex: 1,
-    alignItems: "center", // 👈 CENTRALIZA TUDO
+    alignItems: "center", 
   },
 
   statHeader: {
@@ -332,7 +320,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
 
-  // ================= CARD / MENU =================
   card: {
     backgroundColor: "#FFF",
     flexDirection: "row",
@@ -341,9 +328,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     alignItems: "center",
 
-    // Sombra
-    elevation: 3, // Android
-    shadowColor: "#000", // iOS
+    elevation: 3,
+    shadowColor: "#000", 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

@@ -1,5 +1,3 @@
-// Criação de um novo Usuário
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -25,7 +23,6 @@ export default function NovoUsuario() {
   const [iniciais, setIniciais] = useState("US");
   const [loading, setLoading] = useState(false);
 
-  // ================= USER =================
   useEffect(() => {
     const carregarDadosUsuario = async () => {
       try {
@@ -51,7 +48,6 @@ export default function NovoUsuario() {
     router.push("/(admin)/profile-admin");
   };
 
-  // ================= CREATE USER =================
   const handleSubmit = async () => {
     if (!nome || !email || !senha) {
       Alert.alert("Erro", "Preencha os campos obrigatórios");
@@ -68,7 +64,6 @@ export default function NovoUsuario() {
 
       const token = await SecureStore.getItemAsync("userToken");
 
-      // 🔥 DECIDE O ENDPOINT AQUI
       const endpoint =
         nivel === "superadmin"
           ? "https://selene-mobile.onrender.com/api/v1/admin/criar"
@@ -77,7 +72,7 @@ export default function NovoUsuario() {
       const body =
         nivel === "superadmin"
           ? {
-              usuario: email.split("@")[0], // ou cria um campo usuário separado se quiser
+              usuario: email.split("@")[0],
               nome_completo: nome.trim(),
               email: email.toLowerCase().trim(),
               senha,
@@ -232,7 +227,6 @@ export default function NovoUsuario() {
   );
 }
 
-// ================= STYLES =================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#95C159" },
 

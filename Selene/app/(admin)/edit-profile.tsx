@@ -1,5 +1,3 @@
-// Edição do perfil de Usuário e Admin cadastrado
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -28,11 +26,8 @@ export default function EditProfileScreen() {
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
 
-  // 1. Carregar dados (Varredura de endpoints conforme sua lógica original)
   useEffect(() => {
     const carregarDadosParaEdicao = async () => {
-      console.log("--- [DEBUG] Iniciando carga de dados para ID:", id);
-
       if (!id) {
         console.error("--- [DEBUG] ID não fornecido");
         setLoading(false);
@@ -43,8 +38,6 @@ export default function EditProfileScreen() {
         const token = await SecureStore.getItemAsync("userToken");
         const buscaId = id.toString().trim().toLowerCase();
 
-        // --- TENTATIVA 1: Busca Direta ---
-        console.log("--- [DEBUG] Tentativa 1: Busca direta");
         let response = await fetch(
           `https://selene-mobile.onrender.com/api/v1/users/${id}`,
           {
@@ -58,8 +51,6 @@ export default function EditProfileScreen() {
           return;
         }
 
-        // --- TENTATIVA 2: Lista de Usuários/Produtores ---
-        console.log("--- [DEBUG] Tentativa 2: Listagem geral");
         const resLista = await fetch(
           `https://selene-mobile.onrender.com/api/v1/users`,
           {
@@ -77,8 +68,6 @@ export default function EditProfileScreen() {
           return;
         }
 
-        // --- TENTATIVA 3: Lista de Admins ---
-        console.log("--- [DEBUG] Tentativa 3: Listagem admins");
         const resAdmins = await fetch(
           `https://selene-mobile.onrender.com/api/v1/admin/listar`,
           {
@@ -109,7 +98,6 @@ export default function EditProfileScreen() {
     };
 
     const preencherCampos = (user: any) => {
-      console.log("--- [DEBUG] Usuário encontrado. Preenchendo campos...");
       setNome(user.nome_completo || user.usuario || "");
       setEmail(user.email || "");
       setTelefone(user.telefone || "");
@@ -119,18 +107,16 @@ export default function EditProfileScreen() {
     carregarDadosParaEdicao();
   }, [id]);
 
-  // 2. Salvar Alterações
   const handleSalvar = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
-      const currentRole = await SecureStore.getItemAsync("userRole"); // Pegando o mais recente
+      const currentRole = await SecureStore.getItemAsync("userRole");
 
       if (!token) {
         Alert.alert("Erro", "Usuário não autenticado");
         return;
       }
 
-      // Define o endpoint baseado no cargo logado
       const url =
         currentRole === "admin" || currentRole === "superadmin"
           ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
@@ -155,7 +141,6 @@ export default function EditProfileScreen() {
         throw new Error(data.message || "Erro ao atualizar");
       }
 
-      // 🔥 IMPORTANTE: Atualiza os dados locais para refletir no resto do app imediatamente
       await SecureStore.setItemAsync("userName", nome);
       await SecureStore.setItemAsync("userEmail", email);
 

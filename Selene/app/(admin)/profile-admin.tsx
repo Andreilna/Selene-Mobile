@@ -1,5 +1,3 @@
-// Tela do perfil do Admin
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -15,14 +13,10 @@ import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 
-import { StyleSheet } from "react-native"; // mantém separado
+import { StyleSheet } from "react-native";
 
 export default function ProfileScreen() {
   const router = useRouter();
-
-  // =========================
-  // STATES
-  // =========================
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [iniciais, setIniciais] = useState("US");
@@ -33,9 +27,6 @@ export default function ProfileScreen() {
     iniciais: "",
   });
 
-  // =========================
-  // LOAD USER
-  // =========================
   useEffect(() => {
     const loadUserData = async () => {
       try {
@@ -71,9 +62,6 @@ export default function ProfileScreen() {
     loadUserData();
   }, []);
 
-  // =========================
-  // LOGOUT
-  // =========================
   const handleLogout = async () => {
     Alert.alert("Sair", "Deseja encerrar a sessão?", [
       { text: "Cancelar", style: "cancel" },
@@ -95,9 +83,6 @@ export default function ProfileScreen() {
     ]);
   };
 
-  // =========================
-  // UI
-  // =========================
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
@@ -229,13 +214,7 @@ export default function ProfileScreen() {
   );
 }
 
-// ==========================================
-// ESTILOS (STYLESHEET)
-// ==========================================
 const styles = StyleSheet.create({
-  // ==========================================
-  // ESTRUTURA PRINCIPAL
-  // ==========================================
   container: { flex: 1, backgroundColor: "#95C159" },
   topContainer: {
     backgroundColor: "#95C159",
@@ -276,10 +255,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     justifyContent: "center",
   },
-
-  // ==========================================
-  // CARD DE PERFIL (BRANCO FLUTUANTE)
-  // ==========================================
   profileCard: {
     flex: 1,
     backgroundColor: "#FFF",
@@ -320,10 +295,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: 25,
   },
-
-  // ==========================================
-  // MENU / LISTA
-  // ==========================================
   menuList: {
     paddingHorizontal: 25,
   },
@@ -358,9 +329,6 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
   },
 
-  // ==========================================
-  // SEÇÃO ADMIN
-  // ==========================================
   adminSection: {
     marginBottom: 10,
   },
@@ -371,9 +339,6 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
 
-  // ==========================================
-  // ESTILOS COMPARTILHADOS (PODERIAM SER EXTERNOS)
-  // ==========================================
   content: {
     flex: 1,
     backgroundColor: "#FFF",
