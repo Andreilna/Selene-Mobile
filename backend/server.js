@@ -1,52 +1,66 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const path = require("path");
+require("dotenv").config();
 
-const routes = require('./routes');
-const errorHandler = require('./middleware/errorHandler');
-const { connectDB } = require('./config/mongodb');
+const routes = require("./routes");
+const errorHandler = require("./middleware/errorHandler");
+const { connectDB } = require("./config/mongodb");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const API_PREFIX = process.env.API_PREFIX || '/api/v1';
+const API_PREFIX = process.env.API_PREFIX || "/api/v1";
 
 // Configurações de segurança
 app.use(helmet());
 
 // Middleware CORS
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    const allowedOrigins = [
-      'http://seusite.com',
-      'https://seusite.com',
-      'http://dashboard.seusite.com'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-  exposedHeaders: ['Content-Disposition']
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || process.env.NODE_ENV === "development") {
+        return callback(null, true);
+      }
+
+      const allowedOrigins = [
+        "http://seusite.com",
+        "https://seusite.com",
+        "http://dashboard.seusite.com",
+      ];
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
+    exposedHeaders: ["Content-Disposition"],
+  }),
+);
 
 // Servir arquivos estáticos com CORS
-app.use('/fotos', cors(), express.static(path.join(__dirname, '..', 'fotos_plantas')));
-app.use('/fotos_perfil', cors(), express.static(path.join(__dirname, '..', 'fotos_perfil')));
-app.use('/fotos_cogumelos', cors(), express.static(path.join(__dirname, '..', 'fotos_cogumelos')));
+app.use(
+  "/fotos",
+  cors(),
+  express.static(path.join(__dirname, "..", "fotos_plantas")),
+);
+app.use(
+  "/fotos_perfil",
+  cors(),
+  express.static(path.join(__dirname, "..", "fotos_perfil")),
+);
+app.use(
+  "/fotos_cogumelos",
+  cors(),
+  express.static(path.join(__dirname, "..", "fotos_cogumelos")),
+);
 
 // Parser JSON com limite aumentado para fotos
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Logging de requisições
 app.use((req, res, next) => {
@@ -65,9 +79,9 @@ async function startServer() {
   try {
     // Conectar ao MongoDB
     await connectDB();
-    
-    console.log('✅ Conectado ao MongoDB com sucesso');
-    
+
+    console.log("✅ Conectado ao MongoDB com sucesso");
+
     // Iniciar servidor
     app.listen(PORT, () => {
       console.log(`
@@ -80,12 +94,48 @@ async function startServer() {
 ================================
       `);
     });
-    
   } catch (error) {
-    console.error('❌ Erro ao iniciar servidor:', error);
+    console.error("❌ Erro ao iniciar servidor:", error);
     process.exit(1);
   }
 }
+
+// DEBUG DAS FOTOS
+const fs = require("fs");
+
+function listarArquivos(dir, resultados = []) {
+  const arquivos = fs.readdirSync(dir);
+
+  arquivos.forEach((arquivo) => {
+    const caminho = path.join(dir, arquivo);
+    const stat = fs.statSync(caminho);
+
+    if (stat.isDirectory()) {
+      listarArquivos(caminho, resultados);
+    } else {
+      resultados.push(caminho);
+    }
+  });
+
+  return resultados;
+}
+
+app.get("/debug-fotos", (req, res) => {
+  try {
+    const pasta = path.join(__dirname, "..", "fotos_cogumelos");
+
+    const arquivos = listarArquivos(pasta);
+
+    res.json({
+      total: arquivos.length,
+      arquivos,
+    });
+  } catch (err) {
+    res.status(500).json({
+      erro: err.message,
+    });
+  }
+});
 
 // Iniciar servidor
 startServer();
