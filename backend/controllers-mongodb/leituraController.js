@@ -1,11 +1,10 @@
 const Dispositivo = require("../models-mongodb/Dispositivo");
 const Leitura = require("../models-mongodb/Leitura");
-const fs = require("fs");
-const path = require("path");
+const cloudinary = require("../config/cloudinary");
 
 class LeituraController {
-  // Função para salvar imagem como arquivo
-  static async salvarImagemArquivo(
+  // Salvar imagem no servidor local
+  static async salvarImagemCloudinary(
     equipamento,
     usuarioId,
     fotoBase64,
@@ -13,33 +12,21 @@ class LeituraController {
     mac,
   ) {
     try {
-      // Criar estrutura de pastas: fotos_cogumelos/{usuarioId}/{mac}/
-      const basePath = path.join(__dirname, "..", "..", "fotos_cogumelos");
-      const userPath = path.join(basePath, usuarioId.toString());
-      const devicePath = path.join(userPath, mac.replace(/[:]/g, "-"));
+      const upload = await cloudinary.uploader.upload(
+        `data:image/jpeg;base64,${fotoBase64.replace(/^data:image\/jpeg;base64,/, "")}`,
+        {
+          folder: `fotos_cogumelos/${usuarioId}/${mac.replace(/[:]/g, "-")}`,
+          public_id: `${equipamento.replace(/[^a-zA-Z0-9]/g, "_")}_${timestamp}`,
+        },
+      );
 
-      // Criar diretórios se não existirem
-      if (!fs.existsSync(basePath)) fs.mkdirSync(basePath, { recursive: true });
-      if (!fs.existsSync(userPath)) fs.mkdirSync(userPath, { recursive: true });
-      if (!fs.existsSync(devicePath))
-        fs.mkdirSync(devicePath, { recursive: true });
-
-      // Nome do arquivo: {equipamento}_{timestamp}.jpg
-      const filename = `${equipamento.replace(/[^a-zA-Z0-9]/g, "_")}_${timestamp}.jpg`;
-      const filePath = path.join(devicePath, filename);
-
-      // Converter base64 para buffer e salvar
-      const base64Data = fotoBase64.replace(/^data:image\/jpeg;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-
-      fs.writeFileSync(filePath, buffer);
-
-      return `/fotos_cogumelos/${usuarioId}/${mac.replace(/[:]/g, "-")}/${filename}`;
+      return upload.secure_url;
     } catch (error) {
-      console.error("Erro ao salvar imagem como arquivo:", error);
+      console.error("Erro Cloudinary:", error);
       return null;
     }
   }
+
   // Receber leitura do ESP32 com sensores
   static async receberSensores(req, res) {
     try {
@@ -533,12 +520,12 @@ class LeituraController {
       dispositivo.ultima_comunicacao = new Date();
       await dispositivo.save();
 
-      const fotoPath = await LeituraController.salvarImagemArquivo(
+      const fotoPath = await LeituraController.salvarImagemCloudinary(
         equipamento,
         dispositivo.usuario.toString(),
         foto,
         timestamp,
-        mac, // 🔥 CORRIGIDO
+        mac,
       );
 
       const leitura = await Leitura.create({

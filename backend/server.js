@@ -42,7 +42,6 @@ app.use(cors({
 // Servir arquivos estáticos com CORS
 app.use('/fotos', cors(), express.static(path.join(__dirname, '..', 'fotos_plantas')));
 app.use('/fotos_perfil', cors(), express.static(path.join(__dirname, '..', 'fotos_perfil')));
-app.use('/fotos_cogumelos', cors(), express.static(path.join(__dirname, '..', 'fotos_cogumelos')));
 
 // Parser JSON com limite aumentado para fotos
 app.use(express.json({ limit: '50mb' }));
