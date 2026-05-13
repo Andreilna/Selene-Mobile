@@ -73,8 +73,7 @@ export default function AdminHome() {
         );
 
         setStats(response.data.data);
-      } catch (error: any) {
-      }
+      } catch (error: any) {}
     };
 
     carregarStats();
@@ -286,7 +285,7 @@ const styles = StyleSheet.create({
 
   statItem: {
     flex: 1,
-    alignItems: "center", 
+    alignItems: "center",
   },
 
   statHeader: {
@@ -329,7 +328,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
     elevation: 3,
-    shadowColor: "#000", 
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

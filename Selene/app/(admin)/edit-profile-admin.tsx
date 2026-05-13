@@ -170,10 +170,8 @@ export default function EditProfileScreen() {
                 style={styles.avatarCircle}
                 onPress={() => router.push("/(admin)/profile-admin")}
               >
-
                 <Text style={styles.avatarText}>{iniciais}</Text>
               </TouchableOpacity>
-
             </View>
           </View>
         </View>

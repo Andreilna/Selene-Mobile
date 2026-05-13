@@ -76,8 +76,7 @@ export default function ProfileScreen() {
             await SecureStore.deleteItemAsync("userId");
 
             router.replace("/(auth)");
-          } catch (e) {
-          }
+          } catch (e) {}
         },
       },
     ]);
