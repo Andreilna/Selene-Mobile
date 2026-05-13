@@ -278,6 +278,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 50,
     paddingHorizontal: 25,
     paddingTop: 40,
+    paddingBottom: 175,
   },
   listContent: {
     paddingBottom: 20,
@@ -329,10 +330,11 @@ const styles = StyleSheet.create({
   },
 
   buttonWrapper: {
-    width: "100%",
+    position: "absolute",
+    bottom: 150,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    paddingVertical: 150,
-    backgroundColor: "transparent",
   },
   floatingAddBtn: {
     flexDirection: "row",

@@ -166,7 +166,7 @@ export default function DetalhesCamera() {
         <View style={styles.content}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            contentContainerStyle={{ paddingBottom: 150 }}
           >
             <Text style={styles.panelTitle}>HISTÓRICO DE CAPTURAS</Text>
 
