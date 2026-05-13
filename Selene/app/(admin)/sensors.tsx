@@ -58,7 +58,7 @@ export default function AdminSensors() {
 
           setIniciais(init);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
 
     carregarDadosUsuario();
@@ -291,11 +291,28 @@ export default function AdminSensors() {
   );
 }
 
-/* =======================
-   STYLE
-======================= */
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -310,9 +327,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -321,8 +359,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: { flex: 1, marginLeft: 20 },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+
+  // -------------------
+  // Form & Inputs
+  // -------------------
+
+  label: {
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
@@ -336,7 +386,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
   },
-  row: { flexDirection: "row", gap: 10, marginBottom: 15 },
+  row: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 15
+  },
+
+  // -------------------
+  // Selection Buttons (Radio Style)
+  // -------------------
+
   typeButton: {
     flex: 1,
     padding: 10,
@@ -348,23 +407,19 @@ const styles = StyleSheet.create({
   typeButtonActive: {
     backgroundColor: "#95C159",
   },
+
+  // -------------------
+  // Action Buttons
+  // -------------------
+
   button: {
     backgroundColor: "#2A3A56",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 40,
-  },
-  label: {
-    fontWeight: "bold",
-    marginBottom: 5,
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold"
   },
 });

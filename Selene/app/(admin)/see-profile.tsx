@@ -233,8 +233,28 @@ export default function PerfilUsuarioScreen() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -247,9 +267,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 10,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -258,26 +296,45 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: { flex: 1, marginLeft: 20 },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    paddingHorizontal: 25,
-    paddingTop: 30,
-    paddingBottom: 40,
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
+
+  // -------------------
+  // Profile / Detail Card
+  // -------------------
+
   topCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  label: { fontSize: 12, color: "#666" },
-  name: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  level: { color: "#00D2B1", fontWeight: "bold", fontSize: 16 },
-  image: { width: 120, height: 120, borderRadius: 20 },
+  image: {
+    width: 120,
+    height: 120,
+    borderRadius: 20
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  label: {
+    fontSize: 12,
+    color: "#666"
+  },
+  level: {
+    color: "#00D2B1",
+    fontWeight: "bold",
+    fontSize: 16
+  },
+
+  // -------------------
+  // Info List Section
+  // -------------------
+
   sectionTitle: {
     marginTop: 20,
     fontWeight: "bold",
@@ -298,8 +355,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  infoLabel: { fontSize: 11, color: "#666" },
-  infoText: { fontSize: 13, color: "#2A3A56", fontWeight: "600" },
+  infoLabel: {
+    fontSize: 11,
+    color: "#666"
+  },
+  infoText: {
+    fontSize: 13,
+    color: "#2A3A56",
+    fontWeight: "600"
+  },
+
+  // -------------------
+  // Action Buttons
+  // -------------------
+
   btnEdit: {
     backgroundColor: "#F4C542",
     padding: 15,
@@ -307,7 +376,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
-  btnEditText: { fontWeight: "bold", color: "#2A3A56" },
+  btnEditText: {
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
   btnDelete: {
     backgroundColor: "#E74C3C",
     padding: 15,
@@ -315,5 +387,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  btnDeleteText: { fontWeight: "bold", color: "#fff" },
+  btnDeleteText: {
+    fontWeight: "bold",
+    color: "#fff"
+  },
 });

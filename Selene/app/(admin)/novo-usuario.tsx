@@ -38,7 +38,7 @@ export default function NovoUsuario() {
 
           setIniciais(init);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
 
     carregarDadosUsuario();
@@ -72,21 +72,21 @@ export default function NovoUsuario() {
       const body =
         nivel === "superadmin"
           ? {
-              usuario: email.split("@")[0],
-              nome_completo: nome.trim(),
-              email: email.toLowerCase().trim(),
-              senha,
-              telefone: telefone || "",
-              nivel_acesso: "superadmin",
-            }
+            usuario: email.split("@")[0],
+            nome_completo: nome.trim(),
+            email: email.toLowerCase().trim(),
+            senha,
+            telefone: telefone || "",
+            nivel_acesso: "superadmin",
+          }
           : {
-              nome_completo: nome.trim(),
-              email: email.toLowerCase().trim(),
-              senha,
-              telefone: telefone || null,
-              data_nascimento: dataNascimento || null,
-              tipo: "user",
-            };
+            nome_completo: nome.trim(),
+            email: email.toLowerCase().trim(),
+            senha,
+            telefone: telefone || null,
+            data_nascimento: dataNascimento || null,
+            tipo: "user",
+          };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -227,8 +227,27 @@ export default function NovoUsuario() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
 
   topContainer: {
     backgroundColor: "#95C159",
@@ -238,24 +257,29 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
   welcomeText: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#2A3A56",
   },
 
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
+  // -------------------
+  // Avatar Components
+  // -------------------
 
   avatarCircle: {
     width: 45,
@@ -265,36 +289,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   avatarText: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#2A3A56",
   },
 
-  textContainer: { flex: 1, marginLeft: 20 },
-
-  content: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    paddingHorizontal: 25,
-    paddingTop: 30,
-    paddingBottom: 50,
-  },
-
-  label: {
-    fontWeight: "bold",
-    marginTop: 10,
-    color: "#2A3A56",
-  },
-
-  input: {
-    backgroundColor: "#E9F9EA",
-    borderRadius: 15,
-    padding: 10,
-    marginTop: 5,
-  },
+  // -------------------
+  // Media / Photo Selection
+  // -------------------
 
   photoBox: {
     width: 80,
@@ -306,7 +309,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginVertical: 20,
   },
-
   cameraIcon: {
     position: "absolute",
     bottom: 0,
@@ -316,11 +318,30 @@ const styles = StyleSheet.create({
     padding: 3,
   },
 
+  // -------------------
+  // Form & Inputs
+  // -------------------
+
+  label: {
+    fontWeight: "bold",
+    marginTop: 10,
+    color: "#2A3A56",
+  },
+  input: {
+    backgroundColor: "#E9F9EA",
+    borderRadius: 15,
+    padding: 10,
+    marginTop: 5,
+  },
   row: {
     flexDirection: "row",
     gap: 10,
     marginTop: 10,
   },
+
+  // -------------------
+  // Custom Radio Selectors
+  // -------------------
 
   radio: {
     flex: 1,
@@ -330,10 +351,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
   },
-
   radioActive: {
     backgroundColor: "#95C159",
   },
+
+  // -------------------
+  // Action Buttons
+  // -------------------
 
   btn: {
     backgroundColor: "#00D2B1",
@@ -342,7 +366,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
   },
-
   btnText: {
     color: "#fff",
     fontWeight: "bold",

@@ -90,13 +90,13 @@ export default function MonitoramentoAdmin() {
 
       const formatados: Sensor[] = Array.isArray(listaReais)
         ? listaReais.map((d: any) => ({
-            id: d._id,
-            nome: d.nome || d.nome_dispositivo || "Dispositivo",
-            local: d.localizacao || d.local || "Área Externa",
-            tipo: d.tipo || "SENSOR",
-            status: (d.ativo ? "Ativo" : "Inativo") as "Ativo" | "Inativo",
-            criadoPor: d.usuario?.nome_completo || "Desconhecido",
-          }))
+          id: d._id,
+          nome: d.nome || d.nome_dispositivo || "Dispositivo",
+          local: d.localizacao || d.local || "Área Externa",
+          tipo: d.tipo || "SENSOR",
+          status: (d.ativo ? "Ativo" : "Inativo") as "Ativo" | "Inativo",
+          criadoPor: d.usuario?.nome_completo || "Desconhecido",
+        }))
         : [];
 
       setSensores(formatados);
@@ -233,11 +233,31 @@ export default function MonitoramentoAdmin() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159",
+    backgroundColor: "#95C159"
   },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -250,13 +270,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 10,
+  },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
   },
   welcomeText: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#2A3A56",
   },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -270,18 +309,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#2A3A56",
   },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 40,
-    paddingBottom: 175,
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
+
+  // -------------------
+  // Sensor Card Items
+  // -------------------
+
   sensorCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -328,6 +360,10 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
   },
 
+  // -------------------
+  // Floating Actions
+  // -------------------
+
   buttonWrapper: {
     position: "absolute",
     bottom: 150,
@@ -354,7 +390,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
-  textContainer: { flex: 1, marginLeft: 20 },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
 });

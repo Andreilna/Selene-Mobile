@@ -157,7 +157,7 @@ export default function ControleAcessoScreen() {
     <TouchableOpacity
       onPress={() =>
         router.push({
-          pathname: "/(admin)/edit-profile-register",
+          pathname: "/(admin)/see-profile",
           params: { id: item.id },
         })
       }
@@ -249,34 +249,8 @@ export default function ControleAcessoScreen() {
         </View>
 
         <View style={styles.content}>
-          <View style={styles.timeFilterContainer}>
-            {timeFilters.map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.timeBtn,
-                  filterActive === item && styles.timeBtnActive,
-                ]}
-                onPress={() => setFilterActive(item)}
-              >
-                <Text
-                  style={[
-                    styles.timeBtnText,
-                    filterActive === item && styles.timeBtnTextActive,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Produtores Cadastrados</Text>
-
-            <TouchableOpacity style={styles.filterIconBtn}>
-              <MaterialIcons name="filter-list" size={22} color="#FFF" />
-            </TouchableOpacity>
           </View>
 
           {loading ? (
@@ -288,33 +262,52 @@ export default function ControleAcessoScreen() {
               renderItem={({ item }) => renderUserItem(item)}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
-                paddingBottom: 160,
+                paddingBottom: 180,
               }}
             />
           )}
 
-          <TouchableOpacity
-            style={[
-              styles.btnNewUser,
-              {
-                bottom: insets.bottom + 20,
-              },
-            ]}
-            onPress={() => router.push("/(admin)/novo-usuario")}
-          >
-            <Text style={styles.btnNewUserText}>Novo Cadastro</Text>
-          </TouchableOpacity>
+
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.btnNewUser,
+                {
+                  bottom: insets.bottom + 20,
+                },
+              ]}
+              onPress={() => router.push("/(admin)/novo-usuario")}
+            >
+              <Text style={styles.btnNewUserText}>Novo Cadastro</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159",
+    backgroundColor: "#95C159"
   },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
 
   topContainer: {
     backgroundColor: "#95C159",
@@ -324,31 +317,35 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
   },
-
-  welcomeText: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2A3A56",
-  },
-
-  subwelcomeText: {
-    fontSize: 14,
-    color: "#2A3A56",
-    opacity: 0.8,
-  },
-
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15,
+    gap: 15
   },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
 
   avatarCircle: {
     width: 45,
@@ -358,71 +355,60 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   avatarText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#2A3A56",
+    color: "#2A3A56"
   },
 
-  textContainer: {
-    flex: 1,
-    marginLeft: 20,
-  },
+  // -------------------
+  // Statistics Cards (Header Stats)
+  // -------------------
 
   statsContainer: {
     paddingHorizontal: 25,
     marginBottom: 25,
   },
-
   mainStatCard: {
     backgroundColor: "#FFF",
     borderRadius: 15,
-    padding: 15,
+    padding: 5,
     alignItems: "center",
   },
-
+  statValueBig: {
+    fontSize: 25,
+    fontWeight: "bold",
+    color: "#2A3A56",
+  },
   statLabelLink: {
     color: "#2A3A56",
     textDecorationLine: "underline",
     fontWeight: "bold",
   },
-
-  statValueBig: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#2A3A56",
-  },
-
   secondaryStatsRow: {
     flexDirection: "row",
     marginTop: 20,
     alignItems: "center",
   },
-
   subStat: {
     flex: 1,
     alignItems: "flex-start",
   },
-
   subStatLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 5,
   },
-
   subStatLabel: {
     fontSize: 13,
     color: "#2A3A56",
     marginLeft: 5,
   },
-
   subStatValue: {
-    fontSize: 28,
+    fontSize: 25,
     fontWeight: "bold",
     color: "#FFF",
   },
-
   verticalDivider: {
     width: 1.5,
     height: 40,
@@ -431,14 +417,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
 
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 60,
-    borderTopRightRadius: 60,
-    paddingHorizontal: 25,
-    paddingTop: 30,
-  },
+  // -------------------
+  // Time Filters & Section Header
+  // -------------------
 
   timeFilterContainer: {
     flexDirection: "row",
@@ -447,53 +428,49 @@ const styles = StyleSheet.create({
     padding: 5,
     marginBottom: 25,
   },
-
   timeBtn: {
     flex: 1,
     paddingVertical: 12,
     alignItems: "center",
     borderRadius: 20,
   },
-
   timeBtnActive: {
     backgroundColor: "#00D2B1",
   },
-
   timeBtnText: {
     color: "#2A3A56",
     fontSize: 14,
   },
-
   timeBtnTextActive: {
     color: "#FFF",
     fontWeight: "bold",
   },
-
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#1A2E35",
   },
-
   filterIconBtn: {
     backgroundColor: "#00D2B1",
     padding: 8,
     borderRadius: 12,
   },
 
+  // -------------------
+  // User Cards & List Items
+  // -------------------
+
   userCard: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 15,
   },
-
   userIconContainer: {
     width: 50,
     height: 50,
@@ -502,31 +479,37 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   userInfo: {
     flex: 1.5,
     marginLeft: 12,
   },
-
   userName: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#1A2E35",
   },
-
   userData: {
     fontSize: 12,
     color: "#2D9CDB",
     fontWeight: "bold",
   },
-
   roleContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
+  roleText: {
+    fontSize: 12,
+    color: "#666",
+  },
+  userCode: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#2D9CDB",
+    textAlign: "right",
+  },
   verticalLine: {
     width: 1.5,
     height: 35,
@@ -535,17 +518,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
 
-  roleText: {
-    fontSize: 12,
-    color: "#666",
-  },
+  // -------------------
+  // Floating Action Buttons
+  // -------------------
 
-  userCode: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#2D9CDB",
-    textAlign: "right",
+  buttonWrapper: {
+    position: "absolute",
+    bottom: 100,
+    left: 0,
+    right: 0,
+    alignItems: "center",
   },
 
   btnNewUser: {
@@ -557,8 +539,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 80,
     right: 80,
+    bottom: 20, // Ajustado para evitar o marginBottom: 100 excessivo
   },
-
   btnNewUserText: {
     color: "#1A2E35",
     fontWeight: "bold",

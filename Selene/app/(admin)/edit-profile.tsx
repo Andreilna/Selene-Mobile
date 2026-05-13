@@ -233,22 +233,26 @@ export default function EditProfileScreen() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
   },
-  backButton: {
-    padding: 8,
-    backgroundColor: "rgba(255,255,255,0.3)",
-    borderRadius: 12,
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
   },
-  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#2A3A56" },
-  scrollContent: { flexGrow: 1 },
+  scrollContent: {
+    flexGrow: 1
+  },
   card: {
     flex: 1,
     backgroundColor: "#FFF",
@@ -258,8 +262,41 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     marginTop: 10,
   },
-  inputGroup: { marginBottom: 18 },
-  label: { fontSize: 13, color: "#666", marginBottom: 6, fontWeight: "600" },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  backButton: {
+    padding: 8,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    borderRadius: 12,
+  },
+
+  // -------------------
+  // Form & Inputs
+  // -------------------
+
+  inputGroup: {
+    marginBottom: 18
+  },
+  label: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 6,
+    fontWeight: "600"
+  },
   input: {
     backgroundColor: "#F5F5F5",
     borderRadius: 15,
@@ -269,7 +306,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-  textArea: { height: 90, textAlignVertical: "top" },
+  textArea: {
+    height: 90,
+    textAlignVertical: "top"
+  },
+
+  // -------------------
+  // Action Buttons
+  // -------------------
+
   btnSave: {
     backgroundColor: "#F4C542",
     padding: 16,
@@ -277,5 +322,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 30,
   },
-  btnSaveText: { fontWeight: "bold", color: "#2A3A56", fontSize: 16 },
+  btnSaveText: {
+    fontWeight: "bold",
+    color: "#2A3A56",
+    fontSize: 16
+  },
 });

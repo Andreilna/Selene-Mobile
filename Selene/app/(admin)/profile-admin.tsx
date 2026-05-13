@@ -37,7 +37,7 @@ export default function ProfileScreen() {
         setIsAdmin(role === "admin" || role === "superadmin");
 
         if (nomeCompleto) {
-          const partes = nomeCompleto.trim().split(" ");
+          const partes = nomeCompleto.trim().split(/\s+/);
 
           const init =
             partes.length > 1
@@ -53,7 +53,11 @@ export default function ProfileScreen() {
           });
         }
       } catch (e) {
-        console.error("Erro ao carregar dados:", e);
+        if (e instanceof Error) {
+          console.error("Erro ao carregar dados:", e.message);
+        } else {
+          console.error("Erro desconhecido ao carregar dados");
+        }
       } finally {
         setLoading(false);
       }
@@ -76,7 +80,9 @@ export default function ProfileScreen() {
             await SecureStore.deleteItemAsync("userId");
 
             router.replace("/(auth)");
-          } catch (e) {}
+          } catch (e) {
+            console.error("Erro ao deslogar:", e instanceof Error ? e.message : e);
+          }
         },
       },
     ]);
@@ -86,8 +92,8 @@ export default function ProfileScreen() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
         {/* ---------------------------------------------------------
-               INÍCIO DO HEADER (VERDE SELENE)
-           ---------------------------------------------------------- */}
+                INÍCIO DO HEADER (VERDE SELENE)
+            ---------------------------------------------------------- */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()}>
@@ -105,8 +111,8 @@ export default function ProfileScreen() {
           </View>
         </View>
         {/* ---------------------------------------------------------
-               FIM DO HEADER
-           ---------------------------------------------------------- */}
+                FIM DO HEADER
+            ---------------------------------------------------------- */}
 
         {/* CONTEÚDO */}
         <View style={styles.content}>
@@ -213,13 +219,33 @@ export default function ProfileScreen() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 80,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
-    paddingBottom: 60,
+    paddingBottom: 30,
     paddingTop: 10,
     paddingHorizontal: 20,
   },
@@ -228,7 +254,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
+  },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20,
+    justifyContent: "center",
   },
   welcomeText: {
     fontSize: 22,
@@ -236,8 +271,16 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
     textAlign: "left",
   },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -248,12 +291,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: {
-    flex: 1,
-    marginLeft: 20,
-    justifyContent: "center",
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
+
+  // -------------------
+  // Profile Card & Image
+  // -------------------
+
   profileCard: {
     flex: 1,
     backgroundColor: "#FFF",
@@ -264,7 +311,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     elevation: 5,
   },
-
   imageContainer: {
     position: "absolute",
     top: -60,
@@ -273,20 +319,17 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 65,
   },
-
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
   },
-
   userName: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#2A3A56",
     textAlign: "center",
   },
-
   userId: {
     fontSize: 14,
     color: "#2A3A56",
@@ -294,25 +337,19 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: 25,
   },
+
+  // -------------------
+  // Menu List Section
+  // -------------------
+
   menuList: {
     paddingHorizontal: 25,
   },
-
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#A0A0A0",
-    textTransform: "uppercase",
-    marginBottom: 15,
-    marginLeft: 5,
-  },
-
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 18,
   },
-
   menuIconContainer: {
     width: 40,
     height: 40,
@@ -321,35 +358,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 15,
   },
-
   menuText: {
     fontSize: 16,
     fontWeight: "600",
     color: "#2A3A56",
   },
-
-  adminSection: {
-    marginBottom: 10,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: "#F0F0F0",
-    marginVertical: 15,
-  },
-
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 80,
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#A0A0A0",
+    textTransform: "uppercase",
+    marginBottom: 15,
+    marginLeft: 5,
   },
   sectionTitle: {
     fontSize: 14,
     color: "#666",
     marginBottom: 20,
     fontWeight: "600",
+  },
+  adminSection: {
+    marginBottom: 10,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#F0F0F0",
+    marginVertical: 15,
   },
 });

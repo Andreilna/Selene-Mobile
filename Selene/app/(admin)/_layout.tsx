@@ -1,6 +1,5 @@
 import { Tabs } from "expo-router";
-import { View, StyleSheet } from "react-native";
-
+import { View, StyleSheet, Platform } from "react-native";
 import {
   Feather,
   MaterialIcons,
@@ -8,31 +7,24 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 
+// Cores centralizadas para facilitar manutenção
+const COLORS = {
+  active: "#8bc34a",
+  inactive: "#9E9E9E",
+  background: "#FFFFFF",
+  fabActive: "#8bc34a",
+  fabInactive: "#2A3A56", // Um tom escuro para contrastar quando não estiver na home
+};
+
 export default function AdminLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-
-        tabBarActiveTintColor: "#8bc34a",
-        tabBarInactiveTintColor: "#8E8E8E",
-
-        tabBarStyle: {
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-
-          height: 90,
-
-          backgroundColor: "transparent",
-
-          borderTopWidth: 0,
-
-          elevation: 0,
-        },
-
+        tabBarActiveTintColor: COLORS.active,
+        tabBarInactiveTintColor: COLORS.inactive,
+        tabBarStyle: styles.tabBar,
         tabBarBackground: () => (
           <View style={styles.tabBackground}>
             <View style={styles.notch} />
@@ -40,207 +32,120 @@ export default function AdminLayout() {
         ),
       }}
     >
-      {/* RELATÓRIOS */}
       <Tabs.Screen
         name="reports"
         options={{
-          title: "Relatórios",
           tabBarIcon: ({ focused, color }) => (
-            <Feather
-              name="file-text"
-              size={26}
-              color={focused ? "#8bc34a" : color}
-            />
+            <Feather name="file-text" size={24} color={color} />
           ),
         }}
       />
 
-      {/* MONITORAMENTO */}
       <Tabs.Screen
         name="monitoring"
         options={{
-          title: "Monitoramento",
           tabBarIcon: ({ focused, color }) => (
-            <MaterialIcons
-              name="signal-cellular-alt"
-              size={26}
-              color={focused ? "#8bc34a" : color}
-            />
+            <MaterialIcons name="signal-cellular-alt" size={26} color={color} />
           ),
         }}
       />
 
-      {/* BOTÃO CENTRAL */}
       <Tabs.Screen
         name="home-admin"
         options={{
-          title: "Home",
-          tabBarIcon: () => (
+          tabBarIcon: ({ focused }) => (
             <View style={styles.fabContainer}>
-              <View style={styles.fab}>
-                <Ionicons name="pie-chart" size={30} color="#FFFFFF" />
+              <View style={[
+                styles.fab, 
+                { backgroundColor: focused ? COLORS.fabActive : COLORS.fabInactive }
+              ]}>
+                <Ionicons name="pie-chart" size={28} color="#FFFFFF" />
               </View>
             </View>
           ),
         }}
       />
 
-      {/* ESTATÍSTICAS */}
       <Tabs.Screen
         name="statistics"
         options={{
-          title: "Estatísticas",
           tabBarIcon: ({ focused, color }) => (
-            <Ionicons
-              name="bar-chart"
-              size={26}
-              color={focused ? "#8bc34a" : color}
-            />
+            <Ionicons name="bar-chart" size={24} color={color} />
           ),
         }}
       />
 
-      {/* USUÁRIOS */}
       <Tabs.Screen
         name="users"
         options={{
-          title: "Usuários",
           tabBarIcon: ({ focused, color }) => (
-            <FontAwesome5
-              name="user-alt"
-              size={24}
-              color={focused ? "#8bc34a" : color}
-            />
+            <FontAwesome5 name="user-alt" size={20} color={color} />
           ),
         }}
       />
 
-      {/* ROTAS OCULTAS */}
-      <Tabs.Screen
-        name="edit-profile"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="edit-profile-admin"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="edit-profile-register"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="novo-usuario"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="profile-admin"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="sensors"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="detalhes-sensor"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="detalhes-camera"
-        options={{
-          href: null,
-        }}
-      />
+      {/* ROTAS OCULTAS - MANTIDAS COM HREF NULL */}
+      {[
+        "edit-profile", "edit-profile-admin", "see-profile", 
+        "novo-usuario", "profile-admin", "sensors", 
+        "detalhes-sensor", "detalhes-camera"
+      ].map((route) => (
+        <Tabs.Screen key={route} name={route} options={{ href: null }} />
+      ))}
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
+  tabBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: Platform.OS === 'ios' ? 95 : 80, // Ajuste para iPhone
+    backgroundColor: "transparent",
+    borderTopWidth: 0,
+    elevation: 0,
+  },
   tabBackground: {
     flex: 1,
-
-    backgroundColor: "#FFFFFF",
-
-    borderTopLeftRadius: 35,
-    borderTopRightRadius: 35,
-
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    // Sombra mais suave
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -3,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-
-    elevation: 15,
-
-    overflow: "visible",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 20,
   },
-
   notch: {
     position: "absolute",
-
     alignSelf: "center",
-
-    top: -38,
-
-    width: 90,
-    height: 90,
-
-    borderRadius: 45,
-
-    backgroundColor: "#FFFFFF",
+    top: -35,
+    width: 85,
+    height: 85,
+    borderRadius: 42.5,
+    backgroundColor: COLORS.background,
   },
-
   fabContainer: {
-    top: -30,
-
+    top: Platform.OS === 'ios' ? -25 : -30,
     justifyContent: "center",
     alignItems: "center",
   },
-
   fab: {
-    width: 68,
-    height: 68,
-
-    borderRadius: 999,
-
-    backgroundColor: "#7D7D7D",
-
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     justifyContent: "center",
     alignItems: "center",
-
-    borderWidth: 5,
+    borderWidth: 4,
     borderColor: "#FFFFFF",
-
-    elevation: 8,
-
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
+    // Sombra do botão
+    shadowColor: COLORS.fabActive,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 10,
   },
 });

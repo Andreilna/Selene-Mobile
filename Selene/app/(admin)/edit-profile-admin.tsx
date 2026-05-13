@@ -8,6 +8,7 @@ import {
   ScrollView,
   Switch,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
@@ -28,77 +29,70 @@ export default function EditProfileScreen() {
   const [iniciais, setIniciais] = useState("US");
   const isAdmin = role === "admin" || role === "superadmin";
 
+  // Iniciar Role
   useEffect(() => {
     const init = async () => {
       const roleStorage = await SecureStore.getItemAsync("userRole");
       setRole(roleStorage || "user");
     };
-
     init();
   }, []);
 
+  // Carregar Dados
   useEffect(() => {
     if (!role) return;
 
     const carregarDados = async () => {
       try {
         const token = await SecureStore.getItemAsync("userToken");
-
         const endpoint = isAdmin
           ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
           : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
 
         if (token) {
           const res = await fetch(endpoint, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           });
-
           const data = await res.json();
 
           if (res.ok && data.data) {
             const user = data.data;
-
             setNome(user.nome_completo || "");
             setEmail(user.email || "");
             setTelefone(user.telefone || "");
 
             if (user.nome_completo) {
-              const partes = user.nome_completo.trim().split(" ");
+              const partes = user.nome_completo.trim().split(/\s+/);
               setIniciais(
                 partes.length > 1
                   ? (partes[0][0] + partes[1][0]).toUpperCase()
-                  : partes[0][0].toUpperCase(),
+                  : partes[0][0].toUpperCase()
               );
             }
-
-            if (user._id) {
-              setIdExibicao(user._id.substring(0, 8));
-            }
-
+            if (user._id) setIdExibicao(user._id.substring(0, 8));
             setLoading(false);
             return;
           }
         }
 
+        // Fallback local
         const nomeSalvo = await SecureStore.getItemAsync("userName");
         const emailSalvo = await SecureStore.getItemAsync("userEmail");
         const idSalvo = await SecureStore.getItemAsync("userId");
 
         if (nomeSalvo) {
           setNome(nomeSalvo);
-          const partes = nomeSalvo.trim().split(" ");
+          const partes = nomeSalvo.trim().split(/\s+/);
           setIniciais(
             partes.length > 1
               ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase(),
+              : partes[0][0].toUpperCase()
           );
         }
-
         if (emailSalvo) setEmail(emailSalvo);
         if (idSalvo) setIdExibicao(idSalvo.substring(0, 8));
       } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -110,17 +104,14 @@ export default function EditProfileScreen() {
   const handleSalvar = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
-      const role = await SecureStore.getItemAsync("userRole");
-
       if (!token) {
         Alert.alert("Erro", "Usuário não autenticado");
         return;
       }
 
-      const url =
-        role === "admin" || role === "superadmin"
-          ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
-          : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
+      const url = isAdmin
+        ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
+        : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
 
       const res = await fetch(url, {
         method: "PUT",
@@ -136,14 +127,13 @@ export default function EditProfileScreen() {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
-      if (!res.ok) {
-        throw new Error(data.message);
-      }
+      await SecureStore.setItemAsync("userName", nome);
 
       Alert.alert("Sucesso", "Perfil atualizado!");
-      router.back();
-    } catch (error: unknown) {
+      router.push("/(admin)/profile-admin");
+    } catch (error) {
       if (error instanceof Error) {
         Alert.alert("Erro", error.message);
       } else {
@@ -151,6 +141,14 @@ export default function EditProfileScreen() {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#FFF" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaProvider>
@@ -164,7 +162,6 @@ export default function EditProfileScreen() {
             <View style={styles.textContainer}>
               <Text style={styles.welcomeText}>Editar Perfil</Text>
             </View>
-
             <View style={styles.headerIcons}>
               <TouchableOpacity
                 style={styles.avatarCircle}
@@ -191,46 +188,58 @@ export default function EditProfileScreen() {
           <Text style={styles.userName}>{nome}</Text>
           <Text style={styles.userId}>ID: {idExibicao}</Text>
 
-          <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
-            <Text style={styles.sectionTitle}>Configurações Usuário</Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={{ paddingBottom: 150 }}>
+              <Text style={styles.sectionTitle}>Configurações Usuário</Text>
 
-            <Text style={styles.label}>Nome:</Text>
-            <TextInput
-              style={styles.input}
-              value={nome}
-              onChangeText={setNome}
-            />
+              <Text style={styles.label}>Nome:</Text>
+              <TextInput
+                style={styles.input}
+                value={nome}
+                onChangeText={setNome}
+                placeholder="Seu nome"
+              />
 
-            <Text style={styles.label}>Telefone:</Text>
-            <TextInput
-              style={styles.input}
-              value={telefone}
-              onChangeText={setTelefone}
-              keyboardType="phone-pad"
-            />
+              <Text style={styles.label}>Telefone:</Text>
+              <TextInput
+                style={styles.input}
+                value={telefone}
+                onChangeText={setTelefone}
+                keyboardType="phone-pad"
+                placeholder="(00) 00000-0000"
+              />
 
-            <Text style={styles.label}>Email:</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              editable={isAdmin}
-            />
+              <Text style={styles.label}>Email:</Text>
+              <TextInput
+                style={[styles.input, !isAdmin && { opacity: 0.6 }]}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                editable={isAdmin}
+              />
 
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>Ativar Notificações</Text>
-              <Switch value={notificacoes} onValueChange={setNotificacoes} />
+              <View style={styles.switchRow}>
+                <Text style={styles.label}>Ativar Notificações</Text>
+                <Switch
+                  value={notificacoes}
+                  onValueChange={setNotificacoes}
+                  trackColor={{ false: "#767577", true: "#00D1A0" }}
+                />
+              </View>
+
+              <View style={styles.switchRow}>
+                <Text style={styles.label}>Salvar Login</Text>
+                <Switch
+                  value={salvarLogin}
+                  onValueChange={setSalvarLogin}
+                  trackColor={{ false: "#767577", true: "#00D1A0" }}
+                />
+              </View>
+
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
+                <Text style={styles.saveBtnText}>Salvar Alterações</Text>
+              </TouchableOpacity>
             </View>
-
-            <View style={styles.switchRow}>
-              <Text style={styles.label}>Salvar Login</Text>
-              <Switch value={salvarLogin} onValueChange={setSalvarLogin} />
-            </View>
-
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSalvar}>
-              <Text style={styles.saveBtnText}>Salvar Alterações</Text>
-            </TouchableOpacity>
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -238,8 +247,28 @@ export default function EditProfileScreen() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 80,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -253,44 +282,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
-
-  avatarCircle: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: "#EDFCED",
-    justifyContent: "center",
+  headerIcons: {
+    flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
+    gap: 15
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
   textContainer: {
     flex: 1,
     marginLeft: 20,
     justifyContent: "center",
   },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 80,
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
-  sectionTitle: {
+  subwelcomeText: {
     fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
-    fontWeight: "600",
+    color: "#2A3A56",
+    opacity: 0.8
   },
+
+  // -------------------
+  // Profile / Avatar Components
+  // -------------------
+
   imageContainer: {
     position: "absolute",
     top: -60,
@@ -299,7 +316,11 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 65,
   },
-  profileImage: { width: 120, height: 120, borderRadius: 60 },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60
+  },
   cameraBtn: {
     position: "absolute",
     bottom: 5,
@@ -313,6 +334,26 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFF",
   },
+  avatarCircle: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: "#EDFCED",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+
+  // -------------------
+  // User Info & Typography
+  // -------------------
+
   userName: {
     fontSize: 22,
     fontWeight: "bold",
@@ -326,7 +367,21 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: 20,
   },
-  form: { paddingHorizontal: 25 },
+  sectionTitle: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 20,
+    fontWeight: "600",
+  },
+
+  // -------------------
+  // Form & Inputs
+  // -------------------
+
+  form: {
+    paddingHorizontal: 25,
+    marginBottom: 120,
+  },
   label: {
     fontSize: 14,
     fontWeight: "bold",
@@ -347,6 +402,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
   },
+
+  // -------------------
+  // Action Buttons
+  // -------------------
+
   saveBtn: {
     backgroundColor: "#00D1A0",
     height: 50,
@@ -356,5 +416,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 30,
   },
-  saveBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
+  saveBtnText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16
+  },
 });

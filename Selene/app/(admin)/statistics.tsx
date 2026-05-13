@@ -65,7 +65,7 @@ export default function MenuAtualizacoes() {
               : partes[0][0].toUpperCase();
           setIniciais(init);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     carregarDadosUsuario();
   }, []);
@@ -176,8 +176,28 @@ export default function MenuAtualizacoes() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -190,11 +210,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 10,
+    marginBottom: 4,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-  headerIcons: { flexDirection: "row", alignItems: "center", gap: 15 },
+  headerIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -203,10 +245,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: { flex: 1, marginLeft: 20 },
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
 
-  /* TABS */
+  // -------------------
+  // Tabs Navigation
+  // -------------------
+
   tabContainer: {
     flexDirection: "row",
     backgroundColor: "#E8F5E9",
@@ -223,17 +271,30 @@ const styles = StyleSheet.create({
   tabActive: {
     backgroundColor: "#00D191",
   },
-  tabText: { color: "#2A3A56", fontWeight: "500" },
-  tabTextActive: { color: "#FFF", fontWeight: "bold" },
+  tabText: {
+    color: "#2A3A56",
+    fontWeight: "500"
+  },
+  tabTextActive: {
+    color: "#FFF",
+    fontWeight: "bold"
+  },
 
-  /* LISTAGEM */
+  // -------------------
+  // List & Item Cards
+  // -------------------
+
   listHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
   },
-  monthText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
+  monthText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
   calendarIcon: {
     backgroundColor: "#00D191",
     padding: 6,
@@ -256,19 +317,19 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 15,
   },
-  itemTitle: { fontSize: 15, fontWeight: "bold", color: "#2A3A56" },
-  itemDate: { fontSize: 12, color: "#007BFF", marginTop: 2 },
+  itemTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  itemDate: {
+    fontSize: 12,
+    color: "#007BFF",
+    marginTop: 2
+  },
   statusText: {
     fontSize: 14,
     color: "#007BFF",
     fontWeight: "600",
-  },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 30,
   },
 });

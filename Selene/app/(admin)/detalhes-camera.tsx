@@ -239,8 +239,28 @@ export default function DetalhesCamera() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -255,8 +275,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: { flex: 1, marginLeft: 20 },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8,
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -265,15 +302,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 20,
-    paddingTop: 30,
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
+
+  // -------------------
+  // Image Gallery / Cards
+  // -------------------
+
   panelTitle: {
     fontSize: 18,
     fontWeight: "900",
@@ -293,20 +331,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  capturedImage: { width: "100%", height: 280, backgroundColor: "#EEE" },
+  capturedImage: {
+    width: "100%",
+    height: 280,
+    backgroundColor: "#EEE"
+  },
   imageFooter: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
     gap: 8,
   },
-  imageDate: { color: "#2A3A56", fontSize: 14, fontWeight: "600" },
+  imageDate: {
+    color: "#2A3A56",
+    fontSize: 14,
+    fontWeight: "600"
+  },
   emptyText: {
     textAlign: "center",
     color: "#999",
     marginTop: 10,
     fontSize: 16,
   },
+
+  // -------------------
+  // Buttons & Actions
+  // -------------------
+
   deleteBtn: {
     flexDirection: "row",
     backgroundColor: "#FF6666",
@@ -317,10 +368,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 10,
   },
-  deleteBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
-  subwelcomeText: {
-    fontSize: 14,
-    color: "#2A3A56",
-    opacity: 0.8,
+  deleteBtnText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16
   },
 });

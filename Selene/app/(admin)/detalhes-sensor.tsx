@@ -229,11 +229,11 @@ export default function DetalhesSensor() {
                   <Text style={styles.progressText}>
                     {ultimaLeitura?.timestamp
                       ? new Date(ultimaLeitura.timestamp).toLocaleString(
-                          "pt-BR",
-                          {
-                            timeZone: "America/Sao_Paulo",
-                          },
-                        )
+                        "pt-BR",
+                        {
+                          timeZone: "America/Sao_Paulo",
+                        },
+                      )
                       : "--"}
                   </Text>
                 </View>
@@ -251,8 +251,28 @@ export default function DetalhesSensor() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FFF",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
+
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -267,8 +287,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
+  textContainer: {
+    flex: 1,
+    marginLeft: 20
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+
+  // -------------------
+  // Avatar Components
+  // -------------------
+
   avatarCircle: {
     width: 45,
     height: 45,
@@ -277,16 +314,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-  textContainer: { flex: 1, marginLeft: 20 },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 20,
-    paddingTop: 30,
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
+
+  // -------------------
+  // Dashboard / Section Cards
+  // -------------------
+
   panelTitle: {
     fontSize: 18,
     fontWeight: "900",
@@ -307,7 +344,16 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12,
   },
-  sectionTitle: { fontSize: 15, fontWeight: "bold", color: "#2A3A56" },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+
+  // -------------------
+  // Alertas & List Items
+  // -------------------
+
   alertRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -316,7 +362,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 8,
   },
-  alertText: { fontSize: 12, color: "#2A3A56", flex: 1 },
+  alertText: {
+    fontSize: 12,
+    color: "#2A3A56",
+    flex: 1
+  },
+
+  // -------------------
+  // Progress Bar
+  // -------------------
+
   progressBarBg: {
     height: 35,
     backgroundColor: "#F0F0F0",
@@ -329,7 +384,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  progressText: { color: "#FFF", fontWeight: "bold", fontSize: 14 },
+  progressText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 14
+  },
+
+  // -------------------
+  // Buttons & Actions
+  // -------------------
+
   deleteBtn: {
     flexDirection: "row",
     backgroundColor: "#FF6666",
@@ -340,5 +404,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     gap: 10,
   },
-  deleteBtnText: { color: "#FFF", fontWeight: "bold", fontSize: 16 },
+  deleteBtnText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16
+  },
 });

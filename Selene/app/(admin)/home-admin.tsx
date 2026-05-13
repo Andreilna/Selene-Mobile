@@ -73,7 +73,7 @@ export default function AdminHome() {
         );
 
         setStats(response.data.data);
-      } catch (error: any) {}
+      } catch (error: any) { }
     };
 
     carregarStats();
@@ -193,8 +193,28 @@ export default function AdminHome() {
   );
 }
 
+// -------------------
+// Main Container & Layout
+// -------------------
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#95C159" },
+  container: {
+    flex: 1,
+    backgroundColor: "#95C159"
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    paddingHorizontal: 25,
+    paddingTop: 40,
+    marginTop: 30,
+  },
+
+  // -------------------
+  // Header Section
+  // -------------------
 
   topContainer: {
     backgroundColor: "#95C159",
@@ -204,23 +224,58 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 1,
   },
-
-  welcomeText: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-  subwelcomeText: { fontSize: 14, color: "#2A3A56", opacity: 0.8 },
-
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 30,
+  },
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
     gap: 15,
   },
+  notificationBtn: {
+    backgroundColor: "#FFF",
+    padding: 8,
+    borderRadius: 20,
+  },
+
+  // -------------------
+  // Typography & Greetings
+  // -------------------
+
+  greeting: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2A3A56"
+  },
+  subwelcomeText: {
+    fontSize: 14,
+    color: "#2A3A56",
+    opacity: 0.8
+  },
+  sectionTitle: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 20,
+    fontWeight: "600",
+  },
+
+  // -------------------
+  // Profile / Avatar Components
+  // -------------------
 
   avatarCircle: {
     width: 45,
@@ -232,34 +287,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-
-  avatarText: { fontSize: 16, fontWeight: "bold", color: "#2A3A56" },
-
-  content: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 40,
-    marginTop: 30,
+  avatarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
-  sectionTitle: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
-    fontWeight: "600",
-  },
-
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 30,
-  },
-
-  greeting: { fontSize: 22, fontWeight: "bold", color: "#2A3A56" },
-
   profileCircle: {
     width: 40,
     height: 40,
@@ -269,55 +301,53 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 10,
   },
-
-  profileInitials: { fontWeight: "bold", color: "#2A3A56" },
-
-  notificationBtn: {
-    backgroundColor: "#FFF",
-    padding: 8,
-    borderRadius: 20,
+  profileInitials: {
+    fontWeight: "bold",
+    color: "#2A3A56"
   },
+
+  // -------------------
+  // Stats & Metrics
+  // -------------------
 
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   statItem: {
     flex: 1,
     alignItems: "center",
   },
-
   statHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
     marginBottom: 5,
   },
-
   statLabel: {
     color: "#2A3A56",
     fontSize: 13,
   },
-
   statValue: {
     color: "#FFF",
     fontSize: 32,
     fontWeight: "bold",
   },
-
   statValueSensor: {
     color: "#0068FF",
     fontSize: 32,
     fontWeight: "bold",
   },
-
   divider: {
     width: 1,
     height: 40,
     backgroundColor: "rgba(255,255,255,0.5)",
     marginHorizontal: 20,
   },
+
+  // -------------------
+  // Info Cards
+  // -------------------
 
   card: {
     backgroundColor: "#FFF",
@@ -326,14 +356,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 15,
     alignItems: "center",
-
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-
   iconContainer: {
     width: 45,
     height: 45,
@@ -343,16 +371,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 15,
   },
-
-  textContainer: { flex: 1 },
-
+  textContainer: {
+    flex: 1
+  },
   cardTitle: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#2A3A56",
     marginBottom: 2,
   },
-
   cardSubtitle: {
     fontSize: 12,
     color: "#777",
