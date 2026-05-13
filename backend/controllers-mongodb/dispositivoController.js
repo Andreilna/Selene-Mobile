@@ -286,7 +286,9 @@ class DispositivoController {
 
   static async listarTodos(req, res) {
     try {
-      const dispositivos = await Dispositivo.find();
+      const dispositivos = await Dispositivo.find()
+        .populate("usuario", "nome_completo")
+        .sort({ nome: 1 });
 
       res.json({
         success: true,
@@ -331,24 +333,24 @@ class DispositivoController {
   // BUSCAR LEITURAS DO DISPOSITIVO (ADMIN)
   // ==========================================
   static async buscarLeituras(req, res) {
-  try {
-    const { id } = req.params;
+    try {
+      const { id } = req.params;
 
-    const leituras = await Leitura.find({
-      dispositivo: id,
-    })
-      .sort({ timestamp: -1 })
-      .limit(20);
+      const leituras = await Leitura.find({
+        dispositivo: id,
+      })
+        .sort({ timestamp: -1 })
+        .limit(20);
 
-    return res.status(200).json(leituras);
-  } catch (error) {
-    console.log(error);
+      return res.status(200).json(leituras);
+    } catch (error) {
+      console.log(error);
 
-    return res.status(500).json({
-      erro: "Erro ao buscar leituras",
-    });
+      return res.status(500).json({
+        erro: "Erro ao buscar leituras",
+      });
+    }
   }
-}
 }
 
 module.exports = DispositivoController;
