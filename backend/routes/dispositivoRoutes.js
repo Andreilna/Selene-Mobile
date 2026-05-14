@@ -15,10 +15,10 @@ const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 router.get("/meus", authMiddleware, DispositivoController.listar);
 
 // BUSCA UM DISPOSITIVO
-router.get("/:id", authMiddleware, DispositivoController.buscar);
+router.get("/:id", adminAuthMiddleware, DispositivoController.buscar);
 
 // ATUALIZA DISPOSITIVO
-router.put("/:id", authMiddleware, DispositivoController.atualizar);
+router.put("/:id", adminAuthMiddleware, DispositivoController.atualizar);
 
 // ATUALIZA STATUS
 router.patch(
@@ -48,10 +48,10 @@ router.post("/", adminAuthMiddleware, DispositivoController.criar);
 router.get(
   "/:id/leituras",
   adminAuthMiddleware,
-  DispositivoController.buscarLeituras
+  DispositivoController.buscarLeituras,
 );
 
 // DELETA DISPOSITIVO
 router.delete("/:id", adminAuthMiddleware, DispositivoController.deletar);
 
-module.exports = router;  
+module.exports = router;
