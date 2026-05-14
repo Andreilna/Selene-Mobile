@@ -46,12 +46,21 @@ class DispositivoController {
   static async buscar(req, res) {
     try {
       const { id } = req.params;
-      const usuarioId = req.userId;
 
-      const dispositivo = await Dispositivo.findOne({
-        _id: id,
-        usuario: usuarioId,
-      }).populate("planta");
+      const usuarioId = req.userId;
+      const isAdmin =
+        req.userRole === "admin" || req.userRole === "master";
+
+      let filtro = { _id: id };
+
+      // se NÃO for admin, filtra pelo dono
+      if (!isAdmin) {
+        filtro.usuario = usuarioId;
+      }
+
+      const dispositivo = await Dispositivo.findOne(filtro)
+        .populate("planta")
+        .populate("usuario", "nome email");
 
       if (!dispositivo) {
         return res.status(404).json({
@@ -66,6 +75,7 @@ class DispositivoController {
       });
     } catch (error) {
       console.error("Erro ao buscar dispositivo:", error);
+
       res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
@@ -135,14 +145,28 @@ class DispositivoController {
   static async atualizar(req, res) {
     try {
       const { id } = req.params;
-      const usuarioId = req.userId;
-      const { nome, tipo, localizacao, planta_id } = req.body;
 
-      // Verificar se dispositivo pertence ao usuário
-      const dispositivo = await Dispositivo.findOne({
-        _id: id,
-        usuario: usuarioId,
-      });
+      const usuarioId = req.userId;
+
+      const isAdmin =
+        req.userRole === "admin" || req.userRole === "master";
+
+      const {
+        nome,
+        tipo,
+        localizacao,
+        planta_id,
+        usuario_id,
+      } = req.body;
+
+      let filtro = { _id: id };
+
+      // se não for admin, só acessa os próprios dispositivos
+      if (!isAdmin) {
+        filtro.usuario = usuarioId;
+      }
+
+      const dispositivo = await Dispositivo.findOne(filtro);
 
       if (!dispositivo) {
         return res.status(404).json({
@@ -151,10 +175,9 @@ class DispositivoController {
         });
       }
 
-      // Verificar se nova planta pertence ao usuário
-      let planta = null;
-      if (planta_id) {
-        planta = await Planta.findOne({
+      // valida planta apenas pra usuário comum
+      if (planta_id && !isAdmin) {
+        const planta = await Planta.findOne({
           _id: planta_id,
           usuario: usuarioId,
         });
@@ -167,7 +190,18 @@ class DispositivoController {
         }
       }
 
-      // Atualizar dispositivo
+      // valida usuário novo
+      if (usuario_id) {
+        const usuarioExiste = await User.findById(usuario_id);
+
+        if (!usuarioExiste) {
+          return res.status(404).json({
+            success: false,
+            message: "Usuário não encontrado",
+          });
+        }
+      }
+
       const atualizado = await Dispositivo.findByIdAndUpdate(
         id,
         {
@@ -175,9 +209,15 @@ class DispositivoController {
           tipo,
           localizacao,
           planta: planta_id || null,
+          usuario: usuario_id,
         },
-        { new: true, runValidators: true },
-      );
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
+        .populate("usuario", "nome email")
+        .populate("planta");
 
       res.json({
         success: true,
@@ -186,6 +226,7 @@ class DispositivoController {
       });
     } catch (error) {
       console.error("Erro ao atualizar dispositivo:", error);
+
       res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
