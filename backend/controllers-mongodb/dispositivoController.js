@@ -4,91 +4,99 @@ const User = require("../models-mongodb/User");
 const Leitura = require("../models-mongodb/Leitura");
 
 class DispositivoController {
+  // ==========================================
+  // LISTAR DISPOSITIVOS
+  // ==========================================
   static async listar(req, res) {
     try {
       const usuarioId = req.userId;
+
+      const isAdmin =
+        !!req.adminId ||
+        req.userRole === "admin" ||
+        req.userRole === "master" ||
+        req.nivel === "superadmin";
+
       const { incluir_inativos } = req.query;
-      const isAdmin = req.userRole === "admin" || req.userRole === "master";
 
       let filtro = {};
 
-      if (isAdmin) {
-        filtro = {};
-      } else {
-        filtro = { usuario: usuarioId };
+      if (!isAdmin) {
+        filtro.usuario = usuarioId;
       }
 
-      // Mantém a lógica de inativos
       if (incluir_inativos !== "true") {
         filtro.ativo = true;
       }
 
       const dispositivos = await Dispositivo.find(filtro)
         .populate("planta", "especie status")
-        .populate("usuario", "nome email") // Opcional: ver quem é o dono
+        .populate("usuario", "nome email")
         .sort({ nome: 1 });
 
-      res.json({
+      return res.status(200).json({
         success: true,
         data: dispositivos,
         total: dispositivos.length,
-        modo_visualizacao: isAdmin ? "visao_geral_admin" : "visao_usuario",
+        modo_visualizacao: isAdmin
+          ? "visao_geral_admin"
+          : "visao_usuario",
       });
     } catch (error) {
       console.error("Erro ao listar dispositivos:", error);
-      res.status(500).json({
+
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
     }
   }
 
+  // ==========================================
+  // BUSCAR DISPOSITIVO
+  // ==========================================
   static async buscar(req, res) {
     try {
       const { id } = req.params;
 
-      const usuarioId = req.userId;
-      const isAdmin =
-        req.userRole === "admin" || req.userRole === "master";
-
-      let filtro = { _id: id };
-
-      // se NÃO for admin, filtra pelo dono
-      if (!isAdmin) {
-        filtro.usuario = usuarioId;
-      }
-
-      const dispositivo = await Dispositivo.findOne(filtro)
+      const dispositivo = await Dispositivo.findById(id)
         .populate("planta")
         .populate("usuario", "nome email");
 
       if (!dispositivo) {
         return res.status(404).json({
           success: false,
-          message: "Dispositivo não encontrado ou acesso não autorizado",
+          message: "Dispositivo não encontrado",
         });
       }
 
-      res.json({
+      return res.status(200).json({
         success: true,
         data: dispositivo,
       });
     } catch (error) {
       console.error("Erro ao buscar dispositivo:", error);
 
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
     }
   }
 
+  // ==========================================
+  // CRIAR DISPOSITIVO
+  // ==========================================
   static async criar(req, res) {
     try {
-      const adminId = req.adminId || req.userId; // 🔥 suporta admin e user
-
-      const { mac_address, nome, tipo, localizacao, planta_id, usuario_id } =
-        req.body;
+      const {
+        mac_address,
+        nome,
+        tipo,
+        localizacao,
+        planta_id,
+        usuario_id,
+      } = req.body;
 
       if (!mac_address) {
         return res.status(400).json({
@@ -97,17 +105,25 @@ class DispositivoController {
         });
       }
 
-      // 🔥 VERIFICA SE O USUÁRIO EXISTE
-      const userExiste = await User.findById(usuario_id);
-
-      if (!userExiste) {
-        return res.status(404).json({
+      if (!usuario_id) {
+        return res.status(400).json({
           success: false,
-          message: "Usuário não encontrado no banco",
+          message: "Usuário é obrigatório",
         });
       }
 
-      const dispositivoExistente = await Dispositivo.findOne({ mac_address });
+      const usuarioExiste = await User.findById(usuario_id);
+
+      if (!usuarioExiste) {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      const dispositivoExistente = await Dispositivo.findOne({
+        mac_address,
+      });
 
       if (dispositivoExistente) {
         return res.status(400).json({
@@ -122,34 +138,33 @@ class DispositivoController {
         tipo: tipo || "ESP32_SENSORES",
         localizacao,
         planta: planta_id || null,
-        usuario: usuario_id, // 🔥 SEMPRE usa o selecionado
+        usuario: usuario_id,
         online: true,
+        ativo: true,
         ultima_comunicacao: new Date(),
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: "Dispositivo criado com sucesso",
         data: dispositivo,
       });
     } catch (error) {
-      console.error("💥 ERRO AO CRIAR:", error);
+      console.error("Erro ao criar dispositivo:", error);
 
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
     }
   }
 
+  // ==========================================
+  // ATUALIZAR DISPOSITIVO
+  // ==========================================
   static async atualizar(req, res) {
     try {
       const { id } = req.params;
-
-      const usuarioId = req.userId;
-
-      const isAdmin =
-        req.userRole === "admin" || req.userRole === "master";
 
       const {
         nome,
@@ -157,16 +172,10 @@ class DispositivoController {
         localizacao,
         planta_id,
         usuario_id,
+        mac_address,
       } = req.body;
 
-      let filtro = { _id: id };
-
-      // se não for admin, só acessa os próprios dispositivos
-      if (!isAdmin) {
-        filtro.usuario = usuarioId;
-      }
-
-      const dispositivo = await Dispositivo.findOne(filtro);
+      const dispositivo = await Dispositivo.findById(id);
 
       if (!dispositivo) {
         return res.status(404).json({
@@ -175,22 +184,6 @@ class DispositivoController {
         });
       }
 
-      // valida planta apenas pra usuário comum
-      if (planta_id && !isAdmin) {
-        const planta = await Planta.findOne({
-          _id: planta_id,
-          usuario: usuarioId,
-        });
-
-        if (!planta) {
-          return res.status(400).json({
-            success: false,
-            message: "Planta não encontrada ou acesso não autorizado",
-          });
-        }
-      }
-
-      // valida usuário novo
       if (usuario_id) {
         const usuarioExiste = await User.findById(usuario_id);
 
@@ -202,12 +195,24 @@ class DispositivoController {
         }
       }
 
+      if (planta_id) {
+        const plantaExiste = await Planta.findById(planta_id);
+
+        if (!plantaExiste) {
+          return res.status(404).json({
+            success: false,
+            message: "Planta não encontrada",
+          });
+        }
+      }
+
       const atualizado = await Dispositivo.findByIdAndUpdate(
         id,
         {
           nome,
           tipo,
           localizacao,
+          mac_address,
           planta: planta_id || null,
           usuario: usuario_id,
         },
@@ -219,7 +224,7 @@ class DispositivoController {
         .populate("usuario", "nome email")
         .populate("planta");
 
-      res.json({
+      return res.status(200).json({
         success: true,
         message: "Dispositivo atualizado com sucesso",
         data: atualizado,
@@ -227,24 +232,22 @@ class DispositivoController {
     } catch (error) {
       console.error("Erro ao atualizar dispositivo:", error);
 
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
     }
   }
 
+  // ==========================================
+  // ATUALIZAR STATUS ONLINE
+  // ==========================================
   static async atualizarStatus(req, res) {
     try {
       const { id } = req.params;
-      const usuarioId = req.userId;
       const { online } = req.body;
 
-      // Verificar se dispositivo pertence ao usuário
-      const dispositivo = await Dispositivo.findOne({
-        _id: id,
-        usuario: usuarioId,
-      });
+      const dispositivo = await Dispositivo.findById(id);
 
       if (!dispositivo) {
         return res.status(404).json({
@@ -253,42 +256,41 @@ class DispositivoController {
         });
       }
 
-      // Atualizar status
       const atualizado = await Dispositivo.findByIdAndUpdate(
         id,
         {
           online,
           ultima_comunicacao: new Date(),
         },
-        { new: true },
+        {
+          new: true,
+        },
       );
 
-      res.json({
+      return res.status(200).json({
         success: true,
         message: `Dispositivo ${online ? "online" : "offline"}`,
         data: atualizado,
       });
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
-      res.status(500).json({
+
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
     }
   }
 
-  // Ativar/Desativar dispositivo
+  // ==========================================
+  // ATIVAR / DESATIVAR
+  // ==========================================
   static async alterarStatusDispositivo(req, res) {
     try {
       const { id } = req.params;
-      const usuarioId = req.userId;
       const { ativo } = req.body;
 
-      // Verificar se dispositivo pertence ao usuário
-      const dispositivo = await Dispositivo.findOne({
-        _id: id,
-        usuario: usuarioId,
-      });
+      const dispositivo = await Dispositivo.findById(id);
 
       if (!dispositivo) {
         return res.status(404).json({
@@ -297,14 +299,16 @@ class DispositivoController {
         });
       }
 
-      // Atualizar status ativo
       const statusAnterior = dispositivo.ativo;
-      dispositivo.ativo = ativo === true ? true : false;
+
+      dispositivo.ativo = ativo === true;
+
       await dispositivo.save();
 
-      res.json({
+      return res.status(200).json({
         success: true,
-        message: `Dispositivo ${dispositivo.ativo ? "ativado" : "desativado"} com sucesso`,
+        message: `Dispositivo ${dispositivo.ativo ? "ativado" : "desativado"
+          } com sucesso`,
         data: {
           id: dispositivo._id,
           nome: dispositivo.nome,
@@ -315,28 +319,32 @@ class DispositivoController {
       });
     } catch (error) {
       console.error("Erro ao alterar status do dispositivo:", error);
-      res.status(500).json({
+
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
     }
   }
+
   // ==========================================
   // LISTAR TODOS (ADMIN)
   // ==========================================
-
   static async listarTodos(req, res) {
     try {
       const dispositivos = await Dispositivo.find()
-        .populate("usuario", "nome_completo")
+        .populate("usuario", "nome email")
+        .populate("planta")
         .sort({ nome: 1 });
 
-      res.json({
+      return res.status(200).json({
         success: true,
         data: dispositivos,
       });
     } catch (error) {
-      res.status(500).json({
+      console.error(error);
+
+      return res.status(500).json({
         success: false,
         message: "Erro interno do servidor",
       });
@@ -344,7 +352,7 @@ class DispositivoController {
   }
 
   // ==========================================
-  // DELETAR DISPOSITIVO (ADMIN)
+  // DELETAR DISPOSITIVO
   // ==========================================
   static async deletar(req, res) {
     try {
@@ -354,24 +362,27 @@ class DispositivoController {
 
       if (!dispositivo) {
         return res.status(404).json({
-          erro: "Dispositivo não encontrado",
+          success: false,
+          message: "Dispositivo não encontrado",
         });
       }
 
       return res.status(200).json({
-        mensagem: "Dispositivo removido com sucesso",
+        success: true,
+        message: "Dispositivo removido com sucesso",
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       return res.status(500).json({
-        erro: "Erro ao remover dispositivo",
+        success: false,
+        message: "Erro ao remover dispositivo",
       });
     }
   }
 
   // ==========================================
-  // BUSCAR LEITURAS DO DISPOSITIVO (ADMIN)
+  // BUSCAR LEITURAS
   // ==========================================
   static async buscarLeituras(req, res) {
     try {
@@ -383,12 +394,16 @@ class DispositivoController {
         .sort({ timestamp: -1 })
         .limit(40);
 
-      return res.status(200).json(leituras);
+      return res.status(200).json({
+        success: true,
+        data: leituras,
+      });
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       return res.status(500).json({
-        erro: "Erro ao buscar leituras",
+        success: false,
+        message: "Erro ao buscar leituras",
       });
     }
   }
