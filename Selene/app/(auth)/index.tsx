@@ -101,7 +101,7 @@ export default function Login() {
         // REDIRECIONAMENTO INTELIGENTE
         if (isLoggedAsAdmin) {
           // Se for admin, manda para a tela de admin (certifique-se de que o path existe)
-          router.replace("/(admin)/home-admin");
+          router.replace("/(admin)/(tabs)/home-admin");
         } else {
           // Se for usuário comum, mantém a rota atual
           router.replace("/(tabs)/home");

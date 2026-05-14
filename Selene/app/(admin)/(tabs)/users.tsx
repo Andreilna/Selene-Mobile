@@ -17,6 +17,8 @@ import {
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 interface Usuario {
   id: string;
@@ -147,11 +149,13 @@ export default function ControleAcessoScreen() {
     }
   };
 
-  useEffect(() => {
-    if (token) fetchDados();
-  }, [token]);
-
-  const timeFilters = ["Dia", "Semana", "Mês", "Ano"];
+  useFocusEffect(
+    useCallback(() => {
+      if (token) {
+        fetchDados();
+      }
+    }, [token]),
+  );
 
   const renderUserItem = (item: Usuario) => (
     <TouchableOpacity
@@ -191,9 +195,7 @@ export default function ControleAcessoScreen() {
         {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.push("/(admin)/home-admin")}
-            >
+            <TouchableOpacity onPress={() => router.back()}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
 
@@ -214,7 +216,7 @@ export default function ControleAcessoScreen() {
 
         <View style={styles.statsContainer}>
           <View style={styles.mainStatCard}>
-            <Text style={styles.statLabelLink}>Usuários Cadastrados</Text>
+            <Text style={styles.statLabelLink}>Contas Cadastradas</Text>
 
             <Text style={styles.statValueBig}>
               {usuarios.length + admins.length}
@@ -267,7 +269,6 @@ export default function ControleAcessoScreen() {
             />
           )}
 
-
           <View style={styles.buttonWrapper}>
             <TouchableOpacity
               style={[
@@ -294,7 +295,7 @@ export default function ControleAcessoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159"
+    backgroundColor: "#95C159",
   },
   content: {
     flex: 1,
@@ -326,21 +327,21 @@ const styles = StyleSheet.create({
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15
+    gap: 15,
   },
   textContainer: {
     flex: 1,
-    marginLeft: 20
+    marginLeft: 20,
   },
   welcomeText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
   subwelcomeText: {
     fontSize: 14,
     color: "#2A3A56",
-    opacity: 0.8
+    opacity: 0.8,
   },
 
   // -------------------
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
 
   // -------------------

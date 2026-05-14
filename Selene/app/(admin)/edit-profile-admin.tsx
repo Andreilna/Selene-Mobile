@@ -48,14 +48,23 @@ export default function EditProfileScreen() {
           return;
         }
 
-        const res = await fetch(
-          `https://selene-mobile.onrender.com/api/v1/users/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        console.log("ID:", id);
+
+        const role = await SecureStore.getItemAsync("userRole");
+
+        const endpoint =
+          role === "admin" || role === "superadmin"
+            ? `https://selene-mobile.onrender.com/api/v1/admin/perfil`
+            : `https://selene-mobile.onrender.com/api/v1/users/${id}`;
+
+        console.log("TOKEN:", token);
+        console.log("ROLE:", await SecureStore.getItemAsync("userRole"));
+
+        const res = await fetch(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         const data = await res.json();
 
@@ -109,7 +118,7 @@ export default function EditProfileScreen() {
       }
 
       const res = await fetch(
-        `https://selene-mobile.onrender.com/api/v1/users/${id}`,
+        `https://selene-mobile.onrender.com/api/v1/admin/perfil`,
         {
           method: "PUT",
           headers: {
@@ -128,6 +137,9 @@ export default function EditProfileScreen() {
       const data = await res.json();
 
       if (!res.ok) {
+        console.log("STATUS:", res.status);
+        console.log("DATA:", data);
+
         throw new Error(data.message || "Erro ao atualizar");
       }
 

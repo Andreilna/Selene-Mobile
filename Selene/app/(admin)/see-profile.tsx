@@ -82,14 +82,7 @@ export default function PerfilUsuarioScreen() {
         let json = await response.json();
 
         if (response.ok) {
-          const usuario =
-            json.data?.usuario ||
-            json.data?.user ||
-            json.data ||
-            json.usuario ||
-            json.user ||
-            json.users ||
-            json;
+          const usuario = json.data?.usuario || json.data || json.usuario;
 
           setUserData(usuario);
           return;
@@ -167,17 +160,16 @@ export default function PerfilUsuarioScreen() {
           try {
             const token = await SecureStore.getItemAsync("userToken");
 
-            const role = await SecureStore.getItemAsync("userRole");
-
             if (!token) {
               Alert.alert("Erro", "Usuário não autenticado");
               return;
             }
 
-            const endpoint =
-              role === "admin" || role === "superadmin"
-                ? `https://selene-mobile.onrender.com/api/v1/admin/deletar/${id}`
-                : `https://selene-mobile.onrender.com/api/v1/users/${id}`;
+            const buscaId = id?.toString().replace(/"/g, "").trim();
+
+            const endpoint = `https://selene-mobile.onrender.com/api/v1/users/${buscaId}`;
+
+            console.log("DELETE:", endpoint);
 
             const res = await fetch(endpoint, {
               method: "DELETE",
@@ -188,14 +180,19 @@ export default function PerfilUsuarioScreen() {
 
             const data = await res.json();
 
+            console.log("STATUS:", res.status);
+            console.log("DATA:", data);
+
             if (!res.ok) {
               throw new Error(data.message || "Erro ao excluir usuário");
             }
 
             Alert.alert("Sucesso", "Usuário excluído com sucesso!");
 
-            router.back();
+            router.replace("/(admin)/users");
           } catch (error: any) {
+            console.log("ERRO DELETE:", error);
+
             Alert.alert("Erro", error.message || "Falha ao excluir usuário");
           }
         },
@@ -265,7 +262,9 @@ export default function PerfilUsuarioScreen() {
         >
           <View style={styles.topContainer}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity
+                onPress={() => router.replace("/(admin)/users")}
+              >
                 <Feather name="arrow-left" size={28} color="#2A3A56" />
               </TouchableOpacity>
 

@@ -12,6 +12,8 @@ import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 import { StyleSheet } from "react-native";
 
@@ -27,44 +29,44 @@ export default function ProfileScreen() {
     iniciais: "",
   });
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const nomeCompleto = await SecureStore.getItemAsync("userName");
-        const userId = await SecureStore.getItemAsync("userId");
-        const role = await SecureStore.getItemAsync("userRole");
+  useFocusEffect(
+    useCallback(() => {
+      const loadUserData = async () => {
+        try {
+          setLoading(true);
 
-        setIsAdmin(role === "admin" || role === "superadmin");
+          const nomeCompleto = await SecureStore.getItemAsync("userName");
+          const userId = await SecureStore.getItemAsync("userId");
+          const role = await SecureStore.getItemAsync("userRole");
 
-        if (nomeCompleto) {
-          const partes = nomeCompleto.trim().split(/\s+/);
+          setIsAdmin(role === "admin" || role === "superadmin");
 
-          const init =
-            partes.length > 1
-              ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
+          if (nomeCompleto) {
+            const partes = nomeCompleto.trim().split(/\s+/);
 
-          setIniciais(init);
+            const init =
+              partes.length > 1
+                ? (partes[0][0] + partes[1][0]).toUpperCase()
+                : partes[0][0].toUpperCase();
 
-          setUserData({
-            nome: nomeCompleto,
-            id: userId ? userId.substring(0, 8) : "--------",
-            iniciais: init,
-          });
+            setIniciais(init);
+
+            setUserData({
+              nome: nomeCompleto,
+              id: userId ? userId.substring(0, 8) : "--------",
+              iniciais: init,
+            });
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
         }
-      } catch (e) {
-        if (e instanceof Error) {
-          console.error("Erro ao carregar dados:", e.message);
-        } else {
-          console.error("Erro desconhecido ao carregar dados");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    loadUserData();
-  }, []);
+      loadUserData();
+    }, []),
+  );
 
   const handleLogout = async () => {
     Alert.alert("Sair", "Deseja encerrar a sessão?", [
@@ -81,7 +83,10 @@ export default function ProfileScreen() {
 
             router.replace("/(auth)");
           } catch (e) {
-            console.error("Erro ao deslogar:", e instanceof Error ? e.message : e);
+            console.error(
+              "Erro ao deslogar:",
+              e instanceof Error ? e.message : e,
+            );
           }
         },
       },
@@ -146,7 +151,14 @@ export default function ProfileScreen() {
             {/* EDITAR PERFIL */}
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => router.push("/(admin)/edit-profile-admin")}
+              onPress={async () => {
+                const userId = await SecureStore.getItemAsync("userId");
+
+                router.push({
+                  pathname: "/(admin)/edit-profile-admin",
+                  params: { id: userId || "" },
+                });
+              }}
             >
               <View
                 style={[
@@ -226,7 +238,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159"
+    backgroundColor: "#95C159",
   },
   content: {
     flex: 1,
@@ -258,7 +270,7 @@ const styles = StyleSheet.create({
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15
+    gap: 15,
   },
   textContainer: {
     flex: 1,
@@ -274,7 +286,7 @@ const styles = StyleSheet.create({
   subwelcomeText: {
     fontSize: 14,
     color: "#2A3A56",
-    opacity: 0.8
+    opacity: 0.8,
   },
 
   // -------------------
@@ -294,7 +306,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
 
   // -------------------

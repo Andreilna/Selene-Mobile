@@ -25,6 +25,7 @@ export default function EditProfileScreen() {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
 
   useEffect(() => {
     const preencherCampos = (user: any) => {
@@ -141,10 +142,11 @@ export default function EditProfileScreen() {
         return;
       }
 
-      const endpoint =
-        currentRole === "admin" || currentRole === "superadmin"
-          ? `https://selene-mobile.onrender.com/api/v1/admin/editar/${id}`
-          : `https://selene-mobile.onrender.com/api/v1/users/${id}`;
+      const isAdmin = currentRole === "admin" || currentRole === "superadmin";
+
+      const endpoint = isAdmin
+        ? `https://selene-mobile.onrender.com/api/v1/admin/perfil`
+        : `https://selene-mobile.onrender.com/api/v1/users/me`;
 
       const res = await fetch(endpoint, {
         method: "PUT",
@@ -153,10 +155,12 @@ export default function EditProfileScreen() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          usuario: nome,
           nome_completo: nome,
           email,
           telefone,
           endereco,
+          data_nascimento: dataNascimento,
         }),
       });
 
@@ -254,6 +258,16 @@ export default function EditProfileScreen() {
                 value={endereco}
                 onChangeText={setEndereco}
                 multiline
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Data de Nascimento</Text>
+
+              <TextInput
+                style={styles.input}
+                value={dataNascimento}
+                onChangeText={setDataNascimento}
               />
             </View>
 

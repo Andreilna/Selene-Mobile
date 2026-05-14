@@ -45,7 +45,6 @@ export default function NovoUsuario() {
           setIniciais(init);
         }
       } catch (e) {
-        console.log(e);
       }
     };
 
@@ -170,7 +169,7 @@ export default function NovoUsuario() {
         {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.replace("/(admin)/users")}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
 
