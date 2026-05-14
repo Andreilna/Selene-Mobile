@@ -20,8 +20,14 @@ export default function NovoUsuario() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nivel, setNivel] = useState("user");
+
   const [iniciais, setIniciais] = useState("US");
+
   const [loading, setLoading] = useState(false);
+
+  // ==========================================
+  // CARREGAR INICIAIS
+  // ==========================================
 
   useEffect(() => {
     const carregarDadosUsuario = async () => {
@@ -29,7 +35,7 @@ export default function NovoUsuario() {
         const nomeSalvo = await SecureStore.getItemAsync("userName");
 
         if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(" ");
+          const partes = nomeSalvo.trim().split(/\s+/);
 
           const init =
             partes.length > 1
@@ -38,15 +44,25 @@ export default function NovoUsuario() {
 
           setIniciais(init);
         }
-      } catch (e) { }
+      } catch (e) {
+        console.log(e);
+      }
     };
 
     carregarDadosUsuario();
   }, []);
 
+  // ==========================================
+  // PERFIL
+  // ==========================================
+
   const handleGoProfile = () => {
     router.push("/(admin)/profile-admin");
   };
+
+  // ==========================================
+  // CRIAR USUÁRIO / ADMIN
+  // ==========================================
 
   const handleSubmit = async () => {
     if (!nome || !email || !senha) {
@@ -64,36 +80,66 @@ export default function NovoUsuario() {
 
       const token = await SecureStore.getItemAsync("userToken");
 
+      if (!token) {
+        Alert.alert("Erro", "Usuário não autenticado");
+        return;
+      }
+
+      // ==========================================
+      // DEFINIR ENDPOINT
+      // ==========================================
+
       const endpoint =
         nivel === "superadmin"
           ? "https://selene-mobile.onrender.com/api/v1/admin/criar"
-          : "https://selene-mobile.onrender.com/api/v1/auth/registrar";
+          : "https://selene-mobile.onrender.com/api/v1/users";
+
+      // ==========================================
+      // BODY ADMIN
+      // ==========================================
 
       const body =
         nivel === "superadmin"
           ? {
-            usuario: email.split("@")[0],
-            nome_completo: nome.trim(),
-            email: email.toLowerCase().trim(),
-            senha,
-            telefone: telefone || "",
-            nivel_acesso: "superadmin",
-          }
+              usuario: email.split("@")[0].trim().toLowerCase(),
+
+              nome_completo: nome.trim(),
+
+              email: email.trim().toLowerCase(),
+
+              senha,
+
+              telefone: telefone || "",
+
+              nivel_acesso: "superadmin",
+            }
           : {
-            nome_completo: nome.trim(),
-            email: email.toLowerCase().trim(),
-            senha,
-            telefone: telefone || null,
-            data_nascimento: dataNascimento || null,
-            tipo: "user",
-          };
+              nome_completo: nome.trim(),
+
+              email: email.trim().toLowerCase(),
+
+              senha,
+
+              telefone: telefone || "",
+
+              data_nascimento: dataNascimento || null,
+
+              tipo: "user",
+            };
+
+      // ==========================================
+      // REQUEST
+      // ==========================================
 
       const res = await fetch(endpoint, {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
+
           Authorization: `Bearer ${token}`,
         },
+
         body: JSON.stringify(body),
       });
 
@@ -112,7 +158,7 @@ export default function NovoUsuario() {
 
       router.back();
     } catch (err: any) {
-      Alert.alert("Erro", err.message);
+      Alert.alert("Erro", err.message || "Erro ao criar cadastro");
     } finally {
       setLoading(false);
     }
@@ -144,11 +190,18 @@ export default function NovoUsuario() {
         </View>
 
         {/* FORM */}
-        <View style={styles.content}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.label}>Nome Completo *</Text>
-          <TextInput style={styles.input} value={nome} onChangeText={setNome} />
+
+          <TextInput
+            style={styles.input}
+            value={nome}
+            onChangeText={setNome}
+            placeholder="Nome completo"
+          />
 
           <Text style={styles.label}>Data Nascimento</Text>
+
           <TextInput
             style={styles.input}
             value={dataNascimento}
@@ -157,33 +210,40 @@ export default function NovoUsuario() {
           />
 
           <Text style={styles.label}>Telefone</Text>
+
           <TextInput
             style={styles.input}
             value={telefone}
             onChangeText={setTelefone}
             placeholder="(13) 99999-9999"
+            keyboardType="phone-pad"
           />
 
           <Text style={styles.label}>Email *</Text>
+
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
             placeholder="email@exemplo.com"
             autoCapitalize="none"
+            keyboardType="email-address"
           />
 
           <Text style={styles.label}>Senha *</Text>
+
           <TextInput
             style={styles.input}
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
+            placeholder="********"
           />
 
-          {/* FOTO (placeholder visual) */}
+          {/* FOTO */}
           <View style={styles.photoBox}>
             <Feather name="user" size={40} color="#fff" />
+
             <View style={styles.cameraIcon}>
               <Feather name="camera" size={14} color="#fff" />
             </View>
@@ -213,7 +273,12 @@ export default function NovoUsuario() {
 
           {/* BOTÃO */}
           <TouchableOpacity
-            style={[styles.btn, loading && { opacity: 0.6 }]}
+            style={[
+              styles.btn,
+              loading && {
+                opacity: 0.6,
+              },
+            ]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -221,7 +286,7 @@ export default function NovoUsuario() {
               {loading ? "Criando..." : "Cadastrar"}
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -234,7 +299,7 @@ export default function NovoUsuario() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159"
+    backgroundColor: "#95C159",
   },
   content: {
     flex: 1,
@@ -269,7 +334,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    marginLeft: 20
+    marginLeft: 20,
   },
   welcomeText: {
     fontSize: 22,

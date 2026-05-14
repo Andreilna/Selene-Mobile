@@ -228,6 +228,23 @@ export default function DetalhesCamera() {
               })
             )}
 
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => {
+                console.log("ID ENVIADO:", id);
+
+                router.push({
+                  pathname: "/(admin)/edit-sensors",
+                  params: {
+                    id: String(id),
+                  },
+                });
+              }}
+            >
+              <Feather name="edit-2" size={20} color="#FFF" />
+              <Text style={styles.editBtnText}>Editar Sensor</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.deleteBtn} onPress={handleExcluir}>
               <Feather name="trash-2" size={20} color="#FFF" />
               <Text style={styles.deleteBtnText}>Excluir Câmera</Text>
@@ -246,7 +263,7 @@ export default function DetalhesCamera() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159"
+    backgroundColor: "#95C159",
   },
   content: {
     flex: 1,
@@ -277,12 +294,12 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    marginLeft: 20
+    marginLeft: 20,
   },
   welcomeText: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
   subwelcomeText: {
     fontSize: 14,
@@ -305,7 +322,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
 
   // -------------------
@@ -334,7 +351,7 @@ const styles = StyleSheet.create({
   capturedImage: {
     width: "100%",
     height: 280,
-    backgroundColor: "#EEE"
+    backgroundColor: "#EEE",
   },
   imageFooter: {
     flexDirection: "row",
@@ -345,7 +362,7 @@ const styles = StyleSheet.create({
   imageDate: {
     color: "#2A3A56",
     fontSize: 14,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   emptyText: {
     textAlign: "center",
@@ -371,6 +388,21 @@ const styles = StyleSheet.create({
   deleteBtnText: {
     color: "#FFF",
     fontWeight: "bold",
-    fontSize: 16
+    fontSize: 16,
+  },
+  editBtn: {
+    flexDirection: "row",
+    backgroundColor: "#4A90E2",
+    height: 55,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    gap: 10,
+  },
+  editBtnText: {
+    color: "#FFF",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

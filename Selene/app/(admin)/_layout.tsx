@@ -55,10 +55,16 @@ export default function AdminLayout() {
         options={{
           tabBarIcon: ({ focused }) => (
             <View style={styles.fabContainer}>
-              <View style={[
-                styles.fab, 
-                { backgroundColor: focused ? COLORS.fabActive : COLORS.fabInactive }
-              ]}>
+              <View
+                style={[
+                  styles.fab,
+                  {
+                    backgroundColor: focused
+                      ? COLORS.fabActive
+                      : COLORS.fabInactive,
+                  },
+                ]}
+              >
                 <Ionicons name="pie-chart" size={28} color="#FFFFFF" />
               </View>
             </View>
@@ -86,9 +92,15 @@ export default function AdminLayout() {
 
       {/* ROTAS OCULTAS - MANTIDAS COM HREF NULL */}
       {[
-        "edit-profile", "edit-profile-admin", "see-profile", 
-        "novo-usuario", "profile-admin", "sensors", 
-        "detalhes-sensor", "detalhes-camera"
+        "edit-profile",
+        "edit-profile-admin",
+        "see-profile",
+        "novo-usuario",
+        "profile-admin",
+        "sensors",
+        "detalhes-sensor",
+        "detalhes-camera",
+        "edit-sensors",
       ].map((route) => (
         <Tabs.Screen key={route} name={route} options={{ href: null }} />
       ))}
@@ -102,7 +114,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 95 : 80, // Ajuste para iPhone
+    height: Platform.OS === "ios" ? 95 : 80, // Ajuste para iPhone
     backgroundColor: "transparent",
     borderTopWidth: 0,
     elevation: 0,
@@ -129,7 +141,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   fabContainer: {
-    top: Platform.OS === 'ios' ? -25 : -30,
+    top: Platform.OS === "ios" ? -25 : -30,
     justifyContent: "center",
     alignItems: "center",
   },

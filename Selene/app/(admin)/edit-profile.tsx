@@ -27,6 +27,13 @@ export default function EditProfileScreen() {
   const [endereco, setEndereco] = useState("");
 
   useEffect(() => {
+    const preencherCampos = (user: any) => {
+      setNome(user.nome_completo || user.usuario || "");
+      setEmail(user.email || "");
+      setTelefone(user.telefone || "");
+      setEndereco(user.endereco || "");
+    };
+
     const carregarDadosParaEdicao = async () => {
       if (!id) {
         console.error("--- [DEBUG] ID não fornecido");
@@ -36,14 +43,24 @@ export default function EditProfileScreen() {
 
       try {
         const token = await SecureStore.getItemAsync("userToken");
+
+        if (!token) {
+          Alert.alert("Erro", "Usuário não autenticado");
+          return;
+        }
+
         const buscaId = id.toString().trim().toLowerCase();
 
+        // BUSCA DIRETA
         let response = await fetch(
           `https://selene-mobile.onrender.com/api/v1/users/${id}`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
         );
+
         let json = await response.json();
 
         if (response.ok) {
@@ -51,14 +68,20 @@ export default function EditProfileScreen() {
           return;
         }
 
+        // BUSCA EM LISTA DE USERS
         const resLista = await fetch(
           `https://selene-mobile.onrender.com/api/v1/users`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
         );
+
         const jsonLista = await resLista.json();
+
         const lista = jsonLista.data || jsonLista.usuarios || jsonLista || [];
+
         const encontrado = lista.find(
           (u: any) => (u._id || u.id)?.toString().toLowerCase() === buscaId,
         );
@@ -68,14 +91,20 @@ export default function EditProfileScreen() {
           return;
         }
 
+        // BUSCA ADMINS
         const resAdmins = await fetch(
           `https://selene-mobile.onrender.com/api/v1/admin/listar`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
         );
+
         const jsonAdmins = await resAdmins.json();
+
         const listaAdmins = jsonAdmins.data || jsonAdmins.usuarios || [];
+
         const adminEncontrado = listaAdmins.find(
           (a: any) => (a._id || a.id)?.toString().toLowerCase() === buscaId,
         );
@@ -97,18 +126,13 @@ export default function EditProfileScreen() {
       }
     };
 
-    const preencherCampos = (user: any) => {
-      setNome(user.nome_completo || user.usuario || "");
-      setEmail(user.email || "");
-      setTelefone(user.telefone || "");
-      setEndereco(user.endereco || "");
-    };
-
     carregarDadosParaEdicao();
   }, [id]);
 
   const handleSalvar = async () => {
     try {
+      setSaving(true);
+
       const token = await SecureStore.getItemAsync("userToken");
       const currentRole = await SecureStore.getItemAsync("userRole");
 
@@ -117,12 +141,12 @@ export default function EditProfileScreen() {
         return;
       }
 
-      const url =
+      const endpoint =
         currentRole === "admin" || currentRole === "superadmin"
-          ? "https://selene-mobile.onrender.com/api/v1/admin/perfil"
-          : "https://selene-mobile.onrender.com/api/v1/auth/perfil";
+          ? `https://selene-mobile.onrender.com/api/v1/admin/editar/${id}`
+          : `https://selene-mobile.onrender.com/api/v1/users/${id}`;
 
-      const res = await fetch(url, {
+      const res = await fetch(endpoint, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -130,8 +154,9 @@ export default function EditProfileScreen() {
         },
         body: JSON.stringify({
           nome_completo: nome,
-          email: email,
-          telefone: telefone,
+          email,
+          telefone,
+          endereco,
         }),
       });
 
@@ -145,15 +170,26 @@ export default function EditProfileScreen() {
       await SecureStore.setItemAsync("userEmail", email);
 
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
+
       router.back();
     } catch (error: any) {
       Alert.alert("Erro", error.message || "Ocorreu um erro inesperado");
+    } finally {
+      setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            justifyContent: "center",
+            alignItems: "center",
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color="#2A3A56" />
       </View>
     );
@@ -169,7 +205,9 @@ export default function EditProfileScreen() {
           >
             <Feather name="arrow-left" size={26} color="#2A3A56" />
           </TouchableOpacity>
+
           <Text style={styles.headerTitle}>Editar Cadastro</Text>
+
           <View style={{ width: 40 }} />
         </View>
 
@@ -177,6 +215,7 @@ export default function EditProfileScreen() {
           <View style={styles.card}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nome Completo</Text>
+
               <TextInput
                 style={styles.input}
                 value={nome}
@@ -186,6 +225,7 @@ export default function EditProfileScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>E-mail</Text>
+
               <TextInput
                 style={styles.input}
                 value={email}
@@ -197,6 +237,7 @@ export default function EditProfileScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Telefone</Text>
+
               <TextInput
                 style={styles.input}
                 value={telefone}
@@ -207,6 +248,7 @@ export default function EditProfileScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Endereço</Text>
+
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={endereco}
@@ -216,7 +258,7 @@ export default function EditProfileScreen() {
             </View>
 
             <TouchableOpacity
-              style={styles.btnSave}
+              style={[styles.btnSave, saving && { opacity: 0.7 }]}
               onPress={handleSalvar}
               disabled={saving}
             >
@@ -240,7 +282,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159"
+    backgroundColor: "#95C159",
   },
   content: {
     flex: 1,
@@ -251,7 +293,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   scrollContent: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   card: {
     flex: 1,
@@ -272,11 +314,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 10,
+    paddingHorizontal: 20,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#2A3A56"
+    color: "#2A3A56",
   },
   backButton: {
     padding: 8,
@@ -289,13 +332,13 @@ const styles = StyleSheet.create({
   // -------------------
 
   inputGroup: {
-    marginBottom: 18
+    marginBottom: 18,
   },
   label: {
     fontSize: 13,
     color: "#666",
     marginBottom: 6,
-    fontWeight: "600"
+    fontWeight: "600",
   },
   input: {
     backgroundColor: "#F5F5F5",
@@ -308,7 +351,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     height: 90,
-    textAlignVertical: "top"
+    textAlignVertical: "top",
   },
 
   // -------------------
@@ -325,6 +368,6 @@ const styles = StyleSheet.create({
   btnSaveText: {
     fontWeight: "bold",
     color: "#2A3A56",
-    fontSize: 16
+    fontSize: 16,
   },
 });
