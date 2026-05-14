@@ -115,6 +115,68 @@ class userController {
       user: req.userId,
     });
   }
+
+  // 👤 buscar usuário por id
+  static async buscarPorId(req, res) {
+    try {
+      const { id } = req.params;
+
+      const user = await User.findById(id).select("-senha");
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao buscar usuário",
+      });
+    }
+  }
+  // ✏️ atualizar usuário por id (ADMIN)
+  static async atualizarPorId(req, res) {
+    try {
+      const { id } = req.params;
+
+      const { nome_completo, email, telefone, endereco } = req.body;
+
+      const user = await User.findByIdAndUpdate(
+        id,
+        {
+          nome_completo,
+          email,
+          telefone,
+          endereco,
+        },
+        { new: true },
+      ).select("-senha");
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao atualizar usuário",
+      });
+    }
+  }
 }
 
 module.exports = userController;

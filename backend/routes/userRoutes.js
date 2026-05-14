@@ -20,4 +20,10 @@ router.put("/me", AuthMiddleware, userController.atualizarPerfil);
 // 🔥 LISTAR USUÁRIOS (ADMIN)
 router.get("/", adminAuthMiddleware, userController.listar);
 
+// 👇 buscar usuário por id (ADMIN)
+router.get("/:id", adminAuthMiddleware, userController.buscarPorId);
+
+// 👇 atualizar usuário por id (ADMIN)
+router.put("/:id", adminAuthMiddleware, userController.atualizarPorId);
+
 module.exports = router;
