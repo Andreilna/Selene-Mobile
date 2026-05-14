@@ -340,7 +340,7 @@ class DispositivoController {
         dispositivo: id,
       })
         .sort({ timestamp: -1 })
-        .limit(20);
+        .limit(40);
 
       return res.status(200).json(leituras);
     } catch (error) {
