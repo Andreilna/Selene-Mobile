@@ -12,7 +12,11 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  SafeAreaProvider,
+} from "react-native-safe-area-context";
+
 import * as SecureStore from "expo-secure-store";
 
 type Usuario = {
@@ -41,6 +45,9 @@ export default function EditarSensor() {
 
   const [token, setToken] = useState<string | null>(null);
 
+  // ==========================================
+  // CARREGAR TOKEN
+  // ==========================================
   useEffect(() => {
     const loadToken = async () => {
       try {
@@ -55,6 +62,8 @@ export default function EditarSensor() {
 
         setToken(t);
       } catch (err) {
+        console.log(err);
+
         Alert.alert("Erro", "Falha ao carregar token");
       }
     };
@@ -62,6 +71,9 @@ export default function EditarSensor() {
     loadToken();
   }, []);
 
+  // ==========================================
+  // CARREGAR DADOS
+  // ==========================================
   useEffect(() => {
     if (token) {
       fetchUsuarios(token);
@@ -69,6 +81,9 @@ export default function EditarSensor() {
     }
   }, [token]);
 
+  // ==========================================
+  // BUSCAR USUÁRIOS
+  // ==========================================
   const fetchUsuarios = async (authToken: string) => {
     try {
       setLoadingUsers(true);
@@ -84,25 +99,37 @@ export default function EditarSensor() {
 
       const data = await res.json();
 
-      let lista =
-        data?.data?.usuarios || data?.data || data?.usuarios || data || [];
+      console.log("USUÁRIOS:", data);
 
-      if (!Array.isArray(lista)) lista = [];
+      let lista =
+        data?.data?.usuarios ||
+        data?.data ||
+        data?.usuarios ||
+        [];
+
+      if (!Array.isArray(lista)) {
+        lista = [];
+      }
 
       const usuariosFormatados = lista.map((u: any) => ({
-        _id: u._id || "",
+        _id: String(u._id || ""),
         nome: u.nome || u.nome_completo || "Usuário",
-        email: u.email || "sem email",
+        email: u.email || "Sem email",
       }));
 
       setUsuarios(usuariosFormatados);
-    } catch {
+    } catch (err) {
+      console.log("ERRO USERS:", err);
+
       Alert.alert("Erro", "Não foi possível carregar usuários");
     } finally {
       setLoadingUsers(false);
     }
   };
 
+  // ==========================================
+  // BUSCAR DISPOSITIVO
+  // ==========================================
   const buscarDispositivo = async (authToken: string) => {
     try {
       setLoadingDevice(true);
@@ -110,7 +137,7 @@ export default function EditarSensor() {
       const sensorId = Array.isArray(id) ? id[0] : id;
 
       console.log("ID:", sensorId);
-      console.log("TOKEN USADO:", authToken);
+      console.log("TOKEN:", authToken);
 
       const res = await fetch(
         `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}`,
@@ -125,26 +152,41 @@ export default function EditarSensor() {
 
       const data = await res.json();
 
-      console.log("RESPOSTA API:", data);
+      console.log("DISPOSITIVO:", data);
 
       if (!res.ok) {
-        throw new Error(data.message || "Erro ao buscar dispositivo");
+        throw new Error(
+          data?.message || "Erro ao buscar dispositivo",
+        );
       }
 
       const dispositivo =
-        data?.data?.dispositivo || data?.data || data?.dispositivo || data;
+        data?.data?.dispositivo ||
+        data?.data ||
+        data?.dispositivo ||
+        data;
+
+      console.log("DISPOSITIVO FORMATADO:", dispositivo);
 
       setNome(dispositivo?.nome || "");
+
       setMac(dispositivo?.mac_address || "");
+
       setLocalizacao(dispositivo?.localizacao || "");
 
+      // 🔥 IMPORTANTE
+      // backend retorna usuario e NÃO usuario_id
       setUsuarioId(
-        dispositivo?.usuario_id?._id || dispositivo?.usuario_id || "",
+        String(
+          dispositivo?.usuario?._id ||
+          dispositivo?.usuario ||
+          "",
+        ),
       );
 
       setTipo(dispositivo?.tipo || "ESP32_SENSORES");
     } catch (err: any) {
-      console.log("ERRO:", err);
+      console.log("ERRO DEVICE:", err);
 
       Alert.alert(
         "Erro",
@@ -155,6 +197,9 @@ export default function EditarSensor() {
     }
   };
 
+  // ==========================================
+  // EDITAR DISPOSITIVO
+  // ==========================================
   const editarDispositivo = async () => {
     if (!nome || !mac || !usuarioId) {
       Alert.alert("Erro", "Preencha todos os campos");
@@ -174,7 +219,7 @@ export default function EditarSensor() {
         tipo,
       };
 
-      console.log(token);
+      console.log("PAYLOAD:", payload);
 
       const res = await fetch(
         `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}`,
@@ -190,20 +235,27 @@ export default function EditarSensor() {
 
       const data = await res.json();
 
+      console.log("UPDATE:", data);
+
       if (!res.ok) {
-        throw new Error(data.message || "Erro ao editar");
+        throw new Error(data?.message || "Erro ao editar");
       }
 
       Alert.alert("Sucesso", "Dispositivo atualizado!");
 
-      router.replace("/(admin)/monitoring");
+      router.replace("/(admin)/(tabs)/monitoring");
     } catch (err: any) {
+      console.log("ERRO UPDATE:", err);
+
       Alert.alert("Erro", err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  // ==========================================
+  // LOADING
+  // ==========================================
   if (loadingDevice) {
     return (
       <View
@@ -218,32 +270,57 @@ export default function EditarSensor() {
     );
   }
 
+  // ==========================================
+  // RENDER
+  // ==========================================
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.push("/(admin)/monitoring")}
+              onPress={() =>
+                router.push("/(admin)/(tabs)/monitoring")
+              }
             >
-              <Feather name="arrow-left" size={28} color="#2A3A56" />
+              <Feather
+                name="arrow-left"
+                size={28}
+                color="#2A3A56"
+              />
             </TouchableOpacity>
 
             <View style={styles.textContainer}>
-              <Text style={styles.welcomeText}>Editar Sensor</Text>
-              <Text style={styles.subwelcomeText}>Dispositivo</Text>
+              <Text style={styles.welcomeText}>
+                Editar Sensor
+              </Text>
+
+              <Text style={styles.subwelcomeText}>
+                Dispositivo
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.content}>
           <Text style={styles.label}>Nome</Text>
-          <TextInput style={styles.input} value={nome} onChangeText={setNome} />
+
+          <TextInput
+            style={styles.input}
+            value={nome}
+            onChangeText={setNome}
+          />
 
           <Text style={styles.label}>MAC</Text>
-          <TextInput style={styles.input} value={mac} onChangeText={setMac} />
+
+          <TextInput
+            style={styles.input}
+            value={mac}
+            onChangeText={setMac}
+          />
 
           <Text style={styles.label}>Localização</Text>
+
           <TextInput
             style={styles.input}
             value={localizacao}
@@ -258,9 +335,14 @@ export default function EditarSensor() {
             <View style={styles.pickerBox}>
               <Picker
                 selectedValue={usuarioId}
-                onValueChange={(value) => setUsuarioId(value)}
+                onValueChange={(value) =>
+                  setUsuarioId(String(value))
+                }
               >
-                <Picker.Item label="Selecione um usuário" value="" />
+                <Picker.Item
+                  label="Selecione um usuário"
+                  value=""
+                />
 
                 {usuarios.map((u) => (
                   <Picker.Item
@@ -279,9 +361,12 @@ export default function EditarSensor() {
             <TouchableOpacity
               style={[
                 styles.typeButton,
-                tipo === "ESP32_SENSORES" && styles.typeButtonActive,
+                tipo === "ESP32_SENSORES" &&
+                styles.typeButtonActive,
               ]}
-              onPress={() => setTipo("ESP32_SENSORES")}
+              onPress={() =>
+                setTipo("ESP32_SENSORES")
+              }
             >
               <Text>Sensor</Text>
             </TouchableOpacity>
@@ -289,7 +374,8 @@ export default function EditarSensor() {
             <TouchableOpacity
               style={[
                 styles.typeButton,
-                tipo === "ESP32_CAM" && styles.typeButtonActive,
+                tipo === "ESP32_CAM" &&
+                styles.typeButtonActive,
               ]}
               onPress={() => setTipo("ESP32_CAM")}
             >
@@ -305,7 +391,9 @@ export default function EditarSensor() {
             {loading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.buttonText}>Salvar Alterações</Text>
+              <Text style={styles.buttonText}>
+                Salvar Alterações
+              </Text>
             )}
           </TouchableOpacity>
         </View>

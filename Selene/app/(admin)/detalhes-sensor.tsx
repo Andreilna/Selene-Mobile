@@ -35,15 +35,41 @@ export default function DetalhesSensor() {
             },
           },
         );
+
         const data = await response.json();
-        if (response.ok) setLeituras(data);
-      } catch (error) {
-        Alert.alert("Erro", "Falha ao carregar leituras");
+
+        console.log("LEITURAS API:", data);
+
+        if (!response.ok) {
+          throw new Error(data.message || "Erro ao buscar leituras");
+        }
+
+        // 🔥 GARANTE ARRAY
+        let lista = [];
+
+        if (Array.isArray(data)) {
+          lista = data;
+        } else if (Array.isArray(data?.data)) {
+          lista = data.data;
+        } else if (Array.isArray(data?.leituras)) {
+          lista = data.leituras;
+        }
+
+        setLeituras(lista);
+      } catch (error: any) {
+        console.log("ERRO LEITURAS:", error);
+
+        setLeituras([]);
+
+        Alert.alert(
+          "Erro",
+          error.message || "Falha ao carregar leituras",
+        );
       } finally {
         setTimeout(() => {
           setLoading(false);
           setRefreshing(false);
-        }, 800);
+        }, 500);
       }
     },
     [],
@@ -113,7 +139,7 @@ export default function DetalhesSensor() {
             );
             if (!response.ok) throw new Error("Erro ao excluir");
             Alert.alert("Sucesso", "Sensor removido");
-            router.replace("/(admin)/monitoring");
+            router.replace("/(admin)/(tabs)/monitoring");
           } catch (error: any) {
             Alert.alert("Erro", error.message);
           }
@@ -135,11 +161,16 @@ export default function DetalhesSensor() {
     );
   }
 
-  const ultimaLeitura = leituras
-    .filter((l) => l.tipo_leitura === "SENSORES" && l.timestamp)
-    .sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    })[0];
+  const ultimaLeitura = Array.isArray(leituras)
+    ? leituras
+      .filter((l) => l.tipo_leitura === "SENSORES" && l.timestamp)
+      .sort((a, b) => {
+        return (
+          new Date(b.timestamp).getTime() -
+          new Date(a.timestamp).getTime()
+        );
+      })[0]
+    : null;
 
   return (
     <SafeAreaProvider>
@@ -147,7 +178,7 @@ export default function DetalhesSensor() {
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.push("/(admin)/monitoring")}
+              onPress={() => router.push("/(admin)/(tabs)/monitoring")}
             >
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
@@ -229,11 +260,11 @@ export default function DetalhesSensor() {
                   <Text style={styles.progressText}>
                     {ultimaLeitura?.timestamp
                       ? new Date(ultimaLeitura.timestamp).toLocaleString(
-                          "pt-BR",
-                          {
-                            timeZone: "America/Sao_Paulo",
-                          },
-                        )
+                        "pt-BR",
+                        {
+                          timeZone: "America/Sao_Paulo",
+                        },
+                      )
                       : "--"}
                   </Text>
                 </View>

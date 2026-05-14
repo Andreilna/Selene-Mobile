@@ -25,10 +25,10 @@ export default function DetalhesCamera() {
   const [refreshing, setRefreshing] = useState(false);
 
   const buscarLeituras = useCallback(
-    async (deviceId: string, adminToken: string) => {
+    async (sensorId: string, adminToken: string) => {
       try {
         const response = await fetch(
-          `https://selene-mobile.onrender.com/api/v1/dispositivos/${deviceId}/leituras`,
+          `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}/leituras`,
           {
             headers: {
               Authorization: `Bearer ${adminToken}`,
@@ -36,15 +36,36 @@ export default function DetalhesCamera() {
             },
           },
         );
+
         const data = await response.json();
-        if (response.ok) {
-          const soFotos = data.filter(
-            (item: any) => item.tipo_leitura === "CAMERA",
-          );
-          setLeituras(soFotos);
+
+        console.log("LEITURAS API:", data);
+
+        if (!response.ok) {
+          throw new Error(data.message || "Erro ao buscar leituras");
         }
-      } catch (error) {
-        Alert.alert("Erro", "Falha ao carregar capturas");
+
+        // 🔥 GARANTE ARRAY
+        let lista = [];
+
+        if (Array.isArray(data)) {
+          lista = data;
+        } else if (Array.isArray(data?.data)) {
+          lista = data.data;
+        } else if (Array.isArray(data?.leituras)) {
+          lista = data.leituras;
+        }
+
+        setLeituras(lista);
+      } catch (error: any) {
+        console.log("ERRO LEITURAS:", error);
+
+        setLeituras([]);
+
+        Alert.alert(
+          "Erro",
+          error.message || "Falha ao carregar leituras",
+        );
       } finally {
         setTimeout(() => {
           setLoading(false);
@@ -115,7 +136,7 @@ export default function DetalhesCamera() {
             );
             if (response.ok) {
               Alert.alert("Sucesso", "Câmera removida");
-              router.replace("/(admin)/monitoring");
+              router.replace("/(admin)/(tabs)/monitoring");
             } else {
               throw new Error();
             }
@@ -143,11 +164,16 @@ export default function DetalhesCamera() {
     );
   }
 
-  const ultimaLeitura = leituras
-    .filter((l) => l.tipo_leitura === "CAMERA" && l.timestamp)
-    .sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    })[0];
+  const ultimaLeitura = Array.isArray(leituras)
+    ? leituras
+      .filter((l) => l.tipo_leitura === "CAMERA" && l.timestamp)
+      .sort((a, b) => {
+        return (
+          new Date(b.timestamp).getTime() -
+          new Date(a.timestamp).getTime()
+        );
+      })[0]
+    : null;
 
   return (
     <SafeAreaProvider>
@@ -155,7 +181,7 @@ export default function DetalhesCamera() {
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.push("/(admin)/monitoring")}
+              onPress={() => router.push("/(admin)/(tabs)/monitoring")}
             >
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>

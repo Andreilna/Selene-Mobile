@@ -2,8 +2,12 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
   FlatList,
 } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,62 +22,104 @@ type Atualizacao = {
   status: "Realizado" | "Em andamento";
 };
 
-const DATA: Atualizacao[] = [
-  {
-    id: "1",
-    titulo: "Novos Filtros Produtor",
-    data: "01 Maio - 15:00",
-    status: "Realizado",
-  },
-  {
-    id: "2",
-    titulo: "Novo Padrão IOT",
-    data: "01 Maio - 15:00",
-    status: "Realizado",
-  },
-  {
-    id: "3",
-    titulo: "Melhoria Busca Estufa",
-    data: "01 Maio - 15:00",
-    status: "Realizado",
-  },
-  {
-    id: "4",
-    titulo: "Novo Campo Para Estufas",
-    data: "01 Maio - 15:00",
-    status: "Realizado",
-  },
-];
-
 export default function MenuAtualizacoes() {
   const [tab, setTab] = useState<"Realizadas" | "Andamento">("Realizadas");
   const [iniciais, setIniciais] = useState("US");
+
+  const [loading, setLoading] = useState(true);
+  const [commits, setCommits] = useState<Atualizacao[]>([]);
 
   const handleGoProfile = () => {
     router.push("/(admin)/profile-admin");
   };
 
   useEffect(() => {
-    const carregarDadosUsuario = async () => {
-      try {
-        const nomeSalvo = await SecureStore.getItemAsync("userName");
-        if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(" ");
-          const init =
-            partes.length > 1
-              ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
-          setIniciais(init);
-        }
-      } catch (e) { }
-    };
     carregarDadosUsuario();
+    carregarCommits();
   }, []);
+
+  const carregarDadosUsuario = async () => {
+    try {
+      const nomeSalvo = await SecureStore.getItemAsync("userName");
+
+      if (nomeSalvo) {
+        const partes = nomeSalvo.trim().split(" ");
+
+        const init =
+          partes.length > 1
+            ? (partes[0][0] + partes[1][0]).toUpperCase()
+            : partes[0][0].toUpperCase();
+
+        setIniciais(init);
+      }
+    } catch (e) { }
+  };
+
+  const carregarCommits = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        "https://api.github.com/repos/Andreilna/Selene-Mobile/commits?per_page=10",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/vnd.github+json",
+            "User-Agent": "Expo-App",
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`GitHub respondeu ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      console.log("COMMITS:", data);
+
+      if (!Array.isArray(data)) {
+        setCommits([]);
+        return;
+      }
+
+      const commitsFormatados: Atualizacao[] = data
+        .slice(0, 10)
+        .map((commit: any) => ({
+          id: commit.sha || Math.random().toString(),
+          titulo: commit.commit?.message || "Sem mensagem",
+          data: commit.commit?.author?.date
+            ? new Date(commit.commit.author.date).toLocaleString("pt-BR", {
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+            : "--",
+          status: "Realizado",
+        }));
+
+      setCommits(commitsFormatados);
+    } catch (error) {
+      console.log("Erro ao carregar commits:", error);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível carregar atualizações do GitHub",
+      );
+
+      setCommits([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
 
   const renderItem = ({ item }: { item: Atualizacao }) => (
     <View style={styles.itemCard}>
       <View style={styles.iconBox}>
-        <MaterialCommunityIcons name="tools" size={24} color="#FFF" />
+        <MaterialCommunityIcons name="source-commit" size={24} color="#FFF" />
       </View>
 
       <View style={styles.infoBox}>
@@ -88,11 +134,11 @@ export default function MenuAtualizacoes() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={["top"]}>
-        {/* HEADER VERDE */}
+        {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.push("/(admin)/home-admin")}
+              onPress={() => router.push("/(admin)/(tabs)/home-admin")}
             >
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
@@ -112,9 +158,8 @@ export default function MenuAtualizacoes() {
           </View>
         </View>
 
-        {/* CONTEÚDO BRANCO */}
+        {/* CONTEÚDO */}
         <View style={styles.content}>
-          {/* TOGGLE TABS */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={[
@@ -151,25 +196,17 @@ export default function MenuAtualizacoes() {
             </TouchableOpacity>
           </View>
 
-          {/* LISTA */}
-          <View style={styles.listHeader}>
-            <Text style={styles.monthText}>Maio</Text>
-            <TouchableOpacity style={styles.calendarIcon}>
-              <MaterialCommunityIcons
-                name="calendar-month"
-                size={24}
-                color="#FFF"
-              />
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={DATA}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            showsVerticalScrollIndicator={false}
-          />
+          {loading ? (
+            <ActivityIndicator size="large" color="#00D191" />
+          ) : (
+            <FlatList
+              data={commits}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -192,6 +229,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 50,
     paddingHorizontal: 25,
     paddingTop: 40,
+    paddingBottom: 80,
   },
 
   // -------------------
