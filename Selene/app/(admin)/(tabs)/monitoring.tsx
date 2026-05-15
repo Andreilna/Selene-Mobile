@@ -90,13 +90,16 @@ export default function MonitoramentoAdmin() {
 
       const formatados: Sensor[] = Array.isArray(listaReais)
         ? listaReais.map((d: any) => ({
-          id: d._id,
-          nome: d.nome || d.nome_dispositivo || "Dispositivo",
-          local: d.localizacao || d.local || "Área Externa",
-          tipo: d.tipo || "SENSOR",
-          status: (d.ativo ? "Ativo" : "Inativo") as "Ativo" | "Inativo",
-          criadoPor: d.usuario?.nome_completo || "Desconhecido",
-        }))
+            id: d._id,
+            nome: d.nome || d.nome_dispositivo || "Dispositivo",
+            local: d.localizacao || d.local || "Área Externa",
+            tipo: d.tipo || "SENSOR",
+            status: (d.ativo ? "Ativo" : "Inativo") as "Ativo" | "Inativo",
+            criadoPor:
+              d.usuario?.nome ??
+              d.usuario?.email?.split("@")[0] ??
+              "Usuário removido",
+          }))
         : [];
 
       setSensores(formatados);
@@ -170,7 +173,7 @@ export default function MonitoramentoAdmin() {
         <View style={styles.topContainer}>
           <View style={styles.header}>
             <TouchableOpacity
-              onPress={() => router.push("/(admin)/home-admin")}
+              onPress={() => router.push("/(admin)/(tabs)/home-admin")}
             >
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
@@ -240,7 +243,7 @@ export default function MonitoramentoAdmin() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159"
+    backgroundColor: "#95C159",
   },
   content: {
     flex: 1,
@@ -275,11 +278,11 @@ const styles = StyleSheet.create({
   headerIcons: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15
+    gap: 15,
   },
   textContainer: {
     flex: 1,
-    marginLeft: 20
+    marginLeft: 20,
   },
   welcomeText: {
     fontSize: 22,
@@ -289,7 +292,7 @@ const styles = StyleSheet.create({
   subwelcomeText: {
     fontSize: 14,
     color: "#2A3A56",
-    opacity: 0.8
+    opacity: 0.8,
   },
 
   // -------------------
