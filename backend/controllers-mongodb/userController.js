@@ -177,6 +177,30 @@ class userController {
       });
     }
   }
+  static async deletarPorId(req, res) {
+    try {
+      const { id } = req.params;
+
+      const user = await User.findByIdAndDelete(id);
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Usuário não encontrado",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "Usuário deletado com sucesso",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao deletar usuário",
+      });
+    }
+  }
 }
 
 module.exports = userController;

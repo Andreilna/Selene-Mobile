@@ -26,4 +26,7 @@ router.get("/:id", adminAuthMiddleware, userController.buscarPorId);
 // 👇 atualizar usuário por id (ADMIN)
 router.put("/:id", adminAuthMiddleware, userController.atualizarPorId);
 
+// 
+router.delete("/:id", adminAuthMiddleware, userController.deletarPorId);
+
 module.exports = router;
