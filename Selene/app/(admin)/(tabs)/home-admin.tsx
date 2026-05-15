@@ -158,14 +158,14 @@ export default function AdminHome() {
                   color="#FFF"
                 />
               }
-              onPress={() => router.push("/(admin)/users")}
+              onPress={() => router.push("/(admin)/(tabs)/users")}
             />
 
             <MenuButton
               title="Controle Sensores"
               subtitle="Medir o controle dos sensores em campo."
               icon={<Feather name="cpu" size={24} color="#FFF" />}
-              onPress={() => router.push("/(admin)/monitoring")}
+              onPress={() => router.push("/(admin)/(tabs)/monitoring")}
             />
 
             <MenuButton
@@ -185,6 +185,7 @@ export default function AdminHome() {
               title="Notas de Atualização"
               subtitle="Acompanhe as atualizações recentes da aplicação."
               icon={<Feather name="gift" size={24} color="#FFF" />}
+              onPress={() => router.push("/(admin)/(tabs)/statistics")}
             />
           </ScrollView>
         </View>

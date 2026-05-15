@@ -189,7 +189,7 @@ export default function PerfilUsuarioScreen() {
 
             Alert.alert("Sucesso", "Usuário excluído com sucesso!");
 
-            router.replace("/(admin)/users");
+            router.replace("/(admin)/(tabs)/users");
           } catch (error: any) {
             console.log("ERRO DELETE:", error);
 
@@ -263,7 +263,7 @@ export default function PerfilUsuarioScreen() {
           <View style={styles.topContainer}>
             <View style={styles.header}>
               <TouchableOpacity
-                onPress={() => router.replace("/(admin)/users")}
+                onPress={() => router.replace("/(admin)/(tabs)/users")}
               >
                 <Feather name="arrow-left" size={28} color="#2A3A56" />
               </TouchableOpacity>

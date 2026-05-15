@@ -56,6 +56,9 @@ export default function MenuAtualizacoes() {
   };
 
   const carregarCommits = async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s
+
     try {
       setLoading(true);
 
@@ -67,7 +70,8 @@ export default function MenuAtualizacoes() {
             Accept: "application/vnd.github+json",
             "User-Agent": "Expo-App",
           },
-        },
+          signal: controller.signal,
+        }
       );
 
       if (!response.ok) {
@@ -76,45 +80,43 @@ export default function MenuAtualizacoes() {
 
       const data = await response.json();
 
-      console.log("COMMITS:", data);
-
       if (!Array.isArray(data)) {
         setCommits([]);
         return;
       }
 
-      const commitsFormatados: Atualizacao[] = data
-        .slice(0, 10)
-        .map((commit: any) => ({
-          id: commit.sha || Math.random().toString(),
-          titulo: commit.commit?.message || "Sem mensagem",
-          data: commit.commit?.author?.date
-            ? new Date(commit.commit.author.date).toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-            : "--",
-          status: "Realizado",
-        }));
+      const commitsFormatados: Atualizacao[] = data.slice(0, 10).map((commit: any) => ({
+        id: commit.sha,
+        titulo: commit.commit?.message ?? "Sem mensagem",
+        data: commit.commit?.author?.date
+          ? new Date(commit.commit.author.date).toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+          : "--",
+        status: "Realizado",
+      }));
 
       setCommits(commitsFormatados);
-    } catch (error) {
+    } catch (error: any) {
       console.log("Erro ao carregar commits:", error);
 
-      Alert.alert(
-        "Erro",
-        "Não foi possível carregar atualizações do GitHub",
-      );
+      if (error.name === "AbortError") {
+        Alert.alert("Erro", "Tempo de resposta do GitHub excedido");
+      } else {
+        Alert.alert("Erro", "Não foi possível carregar atualizações do GitHub");
+      }
 
       setCommits([]);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
 
-  
+
 
   const renderItem = ({ item }: { item: Atualizacao }) => (
     <View style={styles.itemCard}>
