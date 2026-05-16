@@ -22,34 +22,119 @@ export default function HomeScreen() {
   const [nomeUsuario, setNomeUsuario] = useState("Usuário");
   const [iniciais, setIniciais] = useState("US");
   const [loading, setLoading] = useState(true);
+  const [leituras, setLeituras] = useState<any[]>([]);
+  const [ultimaLeitura, setUltimaLeitura] = useState<any>(null);
 
   // ==========================================
   // LÓGICA DE CARREGAMENTO (STORAGE/API)
   // ==========================================
   useEffect(() => {
-    const carregarDadosUsuario = async () => {
+    const carregarDados = async () => {
       try {
-        const nomeSalvo = await SecureStore.getItemAsync("userName");
+        const [nomeSalvo, token] = await Promise.all([
+          SecureStore.getItemAsync("userName"),
+          SecureStore.getItemAsync("userToken"),
+        ]);
+
+        // =========================
+        // DADOS USUÁRIO
+        // =========================
         if (nomeSalvo) {
           const partes = nomeSalvo.trim().split(" ");
+
           const primeiroSegundo =
-            partes.length > 1 ? `${partes[0]} ${partes[1]}` : partes[0];
+            partes.length > 1
+              ? `${partes[0]} ${partes[1]}`
+              : partes[0];
+
           setNomeUsuario(primeiroSegundo);
 
           const init =
             partes.length > 1
               ? (partes[0][0] + partes[1][0]).toUpperCase()
               : partes[0][0].toUpperCase();
+
           setIniciais(init);
         }
+
+        // =========================
+        // BUSCA SENSOR
+        // =========================
+        if (token) {
+          // PEGA TODOS OS DISPOSITIVOS
+          const sensoresRes = await fetch(
+            "https://selene-mobile.onrender.com/api/v1/dispositivos",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
+          const sensoresJson = await sensoresRes.json();
+          console.log("SENSORES:", JSON.stringify(sensoresJson, null, 2));
+
+          const sensores =
+            sensoresJson.data ||
+            sensoresJson.dispositivos ||
+            [];
+
+          // PEGA PRIMEIRO SENSOR
+          const primeiroSensor = sensores[0];
+
+          if (primeiroSensor?._id) {
+            // BUSCA LEITURAS
+            const leituraRes = await fetch(
+              `https://selene-mobile.onrender.com/api/v1/dispositivos/${primeiroSensor._id}/leituras`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+            const leituraJson = await leituraRes.json();
+            console.log("LEITURAS:", JSON.stringify(leituraJson, null, 2));
+
+            let lista = [];
+
+            if (Array.isArray(leituraJson)) {
+              lista = leituraJson;
+            } else if (Array.isArray(leituraJson?.data)) {
+              lista = leituraJson.data;
+            } else if (Array.isArray(leituraJson?.leituras)) {
+              lista = leituraJson.leituras;
+            }
+
+            setLeituras(lista);
+
+            const ultima = lista
+              .filter(
+                (l: any) =>
+                  l.timestamp &&
+                  l.dados,
+              )
+              .sort((a: any, b: any) => {
+                return (
+                  new Date(b.timestamp).getTime() -
+                  new Date(a.timestamp).getTime()
+                );
+              })[0];
+
+            setUltimaLeitura(ultima);
+          }
+        }
       } catch (e) {
-        console.error("Erro ao carregar dados do SecureStore", e);
+        console.error("Erro ao carregar dados", e);
       } finally {
         setLoading(false);
       }
     };
-    carregarDadosUsuario();
-  }, []);
+
+    carregarDados();
+  }, []);;
 
   // ==========================================
   // DADOS MOCKADOS (SERÃO SUBSTITUÍDOS PELA API)
@@ -228,7 +313,9 @@ export default function HomeScreen() {
                 color="#2A3A56"
               />,
               "Temp.",
-              "21° C",
+              ultimaLeitura?.dados?.temperatura != null
+                ? `${Number(ultimaLeitura.dados.temperatura).toFixed(0)}° C`
+                : "--",
             )}
             {renderCardGeral(
               <MaterialCommunityIcons
@@ -237,14 +324,18 @@ export default function HomeScreen() {
                 color="#2A3A56"
               />,
               "Umid.",
-              "15%",
+              ultimaLeitura?.dados?.umidade != null
+                ? `${Number(ultimaLeitura.dados.umidade).toFixed(0)}%`
+                : "--",
             )}
             {renderCardGeral(
               <Ionicons name="partly-sunny" size={16} color="#2A3A56" />,
               "Luz",
-              "20H",
+              ultimaLeitura?.dados?.luminosidade != null
+                ? `${Number(ultimaLeitura.dados.luminosidade).toFixed(0)}`
+                : "--",
             )}
-            
+
           </View>
 
           {/* SEÇÃO: ALERTAS RECENTES */}

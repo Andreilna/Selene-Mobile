@@ -177,7 +177,7 @@
           <View style={styles.topContainer}>
             <View style={styles.header}>
               <TouchableOpacity
-                onPress={() => router.push("/(admin)/monitoring")}
+                onPress={() => router.push("/(admin)/(tabs)/monitoring")}
               >
                 <Feather name="arrow-left" size={28} color="#2A3A56" />
               </TouchableOpacity>

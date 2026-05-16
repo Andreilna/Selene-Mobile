@@ -100,31 +100,31 @@ export default function NovoUsuario() {
       const body =
         nivel === "superadmin"
           ? {
-              usuario: email.split("@")[0].trim().toLowerCase(),
+            usuario: email.split("@")[0].trim().toLowerCase(),
 
-              nome_completo: nome.trim(),
+            nome_completo: nome.trim(),
 
-              email: email.trim().toLowerCase(),
+            email: email.trim().toLowerCase(),
 
-              senha,
+            senha,
 
-              telefone: telefone || "",
+            telefone: telefone || "",
 
-              nivel_acesso: "superadmin",
-            }
+            nivel_acesso: "superadmin",
+          }
           : {
-              nome_completo: nome.trim(),
+            nome_completo: nome.trim(),
 
-              email: email.trim().toLowerCase(),
+            email: email.trim().toLowerCase(),
 
-              senha,
+            senha,
 
-              telefone: telefone || "",
+            telefone: telefone || "",
 
-              data_nascimento: dataNascimento || null,
+            data_nascimento: dataNascimento || null,
 
-              tipo: "user",
-            };
+            tipo: "user",
+          };
 
       // ==========================================
       // REQUEST
@@ -165,11 +165,11 @@ export default function NovoUsuario() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         {/* HEADER */}
         <View style={styles.topContainer}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.replace("/(admin)/users")}>
+            <TouchableOpacity onPress={() => router.replace("/(admin)/(tabs)/users")}>
               <Feather name="arrow-left" size={28} color="#2A3A56" />
             </TouchableOpacity>
 
@@ -298,7 +298,7 @@ export default function NovoUsuario() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#95C159",
+    backgroundColor: "#95C159"
   },
   content: {
     flex: 1,

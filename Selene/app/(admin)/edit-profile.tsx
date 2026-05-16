@@ -135,18 +135,14 @@ export default function EditProfileScreen() {
       setSaving(true);
 
       const token = await SecureStore.getItemAsync("userToken");
-      const currentRole = await SecureStore.getItemAsync("userRole");
 
       if (!token) {
         Alert.alert("Erro", "Usuário não autenticado");
         return;
       }
 
-      const isAdmin = currentRole === "admin" || currentRole === "superadmin";
-
-      const endpoint = isAdmin
-        ? `https://selene-mobile.onrender.com/api/v1/admin/perfil`
-        : `https://selene-mobile.onrender.com/api/v1/users/me`;
+      // endpoint usando o ID da pessoa editada
+      const endpoint = `https://selene-mobile.onrender.com/api/v1/users/${id}`;
 
       const res = await fetch(endpoint, {
         method: "PUT",
@@ -169,9 +165,6 @@ export default function EditProfileScreen() {
       if (!res.ok) {
         throw new Error(data.message || "Erro ao atualizar");
       }
-
-      await SecureStore.setItemAsync("userName", nome);
-      await SecureStore.setItemAsync("userEmail", email);
 
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
 
