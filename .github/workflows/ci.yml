@@ -32,11 +32,6 @@ jobs:
           cd backend
           npm install
 
-      - name: Build project
-        run: |
-          cd backend
-          npm run build
-
       - name: Docker build
         run: |
           docker build -t backend ./backend
