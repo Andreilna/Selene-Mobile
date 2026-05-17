@@ -47,7 +47,7 @@ class adminController {
           nivel: admin.nivel_acesso,
         },
         process.env.JWT_SECRET || "secret_fallback",
-        { expiresIn: "24h" }
+        { expiresIn: "24h" },
       );
 
       res.json({
@@ -273,7 +273,7 @@ class adminController {
       const adminAtualizado = await Admin.findByIdAndUpdate(
         adminId,
         updateData,
-        { new: true }
+        { new: true },
       );
 
       res.json({
@@ -295,6 +295,84 @@ class adminController {
       success: true,
       data: req.admin,
     });
+  }
+
+  // ==========================================
+  // EXCLUIR ADMIN
+  // ==========================================
+  static async excluirAdmin(req, res) {
+    try {
+      const { id } = req.params;
+
+      const admin = await Admin.findById(id);
+
+      if (!admin) {
+        return res.status(404).json({
+          success: false,
+          message: "Administrador não encontrado",
+        });
+      }
+
+      await Admin.findByIdAndDelete(id);
+
+      res.json({
+        success: true,
+        message: "Administrador excluído com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro ao excluir admin:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
+  }
+
+  // ==========================================
+  // EDITAR ADMIN
+  // ==========================================
+  static async editarAdmin(req, res) {
+    try {
+      const { id } = req.params;
+
+      const { nome_completo, email, telefone, usuario, nivel_acesso } =
+        req.body;
+
+      const admin = await Admin.findById(id);
+
+      if (!admin) {
+        return res.status(404).json({
+          success: false,
+          message: "Administrador não encontrado",
+        });
+      }
+
+      if (nome_completo) admin.nome_completo = nome_completo;
+
+      if (email) admin.email = email.toLowerCase();
+
+      if (telefone) admin.telefone = telefone;
+
+      if (usuario) admin.usuario = usuario;
+
+      if (nivel_acesso) admin.nivel_acesso = nivel_acesso;
+
+      await admin.save();
+
+      res.json({
+        success: true,
+        message: "Administrador atualizado com sucesso",
+        data: admin,
+      });
+    } catch (error) {
+      console.error("Erro ao editar admin:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "Erro interno do servidor",
+      });
+    }
   }
 }
 

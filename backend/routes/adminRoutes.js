@@ -30,4 +30,10 @@ router.put("/resetar-senha", adminController.resetarSenha);
 // PUT /api/v1/admin/alterar-senha - Alterar senha (requer autenticação)
 router.put("/alterar-senha", adminAuthMiddleware, adminController.alterarSenha);
 
+// DELETE /api/v1/admin/:id
+router.delete("/:id", adminAuthMiddleware, adminController.excluirAdmin);
+
+// PUT /api/v1/admin/:id
+router.put("/:id", adminAuthMiddleware, adminController.editarAdmin);
+
 module.exports = router;
