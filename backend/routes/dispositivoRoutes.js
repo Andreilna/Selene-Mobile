@@ -7,7 +7,7 @@ const authMiddleware = require("../middleware/auth-mongodb");
 
 const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
-// ==========================================
+// ==========================================1
 // USER
 // ==========================================
 
@@ -47,7 +47,7 @@ router.post("/", adminAuthMiddleware, DispositivoController.criar);
 // BUSCA LEITURAS DO DISPOSITIVO
 router.get(
   "/:id/leituras",
-  adminAuthMiddleware,
+  authMiddleware,
   DispositivoController.buscarLeituras,
 );
 
