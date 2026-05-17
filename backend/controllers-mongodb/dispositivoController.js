@@ -31,7 +31,7 @@ class DispositivoController {
 
       const dispositivos = await Dispositivo.find(filtro)
         .populate("planta", "especie status")
-        .populate("usuario", "nome email")
+        .populate("usuario", "nome_completo email"))
         .sort({ nome: 1 });
 
       return res.status(200).json({
@@ -61,7 +61,7 @@ class DispositivoController {
 
       const dispositivo = await Dispositivo.findById(id)
         .populate("planta")
-        .populate("usuario", "nome email");
+        .populate("usuario", "nome_completo email");
 
       if (!dispositivo) {
         return res.status(404).json({
@@ -221,7 +221,7 @@ class DispositivoController {
           runValidators: true,
         },
       )
-        .populate("usuario", "nome email")
+        .populate("usuario", "nome_completo email")
         .populate("planta");
 
       return res.status(200).json({
@@ -333,7 +333,7 @@ class DispositivoController {
   static async listarTodos(req, res) {
     try {
       const dispositivos = await Dispositivo.find()
-        .populate("usuario", "nome email")
+        .populate("usuario", "nome_completo email"))
         .populate("planta")
         .sort({ nome: 1 });
 
