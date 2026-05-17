@@ -24,6 +24,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [leituras, setLeituras] = useState<any[]>([]);
   const [ultimaLeitura, setUltimaLeitura] = useState<any>(null);
+  const [totalDados, setTotalDados] = useState(0);
+  const [totalAnomalias, setTotalAnomalias] = useState(0);
+  const [totalImagens, setTotalImagens] = useState(0);
+  const [totalDadosSensor, setTotalDadosSensor] = useState(0);
 
   // ==========================================
   // LÓGICA DE CARREGAMENTO (STORAGE/API)
@@ -43,9 +47,7 @@ export default function HomeScreen() {
           const partes = nomeSalvo.trim().split(" ");
 
           const primeiroSegundo =
-            partes.length > 1
-              ? `${partes[0]} ${partes[1]}`
-              : partes[0];
+            partes.length > 1 ? `${partes[0]} ${partes[1]}` : partes[0];
 
           setNomeUsuario(primeiroSegundo);
 
@@ -63,7 +65,7 @@ export default function HomeScreen() {
         if (token) {
           // PEGA TODOS OS DISPOSITIVOS
           const sensoresRes = await fetch(
-            "https://selene-mobile.onrender.com/api/v1/dispositivos",
+            "https://selene-mobile.onrender.com/api/v1/dispositivos/meus",
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -73,12 +75,8 @@ export default function HomeScreen() {
           );
 
           const sensoresJson = await sensoresRes.json();
-          console.log("SENSORES:", JSON.stringify(sensoresJson, null, 2));
 
-          const sensores =
-            sensoresJson.data ||
-            sensoresJson.dispositivos ||
-            [];
+          const sensores = sensoresJson.data || sensoresJson.dispositivos || [];
 
           // PEGA PRIMEIRO SENSOR
           const primeiroSensor = sensores[0];
@@ -96,7 +94,6 @@ export default function HomeScreen() {
             );
 
             const leituraJson = await leituraRes.json();
-            console.log("LEITURAS:", JSON.stringify(leituraJson, null, 2));
 
             let lista = [];
 
@@ -110,12 +107,49 @@ export default function HomeScreen() {
 
             setLeituras(lista);
 
+            // ==========================================
+            // TOTAL DE DADOS DO SENSOR
+            // ==========================================
+            const totalLeituras = lista.length;
+
+            setTotalDados(totalLeituras);
+            setTotalDadosSensor(totalLeituras);
+
+            // ==========================================
+            // DETECTAR ANOMALIAS
+            // ==========================================
+            const anomalias = lista.filter((l: any) => {
+              const temp = l?.dados?.temperatura;
+              const umidade = l?.dados?.umidade;
+              const luz = l?.dados?.luminosidade;
+
+              return (
+                temp > 30 ||
+                temp < 10 ||
+                umidade > 85 ||
+                umidade < 40 ||
+                luz < 2
+              );
+            });
+
+            setTotalAnomalias(anomalias.length);
+
+            console.log("PRIMEIRA LEITURA:", lista[0]);
+
+            // ==========================================
+            // TOTAL DE IMAGENS
+            // ==========================================
+            const imagens = lista.filter(
+              (l: any) => l.imagem || l.imagem_url || l.foto || l.image,
+            );
+
+            setTotalImagens(imagens.length);
+
+            // ==========================================
+            // ÚLTIMA LEITURA
+            // ==========================================
             const ultima = lista
-              .filter(
-                (l: any) =>
-                  l.timestamp &&
-                  l.dados,
-              )
+              .filter((l: any) => l.timestamp && l.dados)
               .sort((a: any, b: any) => {
                 return (
                   new Date(b.timestamp).getTime() -
@@ -134,16 +168,15 @@ export default function HomeScreen() {
     };
 
     carregarDados();
-  }, []);;
+  }, []);
 
   // ==========================================
   // DADOS MOCKADOS (SERÃO SUBSTITUÍDOS PELA API)
   // ==========================================
-  const dadosGerais = {
-    totalAnalises: 560,
-    totalDeteccoes: 23,
-    porcentagem: 30,
-  };
+  const porcentagem =
+    totalDadosSensor > 0
+      ? Math.round((totalAnomalias / totalDadosSensor) * 100)
+      : 0;
 
   const alertas = [
     {
@@ -240,39 +273,28 @@ export default function HomeScreen() {
                     size={20}
                     color="#2A3A56"
                   />
-                  <Text style={styles.resumoLabel}>Total Análises</Text>
+                  <Text style={styles.resumoLabel}>Total Detecções</Text>
                 </View>
-                <Text style={styles.resumoValue}>
-                  {dadosGerais.totalAnalises}
-                </Text>
+                <Text style={styles.resumoValue}>{totalAnomalias}</Text>
               </View>
               <View style={styles.verticalDivider} />
               <View style={styles.resumoItem}>
                 <View style={styles.resumoHeader}>
                   <Ionicons name="warning-outline" size={20} color="#2A3A56" />
-                  <Text style={styles.resumoLabel}>Total Detecções</Text>
+                  <Text style={styles.resumoLabel}>Total Análises</Text>
                 </View>
                 <Text style={[styles.resumoValue, { color: "#2A3A56" }]}>
-                  {dadosGerais.totalDeteccoes}
+                  {totalDadosSensor}
                 </Text>
               </View>
             </View>
 
             {/* BARRA DE PROGRESSO DE SAÚDE */}
             <View style={styles.progressContainer}>
-              <View
-                style={[
-                  styles.progressBar,
-                  { width: `${dadosGerais.porcentagem}%` },
-                ]}
-              >
-                <Text style={styles.progressText}>
-                  {dadosGerais.porcentagem}%
-                </Text>
+              <View style={[styles.progressBar, { width: `${porcentagem}%` }]}>
+                <Text style={styles.progressText}>{porcentagem}%</Text>
               </View>
-              <Text style={styles.progressValueText}>
-                {dadosGerais.totalAnalises}
-              </Text>
+              <Text style={styles.progressValueText}>{totalImagens}</Text>
             </View>
 
             <View style={styles.progressDescriptionRow}>
@@ -282,7 +304,7 @@ export default function HomeScreen() {
                 color="#2A3A56"
               />
               <Text style={styles.progressDescriptionText}>
-                {dadosGerais.porcentagem}% De Detecções
+                {porcentagem}% De Detecções
               </Text>
             </View>
           </SafeAreaView>
@@ -335,7 +357,6 @@ export default function HomeScreen() {
                 ? `${Number(ultimaLeitura.dados.luminosidade).toFixed(0)}`
                 : "--",
             )}
-
           </View>
 
           {/* SEÇÃO: ALERTAS RECENTES */}

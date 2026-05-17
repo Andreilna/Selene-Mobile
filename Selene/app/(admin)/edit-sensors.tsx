@@ -53,8 +53,6 @@ export default function EditarSensor() {
       try {
         const t = await SecureStore.getItemAsync("userToken");
 
-        console.log("TOKEN:", t);
-
         if (!t) {
           Alert.alert("Erro", "Token não encontrado");
           return;
@@ -62,7 +60,6 @@ export default function EditarSensor() {
 
         setToken(t);
       } catch (err) {
-        console.log(err);
 
         Alert.alert("Erro", "Falha ao carregar token");
       }
@@ -99,8 +96,6 @@ export default function EditarSensor() {
 
       const data = await res.json();
 
-      console.log("USUÁRIOS:", data);
-
       let lista =
         data?.data?.usuarios ||
         data?.data ||
@@ -119,7 +114,6 @@ export default function EditarSensor() {
 
       setUsuarios(usuariosFormatados);
     } catch (err) {
-      console.log("ERRO USERS:", err);
 
       Alert.alert("Erro", "Não foi possível carregar usuários");
     } finally {
@@ -136,9 +130,6 @@ export default function EditarSensor() {
 
       const sensorId = Array.isArray(id) ? id[0] : id;
 
-      console.log("ID:", sensorId);
-      console.log("TOKEN:", authToken);
-
       const res = await fetch(
         `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}`,
         {
@@ -152,8 +143,6 @@ export default function EditarSensor() {
 
       const data = await res.json();
 
-      console.log("DISPOSITIVO:", data);
-
       if (!res.ok) {
         throw new Error(
           data?.message || "Erro ao buscar dispositivo",
@@ -165,8 +154,6 @@ export default function EditarSensor() {
         data?.data ||
         data?.dispositivo ||
         data;
-
-      console.log("DISPOSITIVO FORMATADO:", dispositivo);
 
       setNome(dispositivo?.nome || "");
 
@@ -186,7 +173,6 @@ export default function EditarSensor() {
 
       setTipo(dispositivo?.tipo || "ESP32_SENSORES");
     } catch (err: any) {
-      console.log("ERRO DEVICE:", err);
 
       Alert.alert(
         "Erro",
@@ -219,8 +205,6 @@ export default function EditarSensor() {
         tipo,
       };
 
-      console.log("PAYLOAD:", payload);
-
       const res = await fetch(
         `https://selene-mobile.onrender.com/api/v1/dispositivos/${sensorId}`,
         {
@@ -235,8 +219,6 @@ export default function EditarSensor() {
 
       const data = await res.json();
 
-      console.log("UPDATE:", data);
-
       if (!res.ok) {
         throw new Error(data?.message || "Erro ao editar");
       }
@@ -245,7 +227,6 @@ export default function EditarSensor() {
 
       router.replace("/(admin)/(tabs)/monitoring");
     } catch (err: any) {
-      console.log("ERRO UPDATE:", err);
 
       Alert.alert("Erro", err.message);
     } finally {

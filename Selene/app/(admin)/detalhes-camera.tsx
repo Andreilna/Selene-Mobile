@@ -39,8 +39,6 @@ export default function DetalhesCamera() {
 
         const data = await response.json();
 
-        console.log("LEITURAS API:", data);
-
         if (!response.ok) {
           throw new Error(data.message || "Erro ao buscar leituras");
         }
@@ -58,7 +56,6 @@ export default function DetalhesCamera() {
 
         setLeituras(lista);
       } catch (error: any) {
-        console.log("ERRO LEITURAS:", error);
 
         setLeituras([]);
 
@@ -257,7 +254,6 @@ export default function DetalhesCamera() {
             <TouchableOpacity
               style={styles.editBtn}
               onPress={() => {
-                console.log("ID ENVIADO:", id);
 
                 router.push({
                   pathname: "/(admin)/edit-sensors",

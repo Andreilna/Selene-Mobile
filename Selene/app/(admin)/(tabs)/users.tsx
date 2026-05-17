@@ -43,7 +43,7 @@ export default function ControleAcessoScreen() {
   };
 
   const formatDate = (dateString: any) => {
-    if (!dateString) return "Abril 30 - 14:40";
+    if (!dateString) return "null";
 
     const date = new Date(dateString);
 

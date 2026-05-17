@@ -22,17 +22,25 @@ export default function EditProfileScreen() {
   const [saving, setSaving] = useState(false);
 
   const [nome, setNome] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     const preencherCampos = (user: any) => {
-      setNome(user.nome_completo || user.usuario || "");
+      setNome(user.nome_completo || "");
+      setUsuario(user.usuario || "");
       setEmail(user.email || "");
       setTelefone(user.telefone || "");
       setEndereco(user.endereco || "");
+
+      setDataNascimento(
+        user.data_nascimento || user.dataNascimento || user.nascimento || "",
+      );
     };
 
     const carregarDadosParaEdicao = async () => {
@@ -52,7 +60,10 @@ export default function EditProfileScreen() {
 
         const buscaId = id.toString().trim().toLowerCase();
 
-        // BUSCA DIRETA
+        // ==========================================
+        // BUSCA DIRETA USERS
+        // ==========================================
+
         let response = await fetch(
           `https://selene-mobile.onrender.com/api/v1/users/${id}`,
           {
@@ -65,11 +76,17 @@ export default function EditProfileScreen() {
         let json = await response.json();
 
         if (response.ok) {
+          setIsAdmin(false);
+
           preencherCampos(json.data || json.usuario || json);
+
           return;
         }
 
-        // BUSCA EM LISTA DE USERS
+        // ==========================================
+        // BUSCA LISTA USERS
+        // ==========================================
+
         const resLista = await fetch(
           `https://selene-mobile.onrender.com/api/v1/users`,
           {
@@ -81,18 +98,24 @@ export default function EditProfileScreen() {
 
         const jsonLista = await resLista.json();
 
-        const lista = jsonLista.data || jsonLista.usuarios || jsonLista || [];
+        const lista = jsonLista.data || jsonLista.usuarios || [];
 
         const encontrado = lista.find(
           (u: any) => (u._id || u.id)?.toString().toLowerCase() === buscaId,
         );
 
         if (encontrado) {
+          setIsAdmin(false);
+
           preencherCampos(encontrado);
+
           return;
         }
 
+        // ==========================================
         // BUSCA ADMINS
+        // ==========================================
+
         const resAdmins = await fetch(
           `https://selene-mobile.onrender.com/api/v1/admin/listar`,
           {
@@ -111,7 +134,10 @@ export default function EditProfileScreen() {
         );
 
         if (adminEncontrado) {
+          setIsAdmin(true);
+
           preencherCampos(adminEncontrado);
+
           return;
         }
 
@@ -121,6 +147,7 @@ export default function EditProfileScreen() {
         );
       } catch (error) {
         console.error("--- [DEBUG] Erro de conexão:", error);
+
         Alert.alert("Erro", "Falha de conexão com o servidor.");
       } finally {
         setLoading(false);
@@ -129,6 +156,10 @@ export default function EditProfileScreen() {
 
     carregarDadosParaEdicao();
   }, [id]);
+
+  // ==========================================
+  // SALVAR
+  // ==========================================
 
   const handleSalvar = async () => {
     try {
@@ -141,8 +172,10 @@ export default function EditProfileScreen() {
         return;
       }
 
-      // endpoint usando o ID da pessoa editada
-      const endpoint = `https://selene-mobile.onrender.com/api/v1/users/${id}`;
+      // DEFINE ENDPOINT
+      const endpoint = isAdmin
+        ? `https://selene-mobile.onrender.com/api/v1/admin/${id}`
+        : `https://selene-mobile.onrender.com/api/v1/users/${id}`;
 
       const res = await fetch(endpoint, {
         method: "PUT",
@@ -151,7 +184,7 @@ export default function EditProfileScreen() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          usuario: nome,
+          usuario,
           nome_completo: nome,
           email,
           telefone,
@@ -170,11 +203,16 @@ export default function EditProfileScreen() {
 
       router.back();
     } catch (error: any) {
+
       Alert.alert("Erro", error.message || "Ocorreu um erro inesperado");
     } finally {
       setSaving(false);
     }
   };
+
+  // ==========================================
+  // LOADING
+  // ==========================================
 
   if (loading) {
     return (
@@ -219,6 +257,19 @@ export default function EditProfileScreen() {
                 onChangeText={setNome}
               />
             </View>
+
+            {isAdmin && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Usuário</Text>
+
+                <TextInput
+                  style={styles.input}
+                  value={usuario}
+                  onChangeText={setUsuario}
+                  autoCapitalize="none"
+                />
+              </View>
+            )}
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>E-mail</Text>
@@ -282,26 +333,16 @@ export default function EditProfileScreen() {
   );
 }
 
-// -------------------
-// Main Container & Layout
-// -------------------
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#95C159",
   },
-  content: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 50,
-    borderTopRightRadius: 50,
-    paddingHorizontal: 25,
-    paddingTop: 40,
-  },
+
   scrollContent: {
     flexGrow: 1,
   },
+
   card: {
     flex: 1,
     backgroundColor: "#FFF",
@@ -312,9 +353,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  // -------------------
-  // Header Section
-  // -------------------
+  // HEADER
 
   header: {
     flexDirection: "row",
@@ -323,30 +362,32 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingHorizontal: 20,
   },
+
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#2A3A56",
   },
+
   backButton: {
     padding: 8,
     backgroundColor: "rgba(255,255,255,0.3)",
     borderRadius: 12,
   },
 
-  // -------------------
-  // Form & Inputs
-  // -------------------
+  // FORM
 
   inputGroup: {
     marginBottom: 18,
   },
+
   label: {
     fontSize: 13,
     color: "#666",
     marginBottom: 6,
     fontWeight: "600",
   },
+
   input: {
     backgroundColor: "#F5F5F5",
     borderRadius: 15,
@@ -356,14 +397,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
+
   textArea: {
     height: 90,
     textAlignVertical: "top",
   },
 
-  // -------------------
-  // Action Buttons
-  // -------------------
+  // BUTTON
 
   btnSave: {
     backgroundColor: "#F4C542",
@@ -372,6 +412,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 30,
   },
+
   btnSaveText: {
     fontWeight: "bold",
     color: "#2A3A56",

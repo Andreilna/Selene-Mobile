@@ -38,8 +38,6 @@ export default function DetalhesSensor() {
 
         const data = await response.json();
 
-        console.log("LEITURAS API:", data);
-
         if (!response.ok) {
           throw new Error(data.message || "Erro ao buscar leituras");
         }
@@ -57,7 +55,6 @@ export default function DetalhesSensor() {
 
         setLeituras(lista);
       } catch (error: any) {
-        console.log("ERRO LEITURAS:", error);
 
         setLeituras([]);
 
@@ -274,7 +271,6 @@ export default function DetalhesSensor() {
             <TouchableOpacity
               style={styles.editBtn}
               onPress={() => {
-                console.log("ID ENVIADO:", id);
 
                 router.push({
                   pathname: "/(admin)/edit-sensors",

@@ -167,9 +167,16 @@ export default function PerfilUsuarioScreen() {
 
             const buscaId = id?.toString().replace(/"/g, "").trim();
 
-            const endpoint = `https://selene-mobile.onrender.com/api/v1/users/${buscaId}`;
+            // VERIFICA SE É ADMIN
+            const isAdmin =
+              userData?.nivel_acesso === "admin" ||
+              userData?.nivel_acesso === "superadmin" ||
+              userData?.cargo;
 
-            console.log("DELETE:", endpoint);
+            // DEFINE A ROTA CORRETA
+            const endpoint = isAdmin
+              ? `https://selene-mobile.onrender.com/api/v1/admin/${buscaId}`
+              : `https://selene-mobile.onrender.com/api/v1/users/${buscaId}`;
 
             const res = await fetch(endpoint, {
               method: "DELETE",
@@ -180,9 +187,6 @@ export default function PerfilUsuarioScreen() {
 
             const data = await res.json();
 
-            console.log("STATUS:", res.status);
-            console.log("DATA:", data);
-
             if (!res.ok) {
               throw new Error(data.message || "Erro ao excluir usuário");
             }
@@ -191,7 +195,6 @@ export default function PerfilUsuarioScreen() {
 
             router.replace("/(admin)/(tabs)/users");
           } catch (error: any) {
-            console.log("ERRO DELETE:", error);
 
             Alert.alert("Erro", error.message || "Falha ao excluir usuário");
           }

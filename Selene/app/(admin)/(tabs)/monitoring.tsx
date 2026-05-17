@@ -89,17 +89,22 @@ export default function MonitoramentoAdmin() {
       const listaReais = json?.data || json || [];
 
       const formatados: Sensor[] = Array.isArray(listaReais)
-        ? listaReais.map((d: any) => ({
-            id: d._id,
-            nome: d.nome || d.nome_dispositivo || "Dispositivo",
-            local: d.localizacao || d.local || "Área Externa",
-            tipo: d.tipo || "SENSOR",
-            status: (d.ativo ? "Ativo" : "Inativo") as "Ativo" | "Inativo",
-            criadoPor:
-              d.usuario?.nome ??
-              d.usuario?.email?.split("@")[0] ??
-              "Usuário removido",
-          }))
+        ? listaReais.map((d: any) => {
+            console.log("DISPOSITIVO:", JSON.stringify(d, null, 2));
+
+            return {
+              id: d._id,
+              nome: d.nome || d.nome_dispositivo || "Dispositivo",
+              local: d.localizacao || d.local || "Área Externa",
+              tipo: d.tipo || "SENSOR",
+              status: (d.ativo ? "Ativo" : "Inativo") as "Ativo" | "Inativo",
+
+              criadoPor:
+                d.usuario?.nome_completo ??
+                d.usuario?.email?.split("@")[0] ??
+                "Usuário removido",
+            };
+          })
         : [];
 
       setSensores(formatados);
