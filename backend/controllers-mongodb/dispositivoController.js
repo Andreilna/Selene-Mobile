@@ -66,7 +66,7 @@ class DispositivoController {
       if (!dispositivo) {
         return res.status(404).json({
           success: false,
-          message: "Dispositivo não encontrado",
+          message: "Dispositivo não Encontrado",
         });
       }
 
