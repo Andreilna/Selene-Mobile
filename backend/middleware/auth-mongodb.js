@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models-mongodb/User");
+const Admin = require("../models-mongodb/Admin");
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -44,12 +45,19 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // 4. Buscar usuário
-    const user = await User.findById(userId);
+    // 4. Buscar usuário OU admin
+    let user = await User.findById(userId);
+    let isAdmin = false;
 
     if (!user) {
-      console.error(`❌ Usuário com ID ${userId} não existe no banco.`);
+      user = await Admin.findById(userId);
 
+      if (user) {
+        isAdmin = true;
+      }
+    }
+
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "Usuário não encontrado no banco",
@@ -60,13 +68,18 @@ const authMiddleware = async (req, res, next) => {
     if (user.ativo === false) {
       return res.status(401).json({
         success: false,
-        message: "Esta conta está desativada",
+        message: "Conta desativada",
       });
     }
 
-    // 6. Injetar usuário
+    // 6. Injetar dados
     req.userId = user._id;
     req.user = user;
+
+    if (isAdmin) {
+      req.adminId = user._id;
+      req.userRole = "admin";
+    }
 
     next();
   } catch (error) {
