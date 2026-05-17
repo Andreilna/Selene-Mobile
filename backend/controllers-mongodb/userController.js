@@ -30,7 +30,7 @@ class userController {
   static async listar(req, res) {
     try {
       const usuarios = await User.find({ tipo: "user" }).select(
-        "_id nome_completo email",
+        "_id nome_completo email telefone endereco criado_em",
       );
 
       return res.json({
