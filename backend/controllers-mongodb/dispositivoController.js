@@ -38,9 +38,7 @@ class DispositivoController {
         success: true,
         data: dispositivos,
         total: dispositivos.length,
-        modo_visualizacao: isAdmin
-          ? "visao_geral_admin"
-          : "visao_usuario",
+        modo_visualizacao: isAdmin ? "visao_geral_admin" : "visao_usuario",
       });
     } catch (error) {
       console.error("Erro ao listar dispositivos:", error);
@@ -89,14 +87,8 @@ class DispositivoController {
   // ==========================================
   static async criar(req, res) {
     try {
-      const {
-        mac_address,
-        nome,
-        tipo,
-        localizacao,
-        planta_id,
-        usuario_id,
-      } = req.body;
+      const { mac_address, nome, tipo, localizacao, planta_id, usuario_id } =
+        req.body;
 
       if (!mac_address) {
         return res.status(400).json({
@@ -166,14 +158,8 @@ class DispositivoController {
     try {
       const { id } = req.params;
 
-      const {
-        nome,
-        tipo,
-        localizacao,
-        planta_id,
-        usuario_id,
-        mac_address,
-      } = req.body;
+      const { nome, tipo, localizacao, planta_id, usuario_id, mac_address } =
+        req.body;
 
       const dispositivo = await Dispositivo.findById(id);
 
@@ -307,8 +293,9 @@ class DispositivoController {
 
       return res.status(200).json({
         success: true,
-        message: `Dispositivo ${dispositivo.ativo ? "ativado" : "desativado"
-          } com sucesso`,
+        message: `Dispositivo ${
+          dispositivo.ativo ? "ativado" : "desativado"
+        } com sucesso`,
         data: {
           id: dispositivo._id,
           nome: dispositivo.nome,
@@ -388,10 +375,14 @@ class DispositivoController {
     try {
       const { id } = req.params;
 
+      // quantidade vinda pela query
+      const limite = parseInt(req.query.limite) || 40;
+
       const leituras = await Leitura.find({
         dispositivo: id,
       })
         .sort({ timestamp: -1 })
+        .limit(limite);
 
       return res.status(200).json({
         success: true,
@@ -403,6 +394,44 @@ class DispositivoController {
       return res.status(500).json({
         success: false,
         message: "Erro ao buscar leituras",
+      });
+    }
+  }
+
+  static async buscarResumo(req, res) {
+    try {
+      const { id } = req.params;
+
+      const [totalLeituras, totalCapturas, totalSensores] = await Promise.all([
+        Leitura.countDocuments({
+          dispositivo: id,
+        }),
+
+        Leitura.countDocuments({
+          dispositivo: id,
+          tipo_leitura: "CAMERA",
+        }),
+
+        Leitura.countDocuments({
+          dispositivo: id,
+          tipo_leitura: "SENSORES",
+        }),
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          totalLeituras,
+          totalCapturas,
+          totalSensores,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Erro ao buscar resumo",
       });
     }
   }

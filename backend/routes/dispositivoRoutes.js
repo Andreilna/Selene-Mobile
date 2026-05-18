@@ -7,12 +7,22 @@ const authMiddleware = require("../middleware/auth-mongodb");
 
 const adminAuthMiddleware = require("../middleware/admin-auth-mongodb");
 
-// ==========================================1
+// ==========================================
 // USER
 // ==========================================
 
 // LISTA DISPOSITIVOS DO USUÁRIO
 router.get("/meus", authMiddleware, DispositivoController.listar);
+
+// RESUMO DO DISPOSITIVO
+router.get("/:id/resumo", authMiddleware, DispositivoController.buscarResumo);
+
+// BUSCA LEITURAS DO DISPOSITIVO
+router.get(
+  "/:id/leituras",
+  authMiddleware,
+  DispositivoController.buscarLeituras,
+);
 
 // BUSCA UM DISPOSITIVO
 router.get("/:id", adminAuthMiddleware, DispositivoController.buscar);
@@ -43,13 +53,6 @@ router.get("/", adminAuthMiddleware, DispositivoController.listarTodos);
 
 // CRIA DISPOSITIVO
 router.post("/", adminAuthMiddleware, DispositivoController.criar);
-
-// BUSCA LEITURAS DO DISPOSITIVO
-router.get(
-  "/:id/leituras",
-  authMiddleware,
-  DispositivoController.buscarLeituras,
-);
 
 // DELETA DISPOSITIVO
 router.delete("/:id", adminAuthMiddleware, DispositivoController.deletar);
