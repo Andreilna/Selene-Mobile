@@ -41,7 +41,7 @@ export default function HomeScreen() {
         ]);
 
         // =========================
-        // DADOS USUÁRIO
+        // USUÁRIO
         // =========================
         if (nomeSalvo) {
           const partes = nomeSalvo.trim().split(" ");
@@ -59,11 +59,10 @@ export default function HomeScreen() {
           setIniciais(init);
         }
 
-        // =========================
-        // BUSCA SENSOR
-        // =========================
         if (token) {
-          // PEGA TODOS OS DISPOSITIVOS
+          // =========================
+          // DISPOSITIVOS
+          // =========================
           const sensoresRes = await fetch(
             "https://selene-mobile.onrender.com/api/v1/dispositivos/meus",
             {
@@ -75,16 +74,65 @@ export default function HomeScreen() {
           );
 
           const sensoresJson = await sensoresRes.json();
+          const sensores = sensoresJson.data || [];
 
-          const sensores = sensoresJson.data || sensoresJson.dispositivos || [];
-
-          // PEGA PRIMEIRO SENSOR
           const primeiroSensor = sensores[0];
 
-          if (primeiroSensor?._id) {
-            // BUSCA LEITURAS
+          if (sensores.length > 0) {
+            // =========================
+            // RESUMO AGREGADO DE TODOS OS DISPOSITIVOS
+            // =========================
+            const resumos = await Promise.all(
+              sensores.map(async (dispositivo: any) => {
+                const resumoRes = await fetch(
+                  `https://selene-mobile.onrender.com/api/v1/dispositivos/${dispositivo._id}/resumo`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  },
+                );
+                const resumoJson = await resumoRes.json();
+                return resumoJson?.data || {};
+              }),
+            );
+
+            const totals = resumos.reduce(
+              (acc, resumo) => {
+                const totalCapturas = Number(resumo.totalCapturas || 0);
+                const totalSensores = Number(resumo.totalSensores || 0);
+                const totalGeral = Number(
+                  resumo.totalGeral || totalCapturas + totalSensores,
+                );
+
+                return {
+                  totalLeituras:
+                    acc.totalLeituras + Number(resumo.totalLeituras || 0),
+                  totalCapturas: acc.totalCapturas + totalCapturas,
+                  totalSensores: acc.totalSensores + totalSensores,
+                  totalGeral: acc.totalGeral + totalGeral,
+                };
+              },
+              {
+                totalLeituras: 0,
+                totalCapturas: 0,
+                totalSensores: 0,
+                totalGeral: 0,
+              },
+            );
+
+            setTotalDadosSensor(totals.totalGeral); // Total de análises incluindo fotos e sensores
+            setTotalImagens(totals.totalCapturas); // Quantidade real de fotos
+
+            console.log("RESUMOS AGREGADOS:", totals);
+            console.log("TOTAL GERAL AGREGADO:", totals.totalGeral);
+
+            // ====================================================================
+            // LOGICA CORRIGIDA: BUSCA O HISTÓRICO E COMPUTA DETECÇÕES FORA DA REGRA
+            // ====================================================================
             const leituraRes = await fetch(
-              `https://selene-mobile.onrender.com/api/v1/dispositivos/${primeiroSensor._id}/leituras`,
+              `https://selene-mobile.onrender.com/api/v1/dispositivos/${primeiroSensor._id}/leituras?limite=999999`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -94,70 +142,46 @@ export default function HomeScreen() {
             );
 
             const leituraJson = await leituraRes.json();
-
             let lista = [];
 
-            if (Array.isArray(leituraJson)) {
-              lista = leituraJson;
-            } else if (Array.isArray(leituraJson?.data)) {
+            if (Array.isArray(leituraJson?.data)) {
               lista = leituraJson.data;
-            } else if (Array.isArray(leituraJson?.leituras)) {
-              lista = leituraJson.leituras;
+            } else if (Array.isArray(leituraJson)) {
+              lista = leituraJson;
             }
 
             setLeituras(lista);
 
-            // ==========================================
-            // TOTAL DE DADOS DO SENSOR
-            // ==========================================
-            const totalLeituras = lista.length;
+            // Filtra o histórico para garantir que pegamos registros reais de sensores
+            const leiturasSensores = lista.filter(
+              (item: any) => item.tipo_leitura === "SENSORES",
+            );
+            const ultima = leiturasSensores[0] || null;
+            setUltimaLeitura(ultima);
 
-            setTotalDados(totalLeituras);
-            setTotalDadosSensor(totalLeituras);
+            // Executa a varredura em todo o lote de dados retornado do sensor
+            let contadorDeteccoesGeral = 0;
 
-            // ==========================================
-            // DETECTAR ANOMALIAS
-            // ==========================================
-            const anomalias = lista.filter((l: any) => {
-              const temp = l?.dados?.temperatura;
-              const umidade = l?.dados?.umidade;
-              const luz = l?.dados?.luminosidade;
+            leiturasSensores.forEach((leitura: any) => {
+              if (leitura?.dados) {
+                const temp = leitura.dados.temperatura;
+                const umidade = leitura.dados.umidade;
+                const luz = leitura.dados.luminosidade;
 
-              return (
-                temp > 30 ||
-                temp < 10 ||
-                umidade > 85 ||
-                umidade < 40 ||
-                luz < 2
-              );
+                const itemComAnomalia =
+                  temp > 24 ||
+                  temp < 10 ||
+                  umidade < 80 ||
+                  umidade > 95 ||
+                  luz === 0;
+
+                if (itemComAnomalia) {
+                  contadorDeteccoesGeral += 1;
+                }
+              }
             });
 
-            setTotalAnomalias(anomalias.length);
-
-            console.log("PRIMEIRA LEITURA:", lista[0]);
-
-            // ==========================================
-            // TOTAL DE IMAGENS
-            // ==========================================
-            const imagens = lista.filter(
-              (l: any) => l.imagem || l.imagem_url || l.foto || l.image,
-            );
-
-            setTotalImagens(imagens.length);
-
-            // ==========================================
-            // ÚLTIMA LEITURA
-            // ==========================================
-            const ultima = lista
-              .filter((l: any) => l.timestamp && l.dados)
-              .sort((a: any, b: any) => {
-                return (
-                  new Date(b.timestamp).getTime() -
-                  new Date(a.timestamp).getTime()
-                );
-              })[0];
-
-            setUltimaLeitura(ultima);
+            setTotalAnomalias(contadorDeteccoesGeral);
           }
         }
       } catch (e) {
@@ -171,7 +195,7 @@ export default function HomeScreen() {
   }, []);
 
   // ==========================================
-  // DADOS MOCKADOS (SERÃO SUBSTITUÍDOS PELA API)
+  // PROCESSAMENTO DAS PORCENTAGENS
   // ==========================================
   const porcentagem =
     totalDadosSensor > 0
@@ -222,15 +246,12 @@ export default function HomeScreen() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        {/* ---------------------------------------------------------
-            INÍCIO DO HEADER (ÁREA VERDE)
-        ---------------------------------------------------------- */}
+        {/* HEADER (VERDE) */}
         <View style={styles.topContainer}>
           <SafeAreaView
             edges={["top", "left", "right"]}
             style={styles.topContent}
           >
-            {/* SAUDAÇÃO E PERFIL */}
             <View style={styles.header}>
               <View>
                 {loading ? (
@@ -264,7 +285,6 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* RESUMO DE NÚMEROS (ANÁLISES E DETECÇÕES) */}
             <View style={styles.resumoContainer}>
               <View style={styles.resumoItem}>
                 <View style={styles.resumoHeader}>
@@ -289,7 +309,6 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* BARRA DE PROGRESSO DE SAÚDE */}
             <View style={styles.progressContainer}>
               <View style={[styles.progressBar, { width: `${porcentagem}%` }]}>
                 <Text style={styles.progressText}>{porcentagem}%</Text>
@@ -309,15 +328,9 @@ export default function HomeScreen() {
             </View>
           </SafeAreaView>
         </View>
-        {/* ---------------------------------------------------------
-            FIM DO HEADER (ÁREA VERDE)
-        ---------------------------------------------------------- */}
 
-        {/* ---------------------------------------------------------
-            INÍCIO DO CONTEÚDO (ÁREA BRANCA)
-        ---------------------------------------------------------- */}
+        {/* CONTEÚDO (ÁREA BRANCA) */}
         <View style={styles.bottomContainer}>
-          {/* SEÇÃO: VISÃO GERAL (CARDS PEQUENOS) */}
           <View style={styles.sectionHeaderGeral}>
             <MaterialCommunityIcons
               name="view-dashboard-outline"
@@ -359,7 +372,6 @@ export default function HomeScreen() {
             )}
           </View>
 
-          {/* SEÇÃO: ALERTAS RECENTES */}
           <View style={[styles.sectionHeaderGeral, { marginBottom: 15 }]}>
             <Ionicons name="warning-outline" size={24} color="#2A3A56" />
             <Text style={styles.sectionTitle}>Alertas ({alertas.length})</Text>
@@ -416,11 +428,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        {/* ---------------------------------------------------------
-            FIM DO CONTEÚDO (ÁREA BRANCA)
-        ---------------------------------------------------------- */}
 
-        {/* ESPAÇAMENTO FINAL PARA O SCROLL NÃO CORTAR O CONTEÚDO */}
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -431,11 +439,8 @@ export default function HomeScreen() {
 // ESTILIZAÇÃO (STYLES)
 // ==========================================
 const styles = StyleSheet.create({
-  // Estilos globais
   mainContainer: { flex: 1, backgroundColor: "#F5F5F5" },
   scrollContent: { flexGrow: 1 },
-
-  // Estilos do Topo (Verde)
   topContainer: {
     backgroundColor: "#95C159",
     borderBottomLeftRadius: 40,
@@ -521,8 +526,6 @@ const styles = StyleSheet.create({
     color: "#2A3A56",
     fontWeight: "bold",
   },
-
-  // Estilos do Conteúdo (Branco)
   bottomContainer: { paddingHorizontal: 20, paddingTop: 30 },
   sectionHeaderGeral: {
     flexDirection: "row",
@@ -531,8 +534,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#2A3A56" },
-
-  // Estilos dos Cards de Visão Geral
   cardsGeralContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -561,8 +562,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   cardStatusGeral: { fontSize: 10, color: "#95C159", fontWeight: "bold" },
-
-  // Estilos dos Cards de Alerta
   cardAlerta: {
     backgroundColor: "#FFF",
     borderRadius: 15,
