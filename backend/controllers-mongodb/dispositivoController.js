@@ -403,9 +403,7 @@ class DispositivoController {
       const { id } = req.params;
 
       const [totalLeituras, totalCapturas, totalSensores] = await Promise.all([
-        Leitura.countDocuments({
-          dispositivo: id,
-        }),
+        Leitura.countDocuments({ dispositivo: id }),
 
         Leitura.countDocuments({
           dispositivo: id,
@@ -418,12 +416,16 @@ class DispositivoController {
         }),
       ]);
 
+      // 🔥 NOVO CAMPO: TOTAL REAL (o que você quer)
+      const totalGeral = totalCapturas + totalSensores;
+
       return res.status(200).json({
         success: true,
         data: {
           totalLeituras,
           totalCapturas,
           totalSensores,
+          totalGeral, // 👈 ISSO resolve seu problema
         },
       });
     } catch (error) {
