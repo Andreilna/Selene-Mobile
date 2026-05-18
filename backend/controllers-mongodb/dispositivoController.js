@@ -392,7 +392,6 @@ class DispositivoController {
         dispositivo: id,
       })
         .sort({ timestamp: -1 })
-        .limit(40);
 
       return res.status(200).json({
         success: true,
