@@ -45,7 +45,6 @@ export default function EstufasScreen() {
           setIniciais(init);
         }
       } catch (e) {
-        console.log(e);
       }
     };
 
@@ -70,7 +69,6 @@ export default function EstufasScreen() {
         setEstufas(response.data.data);
       }
     } catch (error: any) {
-      console.log("Erro:", error.response?.data || error.message);
 
       if (error.response?.status === 401) {
         Alert.alert("Sessão Expirada", "Faça login novamente.");

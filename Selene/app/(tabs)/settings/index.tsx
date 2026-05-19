@@ -65,7 +65,6 @@ export default function SettingsMenu() {
           setIniciais(init);
         }
       } catch (e) {
-        console.log(e);
       }
     };
 

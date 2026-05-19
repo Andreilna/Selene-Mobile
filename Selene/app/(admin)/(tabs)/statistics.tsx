@@ -101,7 +101,6 @@ export default function MenuAtualizacoes() {
 
       setCommits(commitsFormatados);
     } catch (error: any) {
-      console.log("Erro ao carregar commits:", error);
 
       if (error.name === "AbortError") {
         Alert.alert("Erro", "Tempo de resposta do GitHub excedido");

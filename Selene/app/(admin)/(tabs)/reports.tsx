@@ -78,7 +78,6 @@ export default function DashboardAdmin() {
       const data = await res.json();
       setChats(Array.isArray(data) ? data : data.data || []);
     } catch (err) {
-      console.log("Erro ao buscar chats", err);
     }
   };
 

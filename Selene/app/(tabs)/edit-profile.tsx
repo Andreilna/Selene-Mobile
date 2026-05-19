@@ -94,7 +94,6 @@ export default function EditProfileScreen() {
         if (emailSalvo) setEmail(emailSalvo);
         if (idSalvo) setIdExibicao(idSalvo.substring(0, 8));
       } catch (error) {
-        console.log("ERRO LOAD PERFIL:", error);
       } finally {
         setLoading(false);
       }
@@ -149,7 +148,6 @@ export default function EditProfileScreen() {
       Alert.alert("Sucesso", "Perfil atualizado!");
       router.back();
     } catch (error: any) {
-      console.log("ERRO SALVAR:", error.message);
       Alert.alert("Erro", error.message);
     }
   };

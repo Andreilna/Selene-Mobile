@@ -87,7 +87,6 @@ export default function ProfileScreen() {
 
             router.replace("/(auth)");
           } catch (e) {
-            console.log("Erro ao sair:", e);
           }
         },
       },

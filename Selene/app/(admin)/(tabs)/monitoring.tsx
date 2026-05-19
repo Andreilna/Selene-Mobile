@@ -90,7 +90,6 @@ export default function MonitoramentoAdmin() {
 
       const formatados: Sensor[] = Array.isArray(listaReais)
         ? listaReais.map((d: any) => {
-            console.log("DISPOSITIVO:", JSON.stringify(d, null, 2));
 
             return {
               id: d._id,

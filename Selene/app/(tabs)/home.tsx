@@ -28,43 +28,108 @@ export default function HomeScreen() {
   const [totalAnomalias, setTotalAnomalias] = useState(0);
   const [totalImagens, setTotalImagens] = useState(0);
   const [totalDadosSensor, setTotalDadosSensor] = useState(0);
+  const [alertas, setAlertas] = useState<any[]>([]); // Estado alimentado dinamicamente pelas anomalias
 
   // ==========================================
   // LÓGICA DE CARREGAMENTO (STORAGE/API)
   // ==========================================
-  useEffect(() => {
-    const carregarDados = async () => {
-      try {
-        const [nomeSalvo, token] = await Promise.all([
-          SecureStore.getItemAsync("userName"),
-          SecureStore.getItemAsync("userToken"),
-        ]);
+  const carregarDados = async () => {
+    try {
+      const [nomeSalvo, token] = await Promise.all([
+        SecureStore.getItemAsync("userName"),
+        SecureStore.getItemAsync("userToken"),
+      ]);
 
+      // =========================
+      // USUÁRIO
+      // =========================
+      if (nomeSalvo) {
+        const partes = nomeSalvo.trim().split(" ");
+
+        const primeiroSegundo =
+          partes.length > 1 ? `${partes[0]} ${partes[1]}` : partes[0];
+
+        setNomeUsuario(primeiroSegundo);
+
+        const init =
+          partes.length > 1
+            ? (partes[0][0] + partes[1][0]).toUpperCase()
+            : partes[0][0].toUpperCase();
+
+        setIniciais(init);
+      }
+
+      if (token) {
         // =========================
-        // USUÁRIO
+        // DISPOSITIVOS
         // =========================
-        if (nomeSalvo) {
-          const partes = nomeSalvo.trim().split(" ");
+        const sensoresRes = await fetch(
+          "https://selene-mobile.onrender.com/api/v1/dispositivos/meus",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
 
-          const primeiroSegundo =
-            partes.length > 1 ? `${partes[0]} ${partes[1]}` : partes[0];
+        const sensoresJson = await sensoresRes.json();
+        const sensores = sensoresJson.data || [];
 
-          setNomeUsuario(primeiroSegundo);
+        const primeiroSensor = sensores[0];
 
-          const init =
-            partes.length > 1
-              ? (partes[0][0] + partes[1][0]).toUpperCase()
-              : partes[0][0].toUpperCase();
-
-          setIniciais(init);
-        }
-
-        if (token) {
+        if (sensores.length > 0) {
           // =========================
-          // DISPOSITIVOS
+          // RESUMO AGREGADO DE TODOS OS DISPOSITIVOS
           // =========================
-          const sensoresRes = await fetch(
-            "https://selene-mobile.onrender.com/api/v1/dispositivos/meus",
+          const resumos = await Promise.all(
+            sensores.map(async (dispositivo: any) => {
+              const resumoRes = await fetch(
+                `https://selene-mobile.onrender.com/api/v1/dispositivos/${dispositivo._id}/resumo`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                },
+              );
+              const resumoJson = await resumoRes.json();
+              return resumoJson?.data || {};
+            }),
+          );
+
+          const totals = resumos.reduce(
+            (acc, resumo) => {
+              const totalCapturas = Number(resumo.totalCapturas || 0);
+              const totalSensores = Number(resumo.totalSensores || 0);
+              const totalGeral = Number(
+                resumo.totalGeral || totalCapturas + totalSensores,
+              );
+
+              return {
+                totalLeituras:
+                  acc.totalLeituras + Number(resumo.totalLeituras || 0),
+                totalCapturas: acc.totalCapturas + totalCapturas,
+                totalSensores: acc.totalSensores + totalSensores,
+                totalGeral: acc.totalGeral + totalGeral,
+              };
+            },
+            {
+              totalLeituras: 0,
+              totalCapturas: 0,
+              totalSensores: 0,
+              totalGeral: 0,
+            },
+          );
+
+          setTotalDadosSensor(totals.totalGeral); // Total de análises incluindo fotos e sensores
+          setTotalImagens(totals.totalCapturas); // Quantidade real de fotos
+
+          // ====================================================================
+          // LOGICA CORRIGIDA: BUSCA O HISTÓRICO E COMPUTA DETECÇÕES FORA DA REGRA
+          // ====================================================================
+          const leituraRes = await fetch(
+            `https://selene-mobile.onrender.com/api/v1/dispositivos/${primeiroSensor._id}/leituras?limite=999999`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -73,125 +138,104 @@ export default function HomeScreen() {
             },
           );
 
-          const sensoresJson = await sensoresRes.json();
-          const sensores = sensoresJson.data || [];
+          const leituraJson = await leituraRes.json();
+          let lista = [];
 
-          const primeiroSensor = sensores[0];
+          if (Array.isArray(leituraJson?.data)) {
+            lista = leituraJson.data;
+          } else if (Array.isArray(leituraJson)) {
+            lista = leituraJson;
+          }
 
-          if (sensores.length > 0) {
-            // =========================
-            // RESUMO AGREGADO DE TODOS OS DISPOSITIVOS
-            // =========================
-            const resumos = await Promise.all(
-              sensores.map(async (dispositivo: any) => {
-                const resumoRes = await fetch(
-                  `https://selene-mobile.onrender.com/api/v1/dispositivos/${dispositivo._id}/resumo`,
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                      "Content-Type": "application/json",
-                    },
-                  },
-                );
-                const resumoJson = await resumoRes.json();
-                return resumoJson?.data || {};
-              }),
-            );
+          setLeituras(lista);
 
-            const totals = resumos.reduce(
-              (acc, resumo) => {
-                const totalCapturas = Number(resumo.totalCapturas || 0);
-                const totalSensores = Number(resumo.totalSensores || 0);
-                const totalGeral = Number(
-                  resumo.totalGeral || totalCapturas + totalSensores,
-                );
+          // Filtra o histórico para garantir que pegamos registros reais de sensores
+          const leiturasSensores = lista.filter(
+            (item: any) => item.tipo_leitura === "SENSORES",
+          );
+          const ultima = leiturasSensores[0] || null;
+          setUltimaLeitura(ultima);
 
-                return {
-                  totalLeituras:
-                    acc.totalLeituras + Number(resumo.totalLeituras || 0),
-                  totalCapturas: acc.totalCapturas + totalCapturas,
-                  totalSensores: acc.totalSensores + totalSensores,
-                  totalGeral: acc.totalGeral + totalGeral,
-                };
-              },
-              {
-                totalLeituras: 0,
-                totalCapturas: 0,
-                totalSensores: 0,
-                totalGeral: 0,
-              },
-            );
+          // Executa a varredura em todo o lote de dados retornado do sensor
+          let contadorDeteccoesGeral = 0;
+          const listaAlertasGerados: any[] = [];
 
-            setTotalDadosSensor(totals.totalGeral); // Total de análises incluindo fotos e sensores
-            setTotalImagens(totals.totalCapturas); // Quantidade real de fotos
+          leiturasSensores.forEach((leitura: any, index: number) => {
+            if (leitura?.dados) {
+              const temp = leitura.dados.temperatura;
+              const umidade = leitura.dados.umidade;
+              const luz = leitura.dados.luminosidade;
 
-            console.log("RESUMOS AGREGADOS:", totals);
-            console.log("TOTAL GERAL AGREGADO:", totals.totalGeral);
+              const itemComAnomalia =
+                temp > 24 ||
+                temp < 10 ||
+                umidade < 80 ||
+                umidade > 95 ||
+                luz === 0;
 
-            // ====================================================================
-            // LOGICA CORRIGIDA: BUSCA O HISTÓRICO E COMPUTA DETECÇÕES FORA DA REGRA
-            // ====================================================================
-            const leituraRes = await fetch(
-              `https://selene-mobile.onrender.com/api/v1/dispositivos/${primeiroSensor._id}/leituras?limite=999999`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-              },
-            );
+              if (itemComAnomalia) {
+                contadorDeteccoesGeral += 1;
 
-            const leituraJson = await leituraRes.json();
-            let lista = [];
+                // Preenche a lista de alertas na interface apenas com os incidentes mais recentes (ex: top 4) para não travar a renderização do JSX
+                if (listaAlertasGerados.length < 4) {
+                  let mensagemAlerta = "Anomalia Detectada";
+                  const formattedTemp = temp != null ? Number(temp).toFixed(0) : "--";
+                  const formattedUmidade = umidade != null ? Number(umidade).toFixed(0) : "--";
+                  let submensagemAlerta = `T: ${formattedTemp}°C | U: ${formattedUmidade}%`;
+                  let gravidade = "Média";
+                  let tipo = "aviso";
 
-            if (Array.isArray(leituraJson?.data)) {
-              lista = leituraJson.data;
-            } else if (Array.isArray(leituraJson)) {
-              lista = leituraJson;
-            }
+                  if (temp > 24 || temp < 10) {
+                    mensagemAlerta = temp > 24 ? "Temperatura Alta!" : "Temperatura Baixa!";
+                    gravidade = temp > 28 || temp < 10 ? "Alta" : "Média";
+                    tipo = temp > 28 || temp < 10 ? "risco" : "aviso";
+                  } else if (umidade < 80 || umidade > 95) {
+                    mensagemAlerta = "Umidade Fora do Ideal!";
+                    gravidade = umidade < 70 ? "Alta" : "Média";
+                    tipo = umidade < 70 ? "risco" : "aviso";
+                  } else if (luz === 0) {
+                    mensagemAlerta = "Ausência de Luz Detectada";
+                  }
 
-            setLeituras(lista);
+                  const horaFormatada = leitura.createdAt
+                    ? new Date(leitura.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                    : "Agora";
 
-            // Filtra o histórico para garantir que pegamos registros reais de sensores
-            const leiturasSensores = lista.filter(
-              (item: any) => item.tipo_leitura === "SENSORES",
-            );
-            const ultima = leiturasSensores[0] || null;
-            setUltimaLeitura(ultima);
-
-            // Executa a varredura em todo o lote de dados retornado do sensor
-            let contadorDeteccoesGeral = 0;
-
-            leiturasSensores.forEach((leitura: any) => {
-              if (leitura?.dados) {
-                const temp = leitura.dados.temperatura;
-                const umidade = leitura.dados.umidade;
-                const luz = leitura.dados.luminosidade;
-
-                const itemComAnomalia =
-                  temp > 24 ||
-                  temp < 10 ||
-                  umidade < 80 ||
-                  umidade > 95 ||
-                  luz === 0;
-
-                if (itemComAnomalia) {
-                  contadorDeteccoesGeral += 1;
+                  listaAlertasGerados.push({
+                    id: leitura._id || index.toString(),
+                    mensagem: mensagemAlerta,
+                    submensagem: submensagemAlerta,
+                    gravidade: gravidade,
+                    estufa: primeiroSensor.nome || "Principal",
+                    tempo: horaFormatada,
+                    tipo: tipo
+                  });
                 }
               }
-            });
+            }
+          });
 
-            setTotalAnomalias(contadorDeteccoesGeral);
-          }
+          setTotalAnomalias(contadorDeteccoesGeral);
+          setAlertas(listaAlertasGerados);
         }
-      } catch (e) {
-        console.error("Erro ao carregar dados", e);
-      } finally {
-        setLoading(false);
       }
-    };
-
+    } catch (e) {
+      console.error("Erro ao carregar dados", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     carregarDados();
+
+    const UM_MINUTO_E_TRINTA = 90 * 1000;
+
+    const intervalo = setInterval(() => {
+      carregarDados();
+    }, UM_MINUTO_E_TRINTA);
+
+    return () => clearInterval(intervalo);
   }, []);
 
   // ==========================================
@@ -201,27 +245,6 @@ export default function HomeScreen() {
     totalDadosSensor > 0
       ? Math.round((totalAnomalias / totalDadosSensor) * 100)
       : 0;
-
-  const alertas = [
-    {
-      id: 1,
-      tipo: "risco",
-      gravidade: "Alta",
-      mensagem: "Risco elevado detectado",
-      submensagem: "Possível contaminação por fungo",
-      estufa: 2,
-      tempo: "há 15 min",
-    },
-    {
-      id: 2,
-      tipo: "umidade",
-      gravidade: "Média",
-      mensagem: "Umidade acima do ideal",
-      submensagem: "Umidade 5% acima do recomendado",
-      estufa: 3,
-      tempo: "há 1 hora",
-    },
-  ];
 
   // ==========================================
   // FUNÇÕES DE RENDERIZAÇÃO AUXILIARES
@@ -377,56 +400,61 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>Alertas ({alertas.length})</Text>
           </View>
 
-          {alertas.map((alerta) => (
-            <TouchableOpacity
-              key={alerta.id}
-              activeOpacity={0.8}
-              onPress={() => router.push(`/detalhes/${alerta.estufa}`)}
-            >
-              <View style={styles.cardAlerta}>
-                <View style={styles.cardAlertaMain}>
-                  <View style={styles.cardAlertaContentRow}>
-                    <View style={styles.alertaIconContainer}>
-                      <Ionicons
-                        name={
-                          alerta.tipo === "risco"
-                            ? "close-circle-outline"
-                            : "warning-outline"
-                        }
-                        size={28}
-                        color={
-                          alerta.gravidade === "Alta" ? "#EF4444" : "#F59E0B"
-                        }
-                      />
+          {alertas.length === 0 ? (
+            <View style={{ padding: 10, alignItems: "center" }}>
+              <Text style={{ color: "#2A3A56", opacity: 0.6 }}>Nenhuma irregularidade recente pendente.</Text>
+            </View>
+          ) : (
+            alertas.map((alerta) => (
+              <TouchableOpacity
+                key={alerta.id}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardAlerta}>
+                  <View style={styles.cardAlertaMain}>
+                    <View style={styles.cardAlertaContentRow}>
+                      <View style={styles.alertaIconContainer}>
+                        <Ionicons
+                          name={
+                            alerta.tipo === "risco"
+                              ? "close-circle-outline"
+                              : "warning-outline"
+                          }
+                          size={28}
+                          color={
+                            alerta.gravidade === "Alta" ? "#EF4444" : "#F59E0B"
+                          }
+                        />
+                      </View>
+                      <View style={styles.alertaTextContainer}>
+                        <Text style={styles.alertaTitle}>{alerta.mensagem}</Text>
+                        <Text style={styles.alertaSubtitle}>
+                          {alerta.submensagem}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.alertaTextContainer}>
-                      <Text style={styles.alertaTitle}>{alerta.mensagem}</Text>
-                      <Text style={styles.alertaSubtitle}>
-                        {alerta.submensagem}
-                      </Text>
+                    <View
+                      style={[
+                        styles.badgeGravidade,
+                        {
+                          backgroundColor:
+                            alerta.gravidade === "Alta" ? "#EF4444" : "#F59E0B",
+                        },
+                      ]}
+                    >
+                      <Text style={styles.badgeText}>{alerta.gravidade}</Text>
                     </View>
                   </View>
-                  <View
-                    style={[
-                      styles.badgeGravidade,
-                      {
-                        backgroundColor:
-                          alerta.gravidade === "Alta" ? "#EF4444" : "#F59E0B",
-                      },
-                    ]}
-                  >
-                    <Text style={styles.badgeText}>{alerta.gravidade}</Text>
+                  <View style={styles.alertaFooter}>
+                    <Text style={styles.alertaFooterText}>
+                      Estufa {alerta.estufa}
+                    </Text>
+                    <Text style={styles.alertaFooterText}>{alerta.tempo}</Text>
                   </View>
                 </View>
-                <View style={styles.alertaFooter}>
-                  <Text style={styles.alertaFooterText}>
-                    Estufa {alerta.estufa}
-                  </Text>
-                  <Text style={styles.alertaFooterText}>{alerta.tempo}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -542,7 +570,7 @@ const styles = StyleSheet.create({
   cardGeral: {
     backgroundColor: "#FFF",
     borderRadius: 15,
-    width: "23%",
+    width: "28%",
     paddingVertical: 15,
     paddingHorizontal: 5,
     alignItems: "center",
